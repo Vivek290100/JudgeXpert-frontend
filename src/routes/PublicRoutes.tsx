@@ -12,10 +12,10 @@ const VerifyOTP = lazy(() => import('@/pages/auth/VerifyOtp'));
 const PublicRoutes = () => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
 
-  // Redirect to appropriate dashboard if authenticated
-  if (isAuthenticated) {
-    return <Navigate to={user?.role === 'admin' ? "/admin" : "/user/dashboard"} replace />;
-  }
+  // // Redirect to appropriate dashboard if authenticated
+  // if (isAuthenticated) {
+  //   return <Navigate to={user?.role === 'admin' ? "/admin" : "/"} replace />;
+  // }
 
   return (
     <Routes>

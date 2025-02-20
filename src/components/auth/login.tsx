@@ -44,7 +44,7 @@ export default function LoginPage() {
         // console.log("==================",userRole);
 
         if (userRole === "user") {
-          navigate("/user/Dashboard");
+          navigate("/");
         } else {
           navigate("/adminDashboard");
         }
@@ -76,7 +76,7 @@ export default function LoginPage() {
                 {...register("email")}
                 type="email"
                 placeholder="Email Address"
-                className="pl-10 bg-input border-border text-white focus:ring-2 focus:ring-primary"
+                className="pl-10 bg-input border-border text-muted-foreground focus:ring-2 focus:ring-primary"
               />
               {errors.email && (
                 <p className="text-red-500 text-sm">{errors.email.message}</p>
@@ -90,7 +90,7 @@ export default function LoginPage() {
                 {...register("password")}
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
-                className="pl-10 pr-10 bg-input border-border text-white focus:ring-2 focus:ring-primary"
+                className="pl-10 pr-10 bg-input border-border text-muted-foreground focus:ring-2 focus:ring-primary"
               />
               <button
                 type="button"
@@ -114,17 +114,22 @@ export default function LoginPage() {
           <CardFooter className="flex flex-col space-y-4">
             <Button
               type="submit"
-              className="w-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90"
+              className="w-full flex text-foreground items-center justify-center gap-2 bg-input hover:bg-gray-700"
               disabled={loading} // Disable button while loading
             >
               {loading ? <Loader className="h-5 w-5 animate-spin" /> : "Login"}
             </Button>
 
             <div className="flex items-center w-full">
+              <a href="/forgotPassword" className="mx-2 text-blue-400 hover:underline">forgot password</a>
+            </div>
+
+            <div className="flex items-center w-full">
               <div className="flex-grow h-[1px] bg-border"></div>
               <span className="mx-2 text-muted-foreground">or</span>
               <div className="flex-grow h-[1px] bg-border"></div>
             </div>
+            
 
             <Button className="w-full flex text-foreground items-center justify-center gap-2 bg-input hover:bg-gray-700">
               <FcGoogle className="h-5 w-5" /> Login with Google

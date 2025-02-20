@@ -56,25 +56,25 @@ export default function SignupPage() {
           <CardContent className="space-y-4">
             <div className="relative">
               <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-              <Input {...register("fullName")} placeholder="Full Name" className="pl-10 bg-input border-border text-white focus:ring-2 focus:ring-primary" />
+              <Input {...register("fullName")} placeholder="Full Name" className="pl-10 bg-input border-border text-muted-foreground focus:ring-2 focus:ring-primary" />
               {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName.message}</p>}
             </div>
 
             <div className="relative">
               <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-              <Input {...register("userName")} placeholder="Username" className="pl-10 bg-input border-border text-white focus:ring-2 focus:ring-primary" />
+              <Input {...register("userName")} placeholder="Username" className="pl-10 bg-input border-border text-muted-foreground focus:ring-2 focus:ring-primary" />
               {errors.userName && <p className="text-red-500 text-sm">{errors.userName.message}</p>}
             </div>
 
             <div className="relative">
               <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-              <Input {...register("email")} type="email" placeholder="Email Address" className="pl-10 bg-input border-border text-white focus:ring-2 focus:ring-primary" />
+              <Input {...register("email")} type="email" placeholder="Email Address" className="pl-10 bg-input border-border text-muted-foreground focus:ring-2 focus:ring-primary" />
               {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
             </div>
 
             <div className="relative">
               <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-              <Input {...register("password")} type={showPassword ? "text" : "password"} placeholder="Password" className="pl-10 pr-10 bg-input border-border text-white focus:ring-2 focus:ring-primary" />
+              <Input {...register("password")} type={showPassword ? "text" : "password"} placeholder="Password" className="pl-10 pr-10 bg-input border-border text-muted-foreground focus:ring-2 focus:ring-primary" />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground">
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
@@ -86,7 +86,7 @@ export default function SignupPage() {
             {/* <Button type="submit" className="w-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90">SignUp</Button> */}
             <Button
               type="submit"
-              className="w-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90"
+              className="w-full flex text-foreground items-center justify-center gap-2 bg-input hover:bg-gray-700"
               disabled={loading} // Disable button while loading
             >
               {loading ? <Loader className="h-5 w-5 animate-spin" /> : "SignUp"}
