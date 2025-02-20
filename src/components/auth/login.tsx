@@ -40,9 +40,9 @@ export default function LoginPage() {
       console.log("yyyyyyyyyyyy", resultAction);
 
       if (login.fulfilled.match(resultAction)) {
-        const userRole = resultAction.payload?.user?.role;
+        const userRole = resultAction.payload?.data?.user?.role;
         // console.log("==================",userRole);
-
+        toast.success("Logged in successfully!");
         if (userRole === "user") {
           navigate("/");
         } else {
@@ -144,7 +144,7 @@ export default function LoginPage() {
           </CardFooter>
         </form>
       </Card>
-      <Toaster />
+      {/* <Toaster /> */}
     </div>
   );
 }

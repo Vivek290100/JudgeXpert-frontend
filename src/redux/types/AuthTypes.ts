@@ -11,6 +11,16 @@ export interface User {
 }
 
 export interface AuthResponse {
-  token: string; 
-  user: User;
+  success: boolean;
+  message: string;
+  data: {
+    user: User;
+  };
+  token?: string;  // Ensure token is optional if missing in API response
 }
+
+
+// export interface AuthResponse {
+//   token: string; 
+//   user: User;
+// }

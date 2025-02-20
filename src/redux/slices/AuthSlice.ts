@@ -93,15 +93,17 @@ const authSlice = createSlice({
     },
   });
   
-  // Helper function to update auth state
   const updateAuthState = (state: AuthState, payload: AuthResponse) => {
-    const { user, token } = payload;
-    state.token = token;
+    if (!payload || !payload.data || !payload.data.user) return;
+  
+    state.token = payload.token ?? null;
     state.isAuthenticated = true;
-    state.user = {...user};
+    state.user = payload.data.user;  // Ensure correct access
     state.loading = false;
     state.error = null;
   };
+  
+
   
   export default authSlice.reducer;
   
