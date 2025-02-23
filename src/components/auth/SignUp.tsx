@@ -10,7 +10,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useDispatch, useSelector } from "react-redux";
 import { signUp } from "@/redux/thunks/AuthThunks";
 import { AppDispatch, RootState } from "@/redux/Store";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -33,8 +33,8 @@ export default function SignupPage() {
       
       
       if (signUp.fulfilled.match(resultAction)) {
-        // toast.success("OTP sent successful!", { duration: 2000 });
-          Navigate("/verifyotp", { state: { email: data.email } });
+        // toast.success("OTP sent successful!");
+          Navigate("/verifyOtp", { state: { email: data.email } });
       } else {
         const errorMessage = resultAction.payload as string || "Signup failed";
         toast.error(errorMessage);
@@ -103,7 +103,6 @@ export default function SignupPage() {
           </CardFooter>
         </form>
       </Card>
-      <Toaster />
     </div>
   );
 }

@@ -1,4 +1,3 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\redux\types\authTypes.ts
 export interface User {
   email: string;
   userName: string;
@@ -11,6 +10,11 @@ export interface User {
 }
 
 export interface AuthResponse {
-  token: string; 
-  user: User;
+  success: boolean;
+  message: string;
+  data: {
+    user: User;
+  };
+  token?: string;  
 }
+

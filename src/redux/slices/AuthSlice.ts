@@ -1,4 +1,3 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\redux\slices\authSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { signUp, verifyOtp, logout, login } from "../thunks/AuthThunks";
 import { AuthResponse } from "../types/Index";
@@ -36,7 +35,6 @@ const authSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-    // Handle pending states
     .addCase(signUp.pending, (state) => {
       state.loading = true;
       state.error = null;
@@ -54,7 +52,6 @@ const authSlice = createSlice({
         state.error = null;
       })
       
-      // Handle fulfilled states
       .addCase(signUp.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
         updateAuthState(state, action.payload);
       })
@@ -73,7 +70,6 @@ const authSlice = createSlice({
         state.error = null;
       })
 
-      // Handle rejected states
       .addCase(signUp.rejected, (state, action) => {
         state.error = action.payload as string;
         state.loading = false;
@@ -93,15 +89,17 @@ const authSlice = createSlice({
     },
   });
   
-  // Helper function to update auth state
   const updateAuthState = (state: AuthState, payload: AuthResponse) => {
-    const { user, token } = payload;
-    state.token = token;
+    if (!payload || !payload.data || !payload.data.user) return;
+  
+    state.token = payload.token ?? null;
     state.isAuthenticated = true;
-    state.user = {...user};
+    state.user = payload.data.user; 
     state.loading = false;
     state.error = null;
   };
+  
+
   
   export default authSlice.reducer;
   

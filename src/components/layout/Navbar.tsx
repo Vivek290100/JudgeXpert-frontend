@@ -14,9 +14,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/redux/thunks/AuthThunks";
 import { useNavigation } from "@/contexts/Nvigation-context";
 import defaultProfileImage from "@/assets/navbar/defaultProfile.png";
+import toast from "react-hot-toast";
 
 const Navbar = () => {
   const user = useSelector((state: RootState) => state.auth.user);
+  console.log("=====================",user?.role);
+  
   const navigate = useNavigate();
 
   const dispatch = useDispatch<AppDispatch>();
@@ -27,6 +30,7 @@ const Navbar = () => {
     
     try {
       await dispatch(logout()).unwrap();
+      toast.success("Logged out successfully!")
       navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);

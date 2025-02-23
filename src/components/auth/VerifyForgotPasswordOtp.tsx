@@ -8,12 +8,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDispatch } from "react-redux";
-import { verifyOtp, resendOtp } from "@/redux/thunks/AuthThunks";
+import { resendOtp, verifyForgotPasswordOtp } from "@/redux/thunks/AuthThunks";
 import { AppDispatch } from "@/redux/Store";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 
-export const VerifyOTP = () => {
+export const VerifyForgotPasswordOtp = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -82,17 +82,17 @@ export const VerifyOTP = () => {
   const onSubmit = async (data: VerifyOtpData) => {
     setIsVerifying(true);
     try {
-      const resultAction = await dispatch(verifyOtp(data));
+      const resultAction = await dispatch(verifyForgotPasswordOtp(data));
 
       if (resultAction.meta.requestStatus === "fulfilled") {
         localStorage.removeItem("otpEmail");
         localStorage.removeItem("otpTimer");
         toast.success("OTP verified successfully!");
-       
-          navigate("/"); // Signup flow
+        navigate("/reset-password", { 
+          state: { email: data.email }
+        });
       } else {
-        const errorMessage = (resultAction.payload as string) || "OTP verification failed";
-        toast.error(errorMessage);
+        toast.error(resultAction.payload as string || "OTP verification failed");
       }
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
@@ -157,4 +157,4 @@ export const VerifyOTP = () => {
   );
 };
 
-export default VerifyOTP;
+export default VerifyForgotPasswordOtp;

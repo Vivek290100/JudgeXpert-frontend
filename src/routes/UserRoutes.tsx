@@ -1,21 +1,34 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\routes\UserRoutes.tsx
-import { lazy } from 'react';
-import { Route, Routes } from 'react-router-dom';
-import ProtectedRoute from './protectedRoutes';
-import NotFound from '@/pages/common/NotFound';
+import { lazy, Suspense } from "react";
+import { Route, Routes } from "react-router-dom";
+import ProtectedRoute from "./protectedRoutes";
+import NotFound from "@/pages/common/NotFound";
+import { DashboardSkeleton, TableSkeleton } from "@/utils/SkeletonLoader";
 
-const Dashboard = lazy(() => import('@/pages/user/UserDashboard'));
-const Profile = lazy(() => import('@/pages/user/UserProfile'));
+const Dashboard = lazy(() => import("@/pages/user/UserDashboard"));
+const Profile = lazy(() => import("@/pages/user/UserProfile"));
 
-// in UserRoutes.tsx
 const UserRoutes = () => {
   return (
     <Routes>
-      <Route element={<ProtectedRoute allowedRoles={['user']} />}>
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="profile" element={<Profile />} />
-        <Route path="*" element={<NotFound />} /> // Add this
+      <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
+        <Route
+          path="dashboard"
+          element={
+            <Suspense fallback={<DashboardSkeleton />}>
+              <Dashboard />
+            </Suspense>
+          }
+        />
+        <Route
+          path="profile"
+          element={
+            <Suspense fallback={<TableSkeleton />}>
+              <Profile />
+            </Suspense>
+          }
+        />
       </Route>
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
