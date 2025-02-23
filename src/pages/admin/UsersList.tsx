@@ -1,8 +1,11 @@
-
+import UserList from "@/components/admin/UsersList"
 const UsersList = () => {
   return (
-    <div>UsersList</div>
+    <div>
+      <UserList/>
+    </div>
   )
 }
 
 export default UsersList
+

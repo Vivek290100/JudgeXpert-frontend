@@ -33,3 +33,17 @@
 .drop-shadow-glow {
   animation: logoGlow 2s infinite alternate;
 }
+
+
+/* Add these to your global CSS or component stylesheet */
+.admin-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+}

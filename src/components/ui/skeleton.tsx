@@ -1,3 +1,4 @@
+// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\components\ui\skeleton.tsx
 import { cn } from "@/lib/utils"
 
 function Skeleton({

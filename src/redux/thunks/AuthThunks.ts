@@ -1,9 +1,8 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\redux\thunks\authThunks.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { AuthResponse } from "../types/Index";
 import { ForgotPasswordFormData, LoginFormData, SignUpFormData } from "@/utils/validations/AuthValidation";
 import { VerifyOtpData } from "@/utils/validations/OTPVerifyValidation";
-import { apiRequest } from "@/utils/axios/apiRequest";
+import { apiRequest } from "@/utils/axios/ApiRequest";
 
 
 

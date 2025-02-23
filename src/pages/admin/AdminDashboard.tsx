@@ -1,8 +1,12 @@
+// pages/AdminDashboardPage.tsx
+import AdminDashboard from "@/components/admin/AdminDashboard";
 
-const AdminDashboard = () => {
+const AdminDashboardPage = () => {
   return (
-    <div>AdminDashboard</div>
-  )
-}
+    <div className="w-full h-full">
+      <AdminDashboard />
+    </div>
+  );
+};
 
-export default AdminDashboard
+export default AdminDashboardPage;

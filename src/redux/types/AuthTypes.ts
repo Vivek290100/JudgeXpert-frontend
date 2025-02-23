@@ -1,4 +1,3 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\redux\types\authTypes.ts
 export interface User {
   email: string;
   userName: string;
@@ -16,11 +15,6 @@ export interface AuthResponse {
   data: {
     user: User;
   };
-  token?: string;  // Ensure token is optional if missing in API response
+  token?: string;  
 }
 
-
-// export interface AuthResponse {
-//   token: string; 
-//   user: User;
-// }

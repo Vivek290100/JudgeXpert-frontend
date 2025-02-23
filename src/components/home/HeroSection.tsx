@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { showStoredToast } from "@/utils/toast/Toast";
+import { showStoredToast } from "@/utils/Toast";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
 

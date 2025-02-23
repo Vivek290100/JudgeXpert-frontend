@@ -16,7 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { login } from "@/redux/thunks/AuthThunks";
 import { LoginFormData, loginSchema } from "@/utils/validations/AuthValidation";
 import { AppDispatch, RootState } from "@/redux/Store";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -37,20 +37,17 @@ export default function LoginPage() {
   const handleLogin = async (data: LoginFormData) => {
     try {
       const resultAction = await dispatch(login(data));
-      console.log("yyyyyyyyyyyy", resultAction);
-
       if (login.fulfilled.match(resultAction)) {
         const userRole = resultAction.payload?.data?.user?.role;
-        // console.log("==================",userRole);
         toast.success("Logged in successfully!");
         if (userRole === "user") {
           navigate("/");
         } else {
-          navigate("/adminDashboard");
+          navigate("/admin/dashboard");
         }
       } else {
         const errorMessage = (resultAction.payload as string) || "Login failed";
-        toast.error(errorMessage);
+        toast.error(errorMessage); // This will display "Your account is blocked. Please contact support." if the user is blocked
       }
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
@@ -115,7 +112,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="w-full flex text-foreground items-center justify-center gap-2 bg-input hover:bg-gray-700"
-              disabled={loading} // Disable button while loading
+              disabled={loading}
             >
               {loading ? <Loader className="h-5 w-5 animate-spin" /> : "Login"}
             </Button>
@@ -144,7 +141,6 @@ export default function LoginPage() {
           </CardFooter>
         </form>
       </Card>
-      {/* <Toaster /> */}
     </div>
   );
 }
