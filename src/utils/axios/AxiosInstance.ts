@@ -100,8 +100,9 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         console.error("Session expired. Please log in again.");
-        Cookies.remove("accessToken");  // Remove the token from cookie
-        window.location.href = "/login";  // Redirect to login page
+        Cookies.remove("accessToken");
+        localStorage.clear();
+        window.location.href = "/login";
       }
     }
 

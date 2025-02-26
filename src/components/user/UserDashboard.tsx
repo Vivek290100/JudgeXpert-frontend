@@ -1,21 +1,23 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\components\user\UserDashboard.tsx
-import { User } from "../../types/IUser.ts";
+// src/components/user/UserDashboard.tsx
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/Store";
+import { FaGithub, FaLinkedin } from "react-icons/fa";
+import EditProfile from "./EditProfile";
 
 const UserDashboard = () => {
-  const user: User & { rank?: number } = {
-    name: "Vivek",
-    email: "name@gmail.com",
-    github: "www.github",
-    linkedin: "www.linkedIn",
-    acceptanceRate: {
-      easy: 34,
-      medium: 45,
-      hard: 56,
-    },
-    solvedProblems: 123,
-    totalProblems: 400,
-    rank: 8,
-  };
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+
+  console.log("Dashboard User State:", user);
+
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="bg-background text-foreground min-h-[calc(100vh-100px)] flex items-center justify-center">
+        <p>Please log in to view your dashboard.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background text-foreground min-h-[calc(100vh-100px)]">
@@ -23,19 +25,30 @@ const UserDashboard = () => {
         {/* Profile Section */}
         <div className="bg-card text-card-foreground rounded-lg border shadow-lg hover:shadow-xl transition-shadow duration-300">
           <div className="p-6 flex flex-col items-center relative">
-            <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center mb-2 relative">
-              <span className="text-xl font-bold">{user.name.charAt(0)}</span>
+            <div className="w-48 h-48 bg-muted rounded-lg flex items-center justify-center mb-2 relative overflow-hidden">
+              {user.profileImage ? (
+                <img
+                  src={user.profileImage}
+                  alt={user.fullName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-4xl font-bold">{user.fullName.charAt(0)}</span>
+              )}
             </div>
             <h3 className="text-lg font-medium">Profile</h3>
           </div>
           <div className="border-t p-4 space-y-2">
-            <button className="w-full py-2 text-sm hover:bg-muted rounded-lg transition">
+            <button
+              className="w-full py-2 text-primary bg-secondary hover:bg-muted rounded-lg transition"
+              onClick={() => setIsEditProfileOpen(true)}
+            >
               Edit Profile
             </button>
-            <button className="w-full py-2 text-sm hover:bg-muted rounded-lg transition">
+            <button className="w-full py-2 text-primary bg-secondary hover:bg-muted rounded-lg transition">
               Change Password
             </button>
-            <button className="w-full py-2 text-sm hover:bg-muted rounded-lg transition">
+            <button className="w-full py-2 text-primary bg-secondary hover:bg-muted rounded-lg transition">
               Forgot Password
             </button>
           </div>
@@ -45,30 +58,59 @@ const UserDashboard = () => {
         <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* User Info Section */}
           <div className="bg-card text-card-foreground rounded-lg border p-6">
-            <h2 className="text-xl font-bold mb-2">{user.name}</h2>
+            <h2 className="text-xl font-bold mb-2">{user.fullName}</h2>
             <p className="text-sm text-muted-foreground">{user.email}</p>
-            <div className="mt-4 space-y-2">
-              <a
-                href={user.github}
-                className="text-sm text-primary hover:underline"
-              >
-                GitHub
-              </a>
-              <a
-                href={user.linkedin}
-                className="text-sm text-primary hover:underline"
-              >
-                LinkedIn
-              </a>
+            <div className="mt-4 space-y-3">
+              {user.github ? (
+                <a
+                  href={user.github}
+                  className="text-sm hover:underline flex items-center gap-2 group"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 group-hover:bg-gray-200 transition-colors">
+                    <FaGithub className="w-5 h-5 text-black" />
+                  </div>
+                  <span className="text-primary">GitHub</span>
+                </a>
+              ) : (
+                <div className="text-sm text-muted-foreground flex items-center gap-2">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100">
+                    <FaGithub className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <span>GitHub: Not linked</span>
+                </div>
+              )}
+
+              {user.linkedin ? (
+                <a
+                  href={user.linkedin}
+                  className="text-sm hover:underline flex items-center gap-2 group"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 group-hover:bg-blue-100 transition-colors">
+                    <FaLinkedin className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <span className="text-primary">LinkedIn</span>
+                </a>
+              ) : (
+                <div className="text-sm text-muted-foreground flex items-center gap-2">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-50">
+                    <FaLinkedin className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <span>LinkedIn: Not linked</span>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Rank Section */}
           <div className="bg-card text-card-foreground rounded-lg border p-6 text-center">
             <h3 className="font-medium mb-4">My Rank</h3>
-            <div className="text-4xl font-bold">#{user.rank}</div>
+            <div className="text-4xl font-bold">#{user.rank || 0}</div>
             <p className="text-sm text-muted-foreground mt-2">Level Up!</p>
-            <button className="w-full mt-4 bg-primary text-primary-foreground py-2 rounded-md">
+            <button className="w-full mt-4 bg-secondary text-primary py-2 rounded-md">
               Leader Board
             </button>
           </div>
@@ -92,7 +134,7 @@ const UserDashboard = () => {
                 </svg>
                 <h3 className="text-card-foreground font-medium">Contests</h3>
               </div>
-              <button className="bg-secondary text-secondary-foreground text-xs px-2 py-2  rounded-md hover:bg-accent">
+              <button className="bg-secondary text-secondary-foreground text-xs px-2 py-2 rounded-md hover:bg-accent">
                 Participate
               </button>
             </div>
@@ -104,37 +146,42 @@ const UserDashboard = () => {
               </p>
             </div>
 
-            <button className="w-full mt-12 bg-primary text-primary-foreground py-2 my-6 rounded-md">
+            <button className="w-full mt-12 bg-secondary text-primary py-2 my-6 rounded-md">
               Contest Winners
             </button>
           </div>
 
           {/* Acceptance Section */}
           <div className="bg-card text-card-foreground rounded-lg border p-8">
-            <h1 className="font-medium mb-5 ">Acceptance</h1>
+            <h1 className="font-medium mb-5">Problems Solved</h1>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center">
                 <div className="text-3xl font-bold">
-                  {user.solvedProblems}/{user.totalProblems}
+                  {user.problemsSolved ?? 0}
                 </div>
+                <p className="text-sm text-muted-foreground mt-2">Solved</p>
               </div>
               <div className="space-y-2">
-                {Object.entries(user.acceptanceRate).map(([key, value]) => (
-                  <div key={key} className="flex justify-between items-center">
-                    <span className="text-sm capitalize">{key}</span>
-                    <span className="bg-muted text-primary px-3 py-1 rounded-md text-xs">
-                      {value}%
-                    </span>
-                  </div>
-                ))}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm capitalize">Progress</span>
+                  <span className="bg-muted text-primary px-3 py-1 rounded-md text-xs">
+                    {user.problemsSolved ? `${user.problemsSolved} solved` : "N/A"}
+                  </span>
+                </div>
               </div>
             </div>
-            <button className="w-full mt-6 bg-primary text-primary-foreground py-2 rounded-md">
+            <button className="w-full mt-6 bg-secondary text-primary py-2 rounded-md">
               Solved Problems
             </button>
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      <EditProfile
+        isOpen={isEditProfileOpen}
+        onClose={() => setIsEditProfileOpen(false)}
+      />
     </div>
   );
 };
