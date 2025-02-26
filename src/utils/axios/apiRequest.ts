@@ -1,19 +1,22 @@
+// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\utils\axios\ApiRequest.ts
 import axiosInstance from "@/utils/axios/AxiosInstance";
 import { isAxiosError } from "axios";
 
 export async function apiRequest<T>(
-  method: "post" | "get",
+  method: "post" | "get" | "put",
   url: string,
   data?: any,
-  rejectWithValue?: (value: string) => any
+  rejectWithValue?: (value: string) => any,
+  config?: { headers?: Record<string, string>; [key: string]: any }
 ): Promise<T> {
-    console.log("its apirequestttttttttttttttttttttttttt");
+  console.log("Request Details:", { method, url, data });
     
   try {
     const response = await axiosInstance({
       method,
       url,
       data,
+      ...config,
     });
 
     console.log("wwwwwwwwwwwwwwwwwwwwwwwwwwww",response);

@@ -1,22 +1,13 @@
+// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\redux\slices\AuthSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { signUp, verifyOtp, logout, login } from "../thunks/AuthThunks";
-import { AuthResponse } from "../types/Index";
-
-interface User {
-  email: string;
-  userName: string;
-  fullName: string;
-  role: string;
-  profileImage: string;
-  problemsSolved: number;
-  rank: number;
-  joinedDate: string;
-}
+import { AuthResponse, AuthUser } from "../types/Index";
+import { updateUserProfile } from "../thunks/UserThunks";
 
 interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
-  user: User | null;
+  user: AuthUser | null;
   loading: boolean;
   error: string | null;
 }
@@ -35,13 +26,13 @@ const authSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-    .addCase(signUp.pending, (state) => {
-      state.loading = true;
-      state.error = null;
-    })
-    .addCase(verifyOtp.pending, (state) => {
-      state.loading = true;
-      state.error = null;
+      .addCase(signUp.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(verifyOtp.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
       .addCase(login.pending, (state) => {
         state.loading = true;
@@ -51,11 +42,13 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      
+      .addCase(updateUserProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null; // Clear error on pending
+      })
       .addCase(signUp.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
         updateAuthState(state, action.payload);
       })
-      
       .addCase(verifyOtp.fulfilled, (state, action) => {
         updateAuthState(state, action.payload);
       })
@@ -69,7 +62,11 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = null;
       })
-
+      .addCase(updateUserProfile.fulfilled, (state, action: PayloadAction<AuthUser>) => {
+        console.log("Updating state.auth.user with:", action.payload);
+        state.user = action.payload;
+        state.loading = false;
+      })
       .addCase(signUp.rejected, (state, action) => {
         state.error = action.payload as string;
         state.loading = false;
@@ -86,21 +83,21 @@ const authSlice = createSlice({
         state.error = action.payload as string;
         state.loading = false;
       })
-    },
-  });
-  
-  const updateAuthState = (state: AuthState, payload: AuthResponse) => {
-    if (!payload || !payload.data || !payload.data.user) return;
-  
-    state.token = payload.token ?? null;
-    state.isAuthenticated = true;
-    state.user = payload.data.user; 
-    state.loading = false;
-    state.error = null;
-  };
-  
+      .addCase(updateUserProfile.rejected, (state, action: PayloadAction<string | undefined>) => {
+        state.error = action.payload ?? "Failed to update profile";
+        state.loading = false;
+      });
+  },
+});
 
-  
-  export default authSlice.reducer;
-  
-  
+const updateAuthState = (state: AuthState, payload: AuthResponse) => {
+  if (!payload || !payload.data || !payload.data.user) return;
+
+  state.token = payload.token ?? null;
+  state.isAuthenticated = true;
+  state.user = payload.data.user;
+  state.loading = false;
+  state.error = null;
+};
+
+export default authSlice.reducer;

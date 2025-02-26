@@ -1,9 +1,10 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\redux\store.ts
+// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\redux\Store.ts
 import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage'; 
 import authReducer from './slices/AuthSlice';
 import adminReducer from './slices/AdminSlice'
+import userReducer from './slices/UserSlice'; // Import userReducer
 
 const persistConfig = {
   key: 'auth',
@@ -17,6 +18,7 @@ const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,
     admin: adminReducer,
+    user: userReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

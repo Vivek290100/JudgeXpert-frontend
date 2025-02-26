@@ -1,15 +1,7 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { fetchUsers, blockUser } from "../thunks/AdminThunks";
-
-interface AdminUser {
-  id: string;
-  email: string;
-  userName: string;
-  fullName: string;
-  role: string;
-  isBlocked: boolean;
-  joinedDate: string;
-}
+// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\redux\slices\AdminSlice.ts
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { fetchUsers, blockUser } from '../thunks/AdminThunks';
+import { AdminUser } from '../types/AdminTypes';
 
 interface AdminState {
   users: AdminUser[] | null;
@@ -24,7 +16,7 @@ const initialState: AdminState = {
 };
 
 const adminSlice = createSlice({
-  name: "admin",
+  name: 'admin',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
@@ -38,27 +30,24 @@ const adminSlice = createSlice({
         state.loading = false;
         state.error = null;
       })
-      .addCase(fetchUsers.rejected, (state, action) => {
-        state.error = action.payload as string;
+      .addCase(fetchUsers.rejected, (state, action: PayloadAction<string | undefined>) => {
+        state.error = action.payload ?? 'Failed to fetch users'; // Handle undefined payload with a default message
         state.loading = false;
       })
-
       .addCase(blockUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(blockUser.fulfilled, (state, action: PayloadAction<{ userId: string; isBlocked: boolean }>) => {
         if (state.users) {
-          const index = state.users.findIndex((user) => user.id === action.payload.userId);
-          if (index !== -1) {
-            state.users[index].isBlocked = action.payload.isBlocked;
-          }
+          const user = state.users.find((u) => u.id === action.payload.userId);
+          if (user) user.isBlocked = action.payload.isBlocked;
         }
         state.loading = false;
         state.error = null;
       })
-      .addCase(blockUser.rejected, (state, action) => {
-        state.error = action.payload as string;
+      .addCase(blockUser.rejected, (state, action: PayloadAction<string | undefined>) => {
+        state.error = action.payload ?? 'Failed to update user block status'; // Handle undefined payload with a default message
         state.loading = false;
       });
   },
