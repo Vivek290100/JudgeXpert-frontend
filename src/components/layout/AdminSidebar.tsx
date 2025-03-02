@@ -1,3 +1,4 @@
+// src/components/Admin/AdminSidebar.tsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -35,7 +36,8 @@ export default function AdminSidebar() {
   const sidebarItems: SidebarItem[] = [
     { title: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" />, path: "/admin/dashboard" },
     { title: "Users", icon: <Users className="w-5 h-5" />, path: "/admin/users" },
-    { title: "Problems", icon: <Code2 className="w-5 h-5" />, path: "#" },
+    { title: "Problems", icon: <Code2 className="w-5 h-5" />, path: "/admin/problems" }, 
+    { title: "Process New Problem", icon: <Code2 className="w-5 h-5" />, path: "/admin/process-new-problem" },
     { title: "Contests", icon: <Trophy className="w-5 h-5" />, path: "" },
     { title: "Subscription", icon: <CreditCard className="w-5 h-5" />, path: "" },
   ];
@@ -169,34 +171,33 @@ export default function AdminSidebar() {
           <button
             onClick={toggleTheme}
             className={`px-2 sm:px-3 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm sm:text-base ${
-              theme === 'dark'
-                ? 'text-gray-400 hover:text-white hover:bg-gray-700'
-                : 'text-gray-600 hover:text-black hover:bg-gray-200'
-            }`}          >
+              theme === "dark"
+                ? "text-gray-400 hover:text-white hover:bg-gray-700"
+                : "text-gray-600 hover:text-black hover:bg-gray-200"
+            }`}
+          >
             {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             {isOpen && (theme === "dark" ? "Light Mode" : "Dark Mode")}
           </button>
         </div>
 
         {/* Sign Out Button */}
-  <div className={`p-3 sm:p-4 border-t ${
-    theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-  }`}>
-    <button
-      onClick={handleSignOut}
-      className={`w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 rounded-lg transition-colors text-sm sm:text-base ${
-        !isOpen ? "justify-center" : ""
-      } ${
-        theme === 'dark'
-          ? 'text-gray-200 hover:bg-gray-700'
-          : 'text-gray-900 hover:bg-gray-200'
-      }`}
-      title={!isOpen ? "Sign out" : undefined}
-    >
-      <LogOut className="w-5 h-5" />
-      {isOpen && <span>Sign out</span>}
-    </button>
-  </div>
+        <div className={`p-3 sm:p-4 border-t ${theme === "dark" ? "border-gray-700" : "border-gray-200"}`}>
+          <button
+            onClick={handleSignOut}
+            className={`w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 rounded-lg transition-colors text-sm sm:text-base ${
+              !isOpen ? "justify-center" : ""
+            } ${
+              theme === "dark"
+                ? "text-gray-200 hover:bg-gray-700"
+                : "text-gray-900 hover:bg-gray-200"
+            }`}
+            title={!isOpen ? "Sign out" : undefined}
+          >
+            <LogOut className="w-5 h-5" />
+            {isOpen && <span>Sign out</span>}
+          </button>
+        </div>
       </div>
     </>
   );

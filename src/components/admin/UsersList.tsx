@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest } from '@/utils/axios/ApiRequest';
-import {
-  CheckCircle, Unlock, Lock, Search, ChevronLeft, ChevronRight
-} from 'lucide-react';
-import { useTheme } from "@/contexts/ThemeContext";
-
+import { CheckCircle, Unlock, Lock, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface AdminUser {
   id: string;
@@ -39,61 +36,65 @@ const ListUsers: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
   const [totalPages, setTotalPages] = useState(1);
-  const { theme,  } = useTheme();
+  const itemsPerPage = 10;
+  const { theme } = useTheme();
 
-
-  const fetchUsers = async () => {
+  // Fetch users only when page changes or on initial load
+  const fetchUsers = async (page: number) => {
     setLoading(true);
     try {
       const response = await apiRequest<ApiResponse>(
         'get',
-        `/admin/users?page=${currentPage}&limit=${itemsPerPage}`
+        `/admin/users?page=${page}&limit=${itemsPerPage}`
       );
 
       if (response.data && response.data.users) {
         setUsers(response.data.users);
         setTotalPages(response.data.totalPages || 1);
       } else {
-        setError("Invalid response structure");
+        setError('Invalid response structure');
       }
     } catch (err) {
-      setError("Failed to fetch users");
+      setError('Failed to fetch users');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(currentPage);
   }, [currentPage]);
 
   const filteredUsers = useMemo(() => {
-    return users.filter(user =>
-      user.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    return users.filter(
+      (user) =>
+        user.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [users, searchQuery]);
 
+  // Optimistic update for block/unblock
   const handleBlockUnblock = async (userId: string, isBlocked: boolean) => {
+    const originalUsers = [...users];
+    const endpoint = isBlocked ? `/admin/users/${userId}/unblock` : `/admin/users/${userId}/block`;
+
+    // Optimistically update local state
+    setUsers((prevUsers) =>
+      prevUsers.map((user) =>
+        user.id === userId ? { ...user, isBlocked: !isBlocked } : user
+      )
+    );
+
     try {
-      const endpoint = isBlocked ? `/admin/users/${userId}/unblock` : `/admin/users/${userId}/block`;
-      const response = await apiRequest<ApiResponse>(
-        'post',
-        endpoint
-      );
-      
-      if (response.success) {
-        setUsers(prevUsers =>
-          prevUsers.map(user =>
-            user.id === userId ? { ...user, isBlocked: !isBlocked } : user
-          )
-        );
-        fetchUsers();
+      const response = await apiRequest<ApiResponse>('post', endpoint);
+      if (!response.success) {
+        throw new Error('API call failed');
       }
     } catch (err) {
-      console.error("Failed to update user status");
+      console.error('Failed to update user status:', err);
+      // Revert on failure
+      setUsers(originalUsers);
     }
   };
 
@@ -122,8 +123,8 @@ const ListUsers: React.FC = () => {
                 ? 'bg-gray-600 text-white border-gray-600'
                 : 'bg-gray-300 text-black border-gray-300'
               : theme === 'dark'
-                ? 'hover:bg-gray-700 text-gray-200 border-gray-600'
-                : 'hover:bg-gray-200 text-gray-900 border-gray-200'
+              ? 'hover:bg-gray-700 text-gray-200 border-gray-600'
+              : 'hover:bg-gray-200 text-gray-900 border-gray-200'
           }`}
         >
           {i}
@@ -133,20 +134,11 @@ const ListUsers: React.FC = () => {
     return buttons;
   };
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-    </div>
-  );
-  
-  if (error) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="p-4 bg-red-50 text-red-600 rounded-lg">{error}</div>
-    </div>
-  );
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
-    <div className="container mx-auto px-4 py-9  min-h-screen flex flex-col">
+    <div className="container mx-auto px-4 py-9 min-h-screen flex flex-col">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-semibold text-primary">Users List</h1>
         <div className="relative w-full sm:w-72">
@@ -180,7 +172,6 @@ const ListUsers: React.FC = () => {
                 <tr
                   key={user.id}
                   onClick={() => handleRowClick(user.id)}
-                  // className="hover:bg-gray-800 transition-colors cursor-pointer"
                   className={`transition-colors cursor-pointer ${
                     theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
                   }`}
@@ -191,9 +182,7 @@ const ListUsers: React.FC = () => {
                   <td className="px-4 py-2 whitespace-nowrap text-sm text-forground max-w-[100px] truncate">
                     {user.id}
                   </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-forground">
-                    {user.userName}
-                  </td>
+                  <td className="px-4 py-2 whitespace-nowrap text-sm text-forground">{user.userName}</td>
                   <td className="px-4 py-2 whitespace-nowrap text-sm text-forground hidden sm:table-cell max-w-[200px] truncate">
                     {user.email}
                   </td>
@@ -208,11 +197,11 @@ const ListUsers: React.FC = () => {
                     )}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                      !user.isBlocked 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
+                    <span
+                      className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                        !user.isBlocked ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}
+                    >
                       {user.isBlocked ? 'Blocked' : 'Active'}
                     </span>
                   </td>
@@ -223,8 +212,8 @@ const ListUsers: React.FC = () => {
                         handleBlockUnblock(user.id, user.isBlocked);
                       }}
                       className={`p-2 rounded-lg transition-colors ${
-                        user.isBlocked 
-                          ? 'bg-green-600 hover:bg-green-700 text-white' 
+                        user.isBlocked
+                          ? 'bg-green-600 hover:bg-green-700 text-white'
                           : 'bg-red-600 hover:bg-red-700 text-white'
                       }`}
                     >
@@ -239,30 +228,26 @@ const ListUsers: React.FC = () => {
       </div>
 
       <div className="mt-6 flex justify-center items-center gap-2">
-  <button
-    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-    disabled={currentPage === 1}
-    className={`p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed border transition-colors ${
-      theme === 'dark'
-        ? 'hover:bg-gray-700 border-gray-600'
-        : 'hover:bg-gray-200 border-gray-200'
-    }`}
-  >
-    <ChevronLeft className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`} />
-  </button>
-  {renderPaginationButtons()}
-  <button
-    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-    disabled={currentPage === totalPages}
-    className={`p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed border transition-colors ${
-      theme === 'dark'
-        ? 'hover:bg-gray-700 border-gray-600'
-        : 'hover:bg-gray-200 border-gray-200'
-    }`}
-  >
-    <ChevronRight className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`} />
-  </button>
-</div>
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+          disabled={currentPage === 1}
+          className={`p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed border transition-colors ${
+            theme === 'dark' ? 'hover:bg-gray-700 border-gray-600' : 'hover:bg-gray-200 border-gray-200'
+          }`}
+        >
+          <ChevronLeft className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`} />
+        </button>
+        {renderPaginationButtons()}
+        <button
+          onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+          disabled={currentPage === totalPages}
+          className={`p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed border transition-colors ${
+            theme === 'dark' ? 'hover:bg-gray-700 border-gray-600' : 'hover:bg-gray-200 border-gray-200'
+          }`}
+        >
+          <ChevronRight className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`} />
+        </button>
+      </div>
     </div>
   );
 };
