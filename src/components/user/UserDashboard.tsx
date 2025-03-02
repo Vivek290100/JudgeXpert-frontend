@@ -45,12 +45,12 @@ const UserDashboard = () => {
             >
               Edit Profile
             </button>
-            <button className="w-full py-2 text-primary bg-secondary hover:bg-muted rounded-lg transition">
+            {/* <button className="w-full py-2 text-primary bg-secondary hover:bg-muted rounded-lg transition">
               Change Password
             </button>
             <button className="w-full py-2 text-primary bg-secondary hover:bg-muted rounded-lg transition">
               Forgot Password
-            </button>
+            </button> */}
           </div>
         </div>
 

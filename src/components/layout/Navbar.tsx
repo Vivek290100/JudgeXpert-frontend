@@ -84,9 +84,9 @@ const Navbar = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2">
                     <img
-                      src={user.profileImage || defaultProfileImage} // Default image if user doesn't have one
+                      src={user.profileImage || defaultProfileImage} 
                       alt="Profile"
-                      className="w-8 h-8 rounded-full border-2"
+                      className="w-8 h-8 rounded-full border-2 object-cover"
                     />
                     <ChevronDown className="w-4 h-4" />
                   </Button>

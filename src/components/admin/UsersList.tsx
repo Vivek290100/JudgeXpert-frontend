@@ -1,8 +1,10 @@
+// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\components\admin\UsersList.tsx
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest } from '@/utils/axios/ApiRequest';
 import { CheckCircle, Unlock, Lock, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { TableSkeleton } from '@/utils/SkeletonLoader';
 
 interface AdminUser {
   id: string;
@@ -134,7 +136,8 @@ const ListUsers: React.FC = () => {
     return buttons;
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <TableSkeleton />;
+  
   if (error) return <div>{error}</div>;
 
   return (
