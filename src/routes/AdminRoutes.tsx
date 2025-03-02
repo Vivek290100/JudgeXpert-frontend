@@ -22,7 +22,9 @@
 
 // export default AdminRoutes;
 
-// AdminRoutes.tsx
+
+
+// src/routes/AdminRoutes.tsx
 import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./protectedRoutes";
@@ -31,6 +33,8 @@ import { DashboardSkeleton, TableSkeleton } from "@/utils/SkeletonLoader";
 
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const UsersList = lazy(() => import("@/pages/admin/UsersList"));
+const ProcessNewProblem = lazy(() => import("@/components/admin/ProcessNewProblem"));
+const ProblemsList = lazy(() => import("@/components/admin/ProblemsList")); // Import the new component
 
 const AdminRoutes = () => {
   return (
@@ -49,6 +53,22 @@ const AdminRoutes = () => {
           element={
             <Suspense fallback={<TableSkeleton />}>
               <UsersList />
+            </Suspense>
+          }
+        />
+        <Route
+          path="process-new-problem"
+          element={
+            <Suspense fallback={<DashboardSkeleton />}>
+              <ProcessNewProblem />
+            </Suspense>
+          }
+        />
+        <Route
+          path="problems"
+          element={
+            <Suspense fallback={<TableSkeleton />}>
+              <ProblemsList />
             </Suspense>
           }
         />

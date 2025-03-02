@@ -1,5 +1,6 @@
-import { Download, Search } from 'lucide-react';
-import { useState } from 'react';
+// src/components/Admin/AdminDashboard.tsx
+import { Download, Search } from "lucide-react";
+import { useState } from "react";
 
 interface StatCardProps {
   title: string;

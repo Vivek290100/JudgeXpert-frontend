@@ -3,7 +3,7 @@ import axiosInstance from "@/utils/axios/AxiosInstance";
 import { isAxiosError } from "axios";
 
 export async function apiRequest<T>(
-  method: "post" | "get" | "put",
+  method: "post" | "get" | "put" | "patch",
   url: string,
   data?: any,
   rejectWithValue?: (value: string) => any,
