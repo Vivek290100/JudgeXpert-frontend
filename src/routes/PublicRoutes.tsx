@@ -11,7 +11,7 @@ const VerifyOTP = lazy(() => import("@/pages/auth/VerifyOtp"));
 const ForgotPassword = lazy(() => import("@/pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("@/pages/auth/ResetPassword"));
 const VerifyForgotPasswordOtp = lazy(() => import("@/pages/auth/VerifyForgotPasswordOtp"));
-const NotFound = lazy(() => import("@/pages/common/NotFound"));
+const NotFound = lazy(() => import("@/components/layout/NotFound"));
 
 const PublicRoutes = () => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);

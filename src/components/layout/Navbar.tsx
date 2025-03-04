@@ -66,7 +66,7 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             <Link
-              to="/problems"
+              to="/user/problems"
               className="text-muted-foreground hover:text-foreground"
             >
               Problems
@@ -103,7 +103,7 @@ const Navbar = () => {
                     <Link to="/user/Dashboard">Your Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/problems">Settings</Link>
+                    <Link to="">Settings</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
@@ -127,13 +127,13 @@ const Navbar = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center gap-4">
+          <div className="md:hidden flex items-center gap-4 ">
             <ThemeToggle />
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsMenuOpen(!isMenuOpen)} // Toggle mobile menu visibility
-              className="text-foreground"
+              className="text-foreground border border-gray-200 dark:border-gray-700"
             >
               {isMenuOpen ? (
                 <X className="w-6 h-6" />
@@ -150,7 +150,7 @@ const Navbar = () => {
         <div className="md:hidden bg-background/95 backdrop-blur-md border-b">
           <div className="px-2 pt-2 pb-3 space-y-1">
             <Link
-              to="/problems"
+              to="/user/problems"
               className="block px-3 py-2 text-muted-foreground hover:text-foreground"
             >
               Problems
@@ -183,7 +183,7 @@ const Navbar = () => {
                   asChild
                   className="w-full justify-start text-sm"
                 >
-                  <Link to="/profile">Your Profile</Link>
+                  <Link to="/user/Dashboard">Your Profile</Link>
                 </Button>
                 <Button
                   variant="ghost"

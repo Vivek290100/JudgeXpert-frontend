@@ -1,10 +1,13 @@
-import { useState, useEffect, useRef, lazy } from "react";
+// src/components/admin/ProblemsList.tsx
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiRequest } from "@/utils/axios/ApiRequest";
-import { Unlock, Lock, Search, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { Unlock, Lock, Search, Plus } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { TableSkeleton } from "@/utils/SkeletonLoader";
+import { lazy, Suspense } from "react";
+import Pagination from "../layout/Pagination";
 
-const ProblemDetailsModal = lazy(() => import("./ProblemDetailsModal"));
 const ProcessProblemModal = lazy(() => import("./ProcessProblemModal"));
 
 interface IProblem {
@@ -27,10 +30,6 @@ interface ProblemsResponse {
   currentPage: number;
 }
 
-interface ProblemResponse {
-  problem: IProblem;
-}
-
 interface ApiResponse<T = ProblemsResponse> {
   success: boolean;
   message: string;
@@ -44,12 +43,11 @@ const ProblemsList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedProblem, setSelectedProblem] = useState<IProblem | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
   const itemsPerPage = 10;
   const { theme } = useTheme();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   const fetchProblems = async (page: number) => {
     setLoading(true);
@@ -80,16 +78,13 @@ const ProblemsList: React.FC = () => {
   const handleUpdateStatus = async (problemId: string, currentStatus: "premium" | "free") => {
     const newStatus = currentStatus === "premium" ? "free" : "premium";
     const originalProblems = [...problems];
-
-    // Optimistic UI update
     setProblems((prevProblems) =>
       prevProblems.map((problem) =>
-        problem._id === problemId ? { ...problem, status: newStatus } : problem // Use _id here
+        problem._id === problemId ? { ...problem, status: newStatus } : problem
       )
     );
-
     try {
-      const response = await apiRequest<ApiResponse<ProblemResponse>>(
+      const response = await apiRequest<ApiResponse<{ problem: IProblem }>>(
         "patch",
         `/admin/problems/${problemId}/status`,
         { status: newStatus }
@@ -97,7 +92,6 @@ const ProblemsList: React.FC = () => {
       if (!response.success) {
         throw new Error(response.message || "Failed to update status");
       }
-      // Update with server response
       setProblems((prevProblems) =>
         prevProblems.map((problem) =>
           problem._id === problemId ? response.data.problem : problem
@@ -106,71 +100,33 @@ const ProblemsList: React.FC = () => {
     } catch (err) {
       console.error("Failed to update status:", err);
       setError("Failed to update problem status");
-      setProblems(originalProblems); // Rollback on error
+      setProblems(originalProblems);
     }
   };
 
-  const handleRowClick = async (problem: IProblem) => {
-    try {
-      const response = await apiRequest<ApiResponse<ProblemResponse>>(
-        "get",
-        `/admin/problems/${problem._id}` // Use _id here
-      );
-      if (response.success) {
-        setSelectedProblem(response.data.problem);
-        setIsModalOpen(true);
-      } else {
-        setError(response.message || "Failed to fetch problem details");
-      }
-    } catch (err) {
-      console.error("Failed to fetch problem details:", err);
-      setError("Failed to fetch problem details");
-    }
+  const handleRowClick = (problem: IProblem) => {
+    navigate(`/admin/problems/${problem._id}`);
   };
 
   const handleOpenProcessModal = () => {
     setIsProcessModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedProblem(null);
-  };
-
   const closeProcessModal = () => {
     setIsProcessModalOpen(false);
   };
 
-  const renderPaginationButtons = () => {
-    const buttons = [];
-    const maxVisibleButtons = window.innerWidth < 640 ? 3 : 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisibleButtons / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisibleButtons - 1);
-
-    if (endPage - startPage + 1 < maxVisibleButtons) {
-      startPage = Math.max(1, endPage - maxVisibleButtons + 1);
+  const getDifficultyColor = (difficulty: "EASY" | "MEDIUM" | "HARD") => {
+    switch (difficulty) {
+      case "EASY":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "MEDIUM":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "HARD":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
-
-    for (let i = startPage; i <= endPage; i++) {
-      buttons.push(
-        <button
-          key={i}
-          onClick={() => setCurrentPage(i)}
-          className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-            currentPage === i
-              ? theme === "dark"
-                ? "bg-gray-600 text-white border-gray-600"
-                : "bg-gray-300 text-black border-gray-300"
-              : theme === "dark"
-              ? "hover:bg-gray-700 text-gray-200 border-gray-600"
-              : "hover:bg-gray-200 text-gray-900 border-gray-200"
-          }`}
-        >
-          {i}
-        </button>
-      );
-    }
-    return buttons;
   };
 
   if (loading) return <TableSkeleton />;
@@ -207,10 +163,9 @@ const ProblemsList: React.FC = () => {
           <table className="w-full">
             <thead>
               <tr className="bg-background border-b border-forground">
-                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">S.No</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">Slug</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">ID</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">Title</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider hidden sm:table-cell">Slug</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">Difficulty</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">Updated At</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">Status</th>
@@ -218,22 +173,19 @@ const ProblemsList: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-background divide-y border-gray-600">
-              {problems.map((problem, index) => (
+              {problems.map((problem) => (
                 <tr
-                  key={problem._id} // Use _id here
+                  key={problem._id}
                   onClick={() => handleRowClick(problem)}
-                  className={`transition-colors cursor-pointer ${
-                    theme === "dark" ? "hover:bg-gray-800" : "hover:bg-gray-200"
-                  }`}
+                  className={`transition-colors cursor-pointer ${theme === "dark" ? "hover:bg-gray-800" : "hover:bg-gray-200"}`}
                 >
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-forground">
-                    {(currentPage - 1) * itemsPerPage + index + 1}
-                  </td>
+                  <td className="px-4 py-2 whitespace-nowrap text-sm text-forground max-w-[200px] truncate">{problem.slug}</td>
                   <td className="px-4 py-2 whitespace-nowrap text-sm text-forground max-w-[100px] truncate">{problem._id}</td>
                   <td className="px-4 py-2 whitespace-nowrap text-sm text-forground">{problem.title}</td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-forground hidden sm:table-cell max-w-[200px] truncate">{problem.slug}</td>
                   <td className="px-4 py-2 whitespace-nowrap text-sm">
-                    <span className={`text-${problem.difficulty === "EASY" ? "green" : problem.difficulty === "MEDIUM" ? "orange" : "red"}-600`}>
+                    <span
+                      className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getDifficultyColor(problem.difficulty)}`}
+                    >
                       {problem.difficulty}
                     </span>
                   </td>
@@ -260,12 +212,10 @@ const ProblemsList: React.FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleUpdateStatus(problem._id, problem.status); // Use _id here
+                        handleUpdateStatus(problem._id, problem.status);
                       }}
                       className={`p-2 rounded-lg transition-colors ${
-                        problem.status === "premium"
-                          ? "bg-green-600 hover:bg-green-700 text-white"
-                          : "bg-yellow-600 hover:bg-yellow-700 text-white"
+                        problem.status === "premium" ? "bg-green-600 hover:bg-green-700 text-white" : "bg-yellow-600 hover:bg-yellow-700 text-white"
                       }`}
                     >
                       {problem.status === "premium" ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
@@ -278,34 +228,21 @@ const ProblemsList: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-6 flex justify-center items-center gap-2">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-          disabled={currentPage === 1}
-          className={`p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed border transition-colors ${
-            theme === "dark" ? "hover:bg-gray-700 border-gray-600" : "hover:bg-gray-200 border-gray-200"
-          }`}
-        >
-          <ChevronLeft className={`w-4 h-4 ${theme === "dark" ? "text-gray-200" : "text-gray-900"}`} />
-        </button>
-        {renderPaginationButtons()}
-        <button
-          onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-          disabled={currentPage === totalPages}
-          className={`p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed border transition-colors ${
-            theme === "dark" ? "hover:bg-gray-700 border-gray-600" : "hover:bg-gray-200 border-gray-200"
-          }`}
-        >
-          <ChevronRight className={`w-4 h-4 ${theme === "dark" ? "text-gray-200" : "text-gray-900"}`} />
-        </button>
+      <div className="mt-6">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
 
-      <ProblemDetailsModal problem={selectedProblem} isOpen={isModalOpen} onClose={closeModal} />
-      <ProcessProblemModal
-        isOpen={isProcessModalOpen}
-        onClose={closeProcessModal}
-        onSuccess={() => fetchProblems(currentPage)}
-      />
+      <Suspense fallback={<div>Loading Process Modal...</div>}>
+        <ProcessProblemModal
+          isOpen={isProcessModalOpen}
+          onClose={closeProcessModal}
+          onSuccess={() => fetchProblems(currentPage)}
+        />
+      </Suspense>
     </div>
   );
 };

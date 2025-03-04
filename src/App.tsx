@@ -9,7 +9,7 @@ import UserLayout from "./layout/UserLayout";
 import AdminLayout from "./layout/AdminLayout";
 import SkeletonLoader, { AuthSkeleton, DashboardSkeleton } from "./utils/SkeletonLoader";
 import CommonLayout from "./layout/CommonLayout";
-import NotFound from "@/pages/common/NotFound";
+import NotFound from "@/components/layout/NotFound";
 import { Toaster } from "react-hot-toast";
 
 const App = () => {
