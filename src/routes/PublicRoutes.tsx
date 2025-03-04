@@ -1,4 +1,3 @@
-// PublicRoutes.tsx
 import { lazy, Suspense } from "react";
 import { useSelector } from "react-redux";
 import { Navigate, Route, Routes } from "react-router-dom";
@@ -12,16 +11,14 @@ const VerifyOTP = lazy(() => import("@/pages/auth/VerifyOtp"));
 const ForgotPassword = lazy(() => import("@/pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("@/pages/auth/ResetPassword"));
 const VerifyForgotPasswordOtp = lazy(() => import("@/pages/auth/VerifyForgotPasswordOtp"));
-const NotFound = lazy(() => import("@/pages/common/NotFound"));
+const NotFound = lazy(() => import("@/components/layout/NotFound"));
 
 const PublicRoutes = () => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
-  
   const redirectPath = user?.role === "admin" ? "/admin/dashboard" : "/user/dashboard";
 
-  const AuthenticatedGuard = ({ children }: { children: React.ReactNode }) => {
-    return isAuthenticated ? <Navigate to={redirectPath} replace /> : <>{children}</>;
-  };
+  const AuthenticatedGuard = ({ children }: { children: React.ReactNode }) =>
+    isAuthenticated ? <Navigate to={redirectPath} replace /> : <>{children}</>;
 
   return (
     <Routes>
@@ -37,8 +34,6 @@ const PublicRoutes = () => {
           </Suspense>
         }
       />
-
-      {/* Auth Routes */}
       <Route
         path="login"
         element={
@@ -49,7 +44,6 @@ const PublicRoutes = () => {
           </AuthenticatedGuard>
         }
       />
-
       <Route
         path="signup"
         element={
@@ -60,7 +54,6 @@ const PublicRoutes = () => {
           </AuthenticatedGuard>
         }
       />
-
       <Route
         path="verifyOtp"
         element={
@@ -71,7 +64,6 @@ const PublicRoutes = () => {
           </AuthenticatedGuard>
         }
       />
-
       <Route
         path="forgotPassword"
         element={
@@ -82,7 +74,6 @@ const PublicRoutes = () => {
           </AuthenticatedGuard>
         }
       />
-
       <Route
         path="reset-password"
         element={
@@ -93,7 +84,6 @@ const PublicRoutes = () => {
           </AuthenticatedGuard>
         }
       />
-
       <Route
         path="verifyForgotPasswordOtp"
         element={
@@ -104,15 +94,7 @@ const PublicRoutes = () => {
           </AuthenticatedGuard>
         }
       />
-
-      <Route
-        path="*"
-        element={
-          <Suspense fallback={<AuthSkeleton />}>
-            <NotFound />
-          </Suspense>
-        }
-      />
+      <Route path="*" element={<Suspense fallback={<AuthSkeleton />}><NotFound /></Suspense>} />
     </Routes>
   );
 };

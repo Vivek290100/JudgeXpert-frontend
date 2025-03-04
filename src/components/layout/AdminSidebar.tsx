@@ -37,7 +37,6 @@ export default function AdminSidebar() {
     { title: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" />, path: "/admin/dashboard" },
     { title: "Users", icon: <Users className="w-5 h-5" />, path: "/admin/users" },
     { title: "Problems", icon: <Code2 className="w-5 h-5" />, path: "/admin/problems" }, 
-    { title: "Process New Problem", icon: <Code2 className="w-5 h-5" />, path: "/admin/process-new-problem" },
     { title: "Contests", icon: <Trophy className="w-5 h-5" />, path: "" },
     { title: "Subscription", icon: <CreditCard className="w-5 h-5" />, path: "" },
   ];
@@ -146,7 +145,7 @@ export default function AdminSidebar() {
               key={item.title}
               onClick={() => handleNavigation(item)}
               className={`
-                w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 rounded-lg transition-colors text-sm sm:text-base
+                w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-4 rounded-lg transition-colors text-sm sm:text-base
                 ${!isOpen ? "justify-center" : ""}
                 ${
                   activeItem === item.title

@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { apiRequest } from '@/utils/axios/ApiRequest';
-import { CheckCircle, Unlock, Lock, Search, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useTheme } from '@/contexts/ThemeContext';
+// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\components\admin\UsersList.tsx
+import React, { useState, useEffect, useMemo } from "react";
+// import { useNavigate } from "react-router-dom";
+import { apiRequest } from "@/utils/axios/ApiRequest";
+import { CheckCircle, Unlock, Lock, Search } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
+import { TableSkeleton } from "@/utils/SkeletonLoader";
+import Pagination from "../layout/Pagination";
 
 interface AdminUser {
   id: string;
@@ -30,33 +33,31 @@ interface ApiResponse {
 }
 
 const ListUsers: React.FC = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
   const { theme } = useTheme();
 
-  // Fetch users only when page changes or on initial load
   const fetchUsers = async (page: number) => {
     setLoading(true);
     try {
       const response = await apiRequest<ApiResponse>(
-        'get',
+        "get",
         `/admin/users?page=${page}&limit=${itemsPerPage}`
       );
-
       if (response.data && response.data.users) {
         setUsers(response.data.users);
         setTotalPages(response.data.totalPages || 1);
       } else {
-        setError('Invalid response structure');
+        setError("Invalid response structure");
       }
     } catch (err) {
-      setError('Failed to fetch users');
+      setError("Failed to fetch users");
     } finally {
       setLoading(false);
     }
@@ -74,67 +75,30 @@ const ListUsers: React.FC = () => {
     );
   }, [users, searchQuery]);
 
-  // Optimistic update for block/unblock
   const handleBlockUnblock = async (userId: string, isBlocked: boolean) => {
     const originalUsers = [...users];
     const endpoint = isBlocked ? `/admin/users/${userId}/unblock` : `/admin/users/${userId}/block`;
-
-    // Optimistically update local state
     setUsers((prevUsers) =>
       prevUsers.map((user) =>
         user.id === userId ? { ...user, isBlocked: !isBlocked } : user
       )
     );
-
     try {
-      const response = await apiRequest<ApiResponse>('post', endpoint);
+      const response = await apiRequest<ApiResponse>("post", endpoint);
       if (!response.success) {
-        throw new Error('API call failed');
+        throw new Error("API call failed");
       }
     } catch (err) {
-      console.error('Failed to update user status:', err);
-      // Revert on failure
+      console.error("Failed to update user status:", err);
       setUsers(originalUsers);
     }
   };
 
-  const handleRowClick = (userId: string) => {
-    navigate(`/admin/users/${userId}`);
-  };
+  // const handleRowClick = (userId: string) => {
+  //   navigate(`/admin/users/${userId}`);
+  // };
 
-  const renderPaginationButtons = () => {
-    let buttons = [];
-    const maxVisibleButtons = window.innerWidth < 640 ? 3 : 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisibleButtons / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisibleButtons - 1);
-
-    if (endPage - startPage + 1 < maxVisibleButtons) {
-      startPage = Math.max(1, endPage - maxVisibleButtons + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      buttons.push(
-        <button
-          key={i}
-          onClick={() => setCurrentPage(i)}
-          className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-            currentPage === i
-              ? theme === 'dark'
-                ? 'bg-gray-600 text-white border-gray-600'
-                : 'bg-gray-300 text-black border-gray-300'
-              : theme === 'dark'
-              ? 'hover:bg-gray-700 text-gray-200 border-gray-600'
-              : 'hover:bg-gray-200 text-gray-900 border-gray-200'
-          }`}
-        >
-          {i}
-        </button>
-      );
-    }
-    return buttons;
-  };
-
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <TableSkeleton />;
   if (error) return <div>{error}</div>;
 
   return (
@@ -171,21 +135,15 @@ const ListUsers: React.FC = () => {
               {filteredUsers.map((user, index) => (
                 <tr
                   key={user.id}
-                  onClick={() => handleRowClick(user.id)}
-                  className={`transition-colors cursor-pointer ${
-                    theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
-                  }`}
+                  // onClick={() => handleRowClick(user.id)}
+                  className={`transition-colors cursor-pointer ${theme === "dark" ? "hover:bg-gray-800" : "hover:bg-gray-200"}`}
                 >
                   <td className="px-4 py-2 whitespace-nowrap text-sm text-forground">
                     {(currentPage - 1) * itemsPerPage + index + 1}
                   </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-forground max-w-[100px] truncate">
-                    {user.id}
-                  </td>
+                  <td className="px-4 py-2 whitespace-nowrap text-sm text-forground max-w-[100px] truncate">{user.id}</td>
                   <td className="px-4 py-2 whitespace-nowrap text-sm text-forground">{user.userName}</td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-forground hidden sm:table-cell max-w-[200px] truncate">
-                    {user.email}
-                  </td>
+                  <td className="px-4 py-2 whitespace-nowrap text-sm text-forground hidden sm:table-cell max-w-[200px] truncate">{user.email}</td>
                   <td className="px-4 py-2 whitespace-nowrap text-sm">
                     {user.isPremium ? (
                       <span className="flex items-center gap-1.5 text-yellow-600">
@@ -199,10 +157,10 @@ const ListUsers: React.FC = () => {
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                        !user.isBlocked ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        !user.isBlocked ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {user.isBlocked ? 'Blocked' : 'Active'}
+                      {user.isBlocked ? "Blocked" : "Active"}
                     </span>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
@@ -212,9 +170,7 @@ const ListUsers: React.FC = () => {
                         handleBlockUnblock(user.id, user.isBlocked);
                       }}
                       className={`p-2 rounded-lg transition-colors ${
-                        user.isBlocked
-                          ? 'bg-green-600 hover:bg-green-700 text-white'
-                          : 'bg-red-600 hover:bg-red-700 text-white'
+                        user.isBlocked ? "bg-green-600 hover:bg-green-700 text-white" : "bg-red-600 hover:bg-red-700 text-white"
                       }`}
                     >
                       {user.isBlocked ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
@@ -227,26 +183,12 @@ const ListUsers: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-6 flex justify-center items-center gap-2">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-          disabled={currentPage === 1}
-          className={`p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed border transition-colors ${
-            theme === 'dark' ? 'hover:bg-gray-700 border-gray-600' : 'hover:bg-gray-200 border-gray-200'
-          }`}
-        >
-          <ChevronLeft className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`} />
-        </button>
-        {renderPaginationButtons()}
-        <button
-          onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-          disabled={currentPage === totalPages}
-          className={`p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed border transition-colors ${
-            theme === 'dark' ? 'hover:bg-gray-700 border-gray-600' : 'hover:bg-gray-200 border-gray-200'
-          }`}
-        >
-          <ChevronRight className={`w-4 h-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`} />
-        </button>
+      <div className="mt-6">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

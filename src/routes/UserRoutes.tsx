@@ -1,11 +1,11 @@
 import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./protectedRoutes";
-import NotFound from "@/pages/common/NotFound";
+import NotFound from "@/components/layout/NotFound";
 import { DashboardSkeleton, TableSkeleton } from "@/utils/SkeletonLoader";
 
 const Dashboard = lazy(() => import("@/pages/user/UserDashboard"));
-const Profile = lazy(() => import("@/pages/user/UserProfile"));
+const ProblemsList = lazy(() => import("@/pages/user/UserProblemsList"));
 
 const UserRoutes = () => {
   return (
@@ -20,10 +20,10 @@ const UserRoutes = () => {
           }
         />
         <Route
-          path="profile"
+          path="problems"
           element={
             <Suspense fallback={<TableSkeleton />}>
-              <Profile />
+              <ProblemsList />
             </Suspense>
           }
         />

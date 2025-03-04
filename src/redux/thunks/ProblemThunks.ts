@@ -21,40 +21,32 @@ interface ProcessProblemResponse {
 }
 
 export const processSpecificProblem = createAsyncThunk<
-  IProblem, // Return type: the processed problem (simplified for Redux)
-  ProcessProblemPayload, // Payload type: problemDir
-  { rejectValue: string } // Reject value type: error message
+  IProblem,
+  ProcessProblemPayload,
+  { rejectValue: string }
 >(
-  "problems/processSpecific", // Action type
+  "problems/processSpecific",
   async (payload, { rejectWithValue }) => {
     try {
       const response = await apiRequest<ProcessProblemResponse>(
         "post",
-        "/problems/single", 
-        payload, 
+        "/admin/problems/single", // Corrected endpoint
+        payload,
         rejectWithValue,
         {
-          headers: {
-            "Content-Type": "application/json", // Adjust if needed (e.g., multipart/form-data)
-          },
-          timeout: 10000, // Optional: 10-second timeout
+          headers: { "Content-Type": "application/json" },
+          timeout: 10000,
         }
       );
-
-      console.log("process problem response", response);
-      
 
       if (!response.data || !response.data.problem) {
         return rejectWithValue("Invalid response structure: no problem data");
       }
 
-      // Return the problem data for Redux state
       return {
         id: response.data.problem.id,
         title: response.data.problem.title,
         slug: response.data.problem.slug,
-        // Add other IProblem fields if needed (e.g., difficulty, testCases, defaultCode)
-        // For simplicity, we’ll assume only id, title, and slug are stored in Redux
       } as IProblem;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to process problem";

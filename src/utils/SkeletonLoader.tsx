@@ -78,6 +78,77 @@ export const AuthSkeleton = () => (
   </div>
 );
 
+export const ProblemDetailsSkeleton = () => (
+  <div className="container mx-auto px-4 py-9 min-h-screen bg-background space-y-8">
+    {/* Header */}
+    <div className="flex justify-between items-center mb-6">
+      <Skeleton className="h-10 w-[300px]" />
+      <Skeleton className="h-6 w-6 rounded-full" />
+    </div>
+
+    {/* Basic Info */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-4">
+        <Skeleton className="h-4 w-[150px]" />
+        <Skeleton className="h-4 w-[200px]" />
+        <Skeleton className="h-4 w-[180px]" />
+      </div>
+      <div className="space-y-4">
+        <Skeleton className="h-4 w-[150px]" />
+        <Skeleton className="h-4 w-[200px]" />
+      </div>
+    </div>
+
+    {/* Description */}
+    <div>
+      <Skeleton className="h-6 w-[150px] mb-2" />
+      <Skeleton className="h-40 w-full rounded-lg" />
+    </div>
+
+    {/* Default Codes */}
+    <div>
+      <Skeleton className="h-6 w-[150px] mb-3" />
+      <div className="space-y-3">
+        {[1, 2].map((i) => (
+          <div key={i} className="border rounded-lg overflow-hidden">
+            <Skeleton className="h-12 w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Test Cases */}
+    <div>
+      <Skeleton className="h-6 w-[150px] mb-3" />
+      <div className="overflow-x-auto">
+        <div className="w-full border rounded-lg">
+          <div className="bg-gray-100 dark:bg-gray-900 p-2">
+            <div className="grid grid-cols-3 gap-4">
+              <Skeleton className="h-4 w-[100px]" />
+              <Skeleton className="h-4 w-[100px]" />
+              <Skeleton className="h-4 w-[100px]" />
+            </div>
+          </div>
+          <div className="p-4 space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="grid grid-cols-3 gap-4">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="mt-4 flex justify-center gap-2">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-8 w-8" />
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
 // Default export for general loading
 const SkeletonLoader = () => (
   <div className="min-h-screen">
