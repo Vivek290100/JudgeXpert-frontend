@@ -7,6 +7,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { TableSkeleton } from "@/utils/SkeletonLoader";
 import { lazy, Suspense } from "react";
 import Pagination from "../layout/Pagination";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const ProcessProblemModal = lazy(() => import("./ProcessProblemModal"));
 
@@ -41,6 +42,7 @@ const ProblemsList: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
@@ -49,12 +51,12 @@ const ProblemsList: React.FC = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
-  const fetchProblems = async (page: number) => {
+  const fetchProblems = async (page: number, query: string = "") => {
     setLoading(true);
     try {
       const response = await apiRequest<ApiResponse<ProblemsResponse>>(
         "get",
-        `/admin/problems?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}`
+        `/admin/problems?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(query)}`
       );
       if (response.success) {
         setProblems(response.data.problems);
@@ -68,12 +70,13 @@ const ProblemsList: React.FC = () => {
       setError("Failed to fetch problems");
     } finally {
       setLoading(false);
+      searchInputRef.current?.focus();
     }
   };
 
   useEffect(() => {
-    fetchProblems(currentPage);
-  }, [currentPage, searchQuery]);
+    fetchProblems(currentPage, debouncedSearchQuery);
+  }, [currentPage, debouncedSearchQuery]);
 
   const handleUpdateStatus = async (problemId: string, currentStatus: "premium" | "free") => {
     const newStatus = currentStatus === "premium" ? "free" : "premium";
@@ -89,9 +92,7 @@ const ProblemsList: React.FC = () => {
         `/admin/problems/${problemId}/status`,
         { status: newStatus }
       );
-      if (!response.success) {
-        throw new Error(response.message || "Failed to update status");
-      }
+      if (!response.success) throw new Error(response.message || "Failed to update status");
       setProblems((prevProblems) =>
         prevProblems.map((problem) =>
           problem._id === problemId ? response.data.problem : problem
@@ -142,7 +143,10 @@ const ProblemsList: React.FC = () => {
               ref={searchInputRef}
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Search by title or slug..."
               className="w-full pl-10 pr-4 py-2 text-sm rounded-lg border bg-background border-gray-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
             />
@@ -183,9 +187,7 @@ const ProblemsList: React.FC = () => {
                   <td className="px-4 py-2 whitespace-nowrap text-sm text-forground max-w-[100px] truncate">{problem._id}</td>
                   <td className="px-4 py-2 whitespace-nowrap text-sm text-forground">{problem.title}</td>
                   <td className="px-4 py-2 whitespace-nowrap text-sm">
-                    <span
-                      className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getDifficultyColor(problem.difficulty)}`}
-                    >
+                    <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getDifficultyColor(problem.difficulty)}`}>
                       {problem.difficulty}
                     </span>
                   </td>
@@ -229,11 +231,7 @@ const ProblemsList: React.FC = () => {
       </div>
 
       <div className="mt-6">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       </div>
 
       <Suspense fallback={<div>Loading Process Modal...</div>}>

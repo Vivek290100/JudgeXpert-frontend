@@ -19,7 +19,7 @@ export async function apiRequest<T>(
       ...config,
     });
 
-    console.log("wwwwwwwwwwwwwwwwwwwwwwwwwwww",response);
+    console.log("ApiRequest response",response);
     
     return response.data;
   } catch (error) {

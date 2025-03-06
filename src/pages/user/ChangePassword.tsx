@@ -1,7 +1,3 @@
-
-// src/pages/ChangePassword.tsx
-
-
 export const ChangePassword = () => {
   return (
     <>

@@ -1,11 +1,11 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\components\admin\UsersList.tsx
-import React, { useState, useEffect, useMemo } from "react";
-// import { useNavigate } from "react-router-dom";
+// src/components/admin/UsersList.tsx
+import React, { useState, useEffect, useRef } from "react";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import { CheckCircle, Unlock, Lock, Search } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { TableSkeleton } from "@/utils/SkeletonLoader";
 import Pagination from "../layout/Pagination";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface AdminUser {
   id: string;
@@ -33,22 +33,23 @@ interface ApiResponse {
 }
 
 const ListUsers: React.FC = () => {
-  // const navigate = useNavigate();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
   const { theme } = useTheme();
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchUsers = async (page: number) => {
+  const fetchUsers = async (page: number, query: string = "") => {
     setLoading(true);
     try {
       const response = await apiRequest<ApiResponse>(
         "get",
-        `/admin/users?page=${page}&limit=${itemsPerPage}`
+        `/admin/users?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(query)}`
       );
       if (response.data && response.data.users) {
         setUsers(response.data.users);
@@ -60,43 +61,28 @@ const ListUsers: React.FC = () => {
       setError("Failed to fetch users");
     } finally {
       setLoading(false);
+      searchInputRef.current?.focus();
     }
   };
 
   useEffect(() => {
-    fetchUsers(currentPage);
-  }, [currentPage]);
-
-  const filteredUsers = useMemo(() => {
-    return users.filter(
-      (user) =>
-        user.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [users, searchQuery]);
+    fetchUsers(currentPage, debouncedSearchQuery);
+  }, [currentPage, debouncedSearchQuery]);
 
   const handleBlockUnblock = async (userId: string, isBlocked: boolean) => {
     const originalUsers = [...users];
     const endpoint = isBlocked ? `/admin/users/${userId}/unblock` : `/admin/users/${userId}/block`;
     setUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user.id === userId ? { ...user, isBlocked: !isBlocked } : user
-      )
+      prevUsers.map((user) => (user.id === userId ? { ...user, isBlocked: !isBlocked } : user))
     );
     try {
       const response = await apiRequest<ApiResponse>("post", endpoint);
-      if (!response.success) {
-        throw new Error("API call failed");
-      }
+      if (!response.success) throw new Error("API call failed");
     } catch (err) {
       console.error("Failed to update user status:", err);
       setUsers(originalUsers);
     }
   };
-
-  // const handleRowClick = (userId: string) => {
-  //   navigate(`/admin/users/${userId}`);
-  // };
 
   if (loading) return <TableSkeleton />;
   if (error) return <div>{error}</div>;
@@ -107,9 +93,13 @@ const ListUsers: React.FC = () => {
         <h1 className="text-2xl font-semibold text-primary">Users List</h1>
         <div className="relative w-full sm:w-72">
           <input
+            ref={searchInputRef}
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
             placeholder="Search by username or email..."
             className="w-full pl-10 pr-4 py-2 text-sm rounded-lg border bg-background border-gray-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
           />
@@ -132,10 +122,9 @@ const ListUsers: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-background divide-y border-gray-600">
-              {filteredUsers.map((user, index) => (
+              {users.map((user, index) => (
                 <tr
                   key={user.id}
-                  // onClick={() => handleRowClick(user.id)}
                   className={`transition-colors cursor-pointer ${theme === "dark" ? "hover:bg-gray-800" : "hover:bg-gray-200"}`}
                 >
                   <td className="px-4 py-2 whitespace-nowrap text-sm text-forground">
@@ -184,11 +173,7 @@ const ListUsers: React.FC = () => {
       </div>
 
       <div className="mt-6">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       </div>
     </div>
   );

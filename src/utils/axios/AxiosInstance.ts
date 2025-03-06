@@ -27,7 +27,6 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    console.log("axiosss innnssstttaannccee");
     
     const originalRequest = error.config;
 
@@ -37,8 +36,7 @@ axiosInstance.interceptors.response.use(
       try {
         const { data } = await axiosInstance.post("/auth/refresh-token");
         
-        // Update the cookie with the new access token
-        Cookies.set("accessToken", data.accessToken, { expires: 7 });  // Set the access token cookie with a 7-day expiry
+        Cookies.set("accessToken", data.accessToken, { expires: 30 }); 
         
         axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
         originalRequest.headers["Authorization"] = `Bearer ${data.accessToken}`;
