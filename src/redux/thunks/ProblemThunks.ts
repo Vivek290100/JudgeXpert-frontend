@@ -30,7 +30,7 @@ export const processSpecificProblem = createAsyncThunk<
     try {
       const response = await apiRequest<ProcessProblemResponse>(
         "post",
-        "/admin/problems/single", // Corrected endpoint
+        "/admin/problems/single",
         payload,
         rejectWithValue,
         {

@@ -11,14 +11,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { FcGoogle } from "react-icons/fc";
+// import { FcGoogle } from "react-icons/fc";
 import { useDispatch, useSelector } from "react-redux";
-import { login } from "@/redux/thunks/AuthThunks";
+import { googleLogin, login } from "@/redux/thunks/AuthThunks";
 import { LoginFormData, loginSchema } from "@/utils/validations/AuthValidation";
 import { AppDispatch, RootState } from "@/redux/Store";
 import toast from "react-hot-toast";
 import { Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from '@react-oauth/google';
+
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -47,10 +49,30 @@ export default function LoginPage() {
         }
       } else {
         const errorMessage = (resultAction.payload as string) || "Login failed";
-        toast.error(errorMessage); // This will display "Your account is blocked. Please contact support." if the user is blocked
+        toast.error(errorMessage);
       }
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
+    }
+  };
+
+  const handleGoogleLogin = async (credentialResponse: any) => {
+    try {
+      const resultAction = await dispatch(googleLogin({ credential: credentialResponse.credential }));
+      if (googleLogin.fulfilled.match(resultAction)) {
+        const userRole = resultAction.payload?.data?.user?.role;
+        toast.success("Logged in successfully with Google!");
+        if (userRole === "user") {
+          navigate("/");
+        } else {
+          navigate("/admin/dashboard");
+        }
+      } else {
+        const errorMessage = (resultAction.payload as string) || "Google login failed";
+        toast.error(errorMessage);
+      }
+    } catch (error) {
+      toast.error("Something went wrong with Google login. Please try again.");
     }
   };
 
@@ -128,9 +150,16 @@ export default function LoginPage() {
             </div>
             
 
-            <Button className="w-full flex text-foreground items-center justify-center gap-2 bg-input hover:bg-gray-700">
+            {/* <Button className="w-full flex text-foreground items-center justify-center gap-2 bg-input hover:bg-gray-700">
               <FcGoogle className="h-5 w-5" /> Login with Google
-            </Button>
+            </Button> */}
+<GoogleLogin
+      onSuccess={handleGoogleLogin}
+      onError={() => {
+        console.log('Login Failed');
+        toast.error("Google login failed");
+      }}
+    />
 
             <p className="text-sm text-center text-muted-foreground">
               Don't have an account?{" "}

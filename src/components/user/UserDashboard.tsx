@@ -9,7 +9,7 @@ const UserDashboard = () => {
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
-  console.log("Dashboard User State:", user);
+  console.log("DashboardUser ", user);
 
   if (!isAuthenticated || !user) {
     return (

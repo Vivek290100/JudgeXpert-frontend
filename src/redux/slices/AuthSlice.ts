@@ -1,6 +1,6 @@
 // C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\redux\slices\AuthSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { signUp, verifyOtp, logout, login } from "../thunks/AuthThunks";
+import { signUp, verifyOtp, logout, login, googleLogin } from "../thunks/AuthThunks";
 import { AuthResponse, AuthUser } from "../types/Index";
 import { updateUserProfile } from "../thunks/UserThunks";
 
@@ -46,6 +46,10 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null; // Clear error on pending
       })
+      .addCase(googleLogin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(signUp.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
         updateAuthState(state, action.payload);
       })
@@ -67,6 +71,9 @@ const authSlice = createSlice({
         state.user = action.payload;
         state.loading = false;
       })
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        updateAuthState(state, action.payload);
+      })
       .addCase(signUp.rejected, (state, action) => {
         state.error = action.payload as string;
         state.loading = false;
@@ -85,6 +92,10 @@ const authSlice = createSlice({
       })
       .addCase(updateUserProfile.rejected, (state, action: PayloadAction<string | undefined>) => {
         state.error = action.payload ?? "Failed to update profile";
+        state.loading = false;
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
+        state.error = action.payload as string;
         state.loading = false;
       });
   },
