@@ -6,13 +6,14 @@ import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { FcGoogle } from "react-icons/fc";
+// import { FcGoogle } from "react-icons/fc";
 import { useDispatch, useSelector } from "react-redux";
-import { signUp } from "@/redux/thunks/AuthThunks";
+import { googleLogin, signUp } from "@/redux/thunks/AuthThunks";
 import { AppDispatch, RootState } from "@/redux/Store";
 import toast from "react-hot-toast";
 import { Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -24,16 +25,11 @@ export default function SignupPage() {
   const dispatch = useDispatch<AppDispatch>();
 
   const handleSignup = async (data: SignUpFormData) => {
-    console.log("00000000000",data);
     try {
-      console.log("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq");
       
       const resultAction = await dispatch(signUp(data));
-      console.log("2312312312312313",resultAction);
-      
       
       if (signUp.fulfilled.match(resultAction)) {
-        // toast.success("OTP sent successful!");
           Navigate("/verifyOtp", { state: { email: data.email } });
       } else {
         const errorMessage = resultAction.payload as string || "Signup failed";
@@ -41,6 +37,26 @@ export default function SignupPage() {
       }
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
+    }
+  };
+
+  const handleGoogleLogin = async (credentialResponse: any) => {
+    try {
+      const resultAction = await dispatch(googleLogin({ credential: credentialResponse.credential }));
+      if (googleLogin.fulfilled.match(resultAction)) {
+        const userRole = resultAction.payload?.data?.user?.role;
+        toast.success("Logged in successfully with Google!");
+        if (userRole === "user") {
+          Navigate("/");
+        } else {
+          Navigate("/admin/dashboard");
+        }
+      } else {
+        const errorMessage = (resultAction.payload as string) || "Google login failed";
+        toast.error(errorMessage);
+      }
+    } catch (error) {
+      toast.error("Something went wrong with Google login. Please try again.");
     }
   };
 
@@ -83,11 +99,10 @@ export default function SignupPage() {
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-4">
-            {/* <Button type="submit" className="w-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90">SignUp</Button> */}
             <Button
               type="submit"
               className="w-full flex text-foreground items-center justify-center gap-2 bg-input hover:bg-gray-700"
-              disabled={loading} // Disable button while loading
+              disabled={loading}
             >
               {loading ? <Loader className="h-5 w-5 animate-spin" /> : "SignUp"}
             </Button>
@@ -96,9 +111,16 @@ export default function SignupPage() {
               <span className="mx-2 text-muted-foreground">or</span>
               <div className="flex-grow h-[1px] bg-border"></div>
             </div>
-            <Button className="w-full flex muted-foreground items-center justify-center gap-2 text-foreground bg-input hover:bg-gray-600">
+            {/* <Button className="w-full flex muted-foreground items-center justify-center gap-2 text-foreground bg-input hover:bg-gray-600">
               <FcGoogle className="h-5 w-5" /> Sign up with Google
-            </Button>
+            </Button> */}
+            <GoogleLogin
+      onSuccess={handleGoogleLogin}
+      onError={() => {
+        console.log('Login Failed');
+        toast.error("Google login failed");
+      }}
+    />
             <p className="text-sm text-center text-muted-foreground">Already have an account? <a href="/login" className="text-blue-400 hover:underline">Login</a></p>
           </CardFooter>
         </form>

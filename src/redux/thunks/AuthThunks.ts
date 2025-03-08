@@ -75,3 +75,12 @@ export const logout = createAsyncThunk(
 );
 
 
+// Add this to your existing AuthThunks.ts
+export const googleLogin = createAsyncThunk<AuthResponse, { credential: string }, { rejectValue: string }>(
+  "auth/googleLogin",
+  async (data, { rejectWithValue }) => {
+    return apiRequest<AuthResponse>("post", "/google-login", data, rejectWithValue);
+  }
+);
+
+

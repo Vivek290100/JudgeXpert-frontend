@@ -8,6 +8,7 @@ import { ThemeProvider } from "./contexts/ThemeContext.tsx";
 import { Provider } from "react-redux";
 import store, { persistor } from "./redux/Store.ts";
 import { PersistGate } from "redux-persist/integration/react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 // Wrapping providers for cleaner structure
 const AppWrapper = () => (
@@ -24,10 +25,13 @@ const AppWrapper = () => (
   </Provider>
 );
 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+console.log("GOOGLE_CLIENT_IDGOOGLE_CLIENT_ID",GOOGLE_CLIENT_ID);
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <>
-    <AppWrapper />
-    </>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <AppWrapper />
+    </GoogleOAuthProvider>
   </StrictMode>
 );
