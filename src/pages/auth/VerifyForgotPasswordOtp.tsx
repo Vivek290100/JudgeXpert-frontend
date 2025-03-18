@@ -1,10 +1,11 @@
-import VerifyForgotpasswordOtp from "@/components/auth/VerifyForgotPasswordOtp"
+import VerifyForgotpasswordOtp from "@/components/auth/VerifyForgotPasswordOtp";
+
 const VerifyForgotPasswordOtp = () => {
   return (
     <div>
-        <VerifyForgotpasswordOtp/>
+      <VerifyForgotpasswordOtp />
     </div>
-  )
-}
+  );
+};
 
-export default VerifyForgotPasswordOtp
+export default VerifyForgotPasswordOtp;

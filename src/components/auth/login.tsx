@@ -19,8 +19,7 @@ import { AppDispatch, RootState } from "@/redux/Store";
 import toast from "react-hot-toast";
 import { Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { GoogleLogin } from '@react-oauth/google';
-
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -58,7 +57,9 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async (credentialResponse: any) => {
     try {
-      const resultAction = await dispatch(googleLogin({ credential: credentialResponse.credential }));
+      const resultAction = await dispatch(
+        googleLogin({ credential: credentialResponse.credential })
+      );
       if (googleLogin.fulfilled.match(resultAction)) {
         const userRole = resultAction.payload?.data?.user?.role;
         toast.success("Logged in successfully with Google!");
@@ -68,7 +69,8 @@ export default function LoginPage() {
           navigate("/admin/dashboard");
         }
       } else {
-        const errorMessage = (resultAction.payload as string) || "Google login failed";
+        const errorMessage =
+          (resultAction.payload as string) || "Google login failed";
         toast.error(errorMessage);
       }
     } catch (error) {
@@ -140,7 +142,12 @@ export default function LoginPage() {
             </Button>
 
             <div className="flex items-center w-full">
-              <a href="/forgotPassword" className="mx-2 text-blue-400 hover:underline">forgot password</a>
+              <a
+                href="/forgotPassword"
+                className="mx-2 text-blue-400 hover:underline"
+              >
+                forgot password
+              </a>
             </div>
 
             <div className="flex items-center w-full">
@@ -148,18 +155,17 @@ export default function LoginPage() {
               <span className="mx-2 text-muted-foreground">or</span>
               <div className="flex-grow h-[1px] bg-border"></div>
             </div>
-            
 
             {/* <Button className="w-full flex text-foreground items-center justify-center gap-2 bg-input hover:bg-gray-700">
               <FcGoogle className="h-5 w-5" /> Login with Google
             </Button> */}
-<GoogleLogin
-      onSuccess={handleGoogleLogin}
-      onError={() => {
-        console.log('Login Failed');
-        toast.error("Google login failed");
-      }}
-    />
+            <GoogleLogin
+              onSuccess={handleGoogleLogin}
+              onError={() => {
+                console.log("Login Failed");
+                toast.error("Google login failed");
+              }}
+            />
 
             <p className="text-sm text-center text-muted-foreground">
               Don't have an account?{" "}

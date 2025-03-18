@@ -1,4 +1,5 @@
 import UserList from "@/components/admin/UsersList"
+
 const UsersList = () => {
   return (
     <div>

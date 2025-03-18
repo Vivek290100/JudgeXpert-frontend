@@ -1,10 +1,11 @@
-import VerifyOtpPage from "../../components/auth/VerifyOtp"
+import VerifyOtpPage from "../../components/auth/VerifyOtp";
+
 const verifyOtp = () => {
   return (
     <div>
-        <VerifyOtpPage/>
+      <VerifyOtpPage />
     </div>
-  )
-}
+  );
+};
 
-export default verifyOtp
+export default verifyOtp;

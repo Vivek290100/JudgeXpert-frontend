@@ -1,14 +1,13 @@
-// src/components/user/ProblemsList.tsx
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "@/utils/axios/ApiRequest";
-import { useTheme } from "@/contexts/ThemeContext";
-import { TableSkeleton } from "@/utils/SkeletonLoader";
+import Table from "../layout/Table";
 import Pagination from "../layout/Pagination";
 import Statistics from "./Statistics";
-import ProblemFilter, { FilterProps } from "./ProblemFilter";
+import ProblemFilter from "./ProblemFilter";
 import { Menu, X, Search } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
+import { TableSkeleton } from "@/utils/SkeletonLoader";
 
 interface IProblem {
   _id: string;
@@ -16,6 +15,7 @@ interface IProblem {
   slug: string;
   difficulty: "EASY" | "MEDIUM" | "HARD";
   status: "premium" | "free";
+  isBlocked?: boolean; // Add isBlocked to interface for safety
 }
 
 interface IUserProblemStatus {
@@ -49,7 +49,6 @@ const ProblemsList: React.FC = () => {
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const itemsPerPage = 10;
-  const { theme } = useTheme();
   const navigate = useNavigate();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,7 +71,8 @@ const ProblemsList: React.FC = () => {
 
       const response = await apiRequest<ApiResponse>("get", url);
       if (response.success) {
-        setProblems(response.data.problems);
+        const filteredProblems = response.data.problems.filter((problem) => !problem.isBlocked);
+        setProblems(filteredProblems);
         setUserProblemStatus(response.data.userProblemStatus || []);
         setTotalPages(response.data.totalPages);
         setCurrentPage(response.data.currentPage);
@@ -114,27 +114,54 @@ const ProblemsList: React.FC = () => {
     return status?.solved || false;
   };
 
-  const handleFilterChange: FilterProps["onFilterChange"] = (newFilters) => {
-    setFilters(newFilters);
-    setCurrentPage(1);
-  };
-
-  const handleClearFilters = () => {
-    setFilters({ difficulty: "", status: "" });
-    setSearchQuery("");
-    setCurrentPage(1);
-  };
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+  const columns = [
+    { key: "title", header: "Title" },
+    {
+      key: "difficulty",
+      header: "Difficulty",
+      render: (problem: IProblem) => (
+        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getDifficultyColor(problem.difficulty)}`}>
+          {problem.difficulty}
+        </span>
+      ),
+    },
+    {
+      key: "solved",
+      header: "Status",
+      render: (problem: IProblem) => (
+        <span
+          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+            isProblemSolved(problem._id)
+              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+              : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+          }`}
+        >
+          {isProblemSolved(problem._id) ? "Solved" : "Not Solved"}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Premium",
+      render: (problem: IProblem) => (
+        <span
+          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+            problem.status === "premium"
+              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+              : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+          }`}
+        >
+          {problem.status === "premium" ? "Premium" : "Free"}
+        </span>
+      ),
+    },
+  ];
 
   if (loading) return <TableSkeleton />;
   if (error) return <div className="text-red-500 text-center py-4">{error}</div>;
 
   return (
     <div className="container mx-auto px-4 py-6 min-h-screen flex flex-col">
-      {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-semibold text-primary">Problems</h1>
         <div className="relative w-full sm:w-72">
@@ -153,9 +180,7 @@ const ProblemsList: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex gap-6">
-        {/* Sidebar (Filters and Statistics) */}
         <div
           className={`fixed inset-y-0 left-0 z-50 w-72 bg-background border-r border-gray-200 dark:border-gray-700 transform ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -165,10 +190,20 @@ const ProblemsList: React.FC = () => {
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-semibold text-primary">Filters</h2>
             </div>
-            <ProblemFilter onFilterChange={handleFilterChange} filters={filters} />
+            <ProblemFilter
+              onFilterChange={(newFilters) => {
+                setFilters(newFilters);
+                setCurrentPage(1);
+              }}
+              filters={filters}
+            />
             <div className="p-4">
               <button
-                onClick={handleClearFilters}
+                onClick={() => {
+                  setFilters({ difficulty: "", status: "" });
+                  setSearchQuery("");
+                  setCurrentPage(1);
+                }}
                 className="w-full py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
                 Clear Filters
@@ -180,76 +215,30 @@ const ProblemsList: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Sidebar Overlay */}
         {isSidebarOpen && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-            onClick={toggleSidebar}
+            onClick={() => setIsSidebarOpen(false)}
           />
         )}
 
-        {/* Problems Table */}
         <div className="flex-1 flex flex-col">
           <div className="flex items-center justify-between mb-4 md:hidden">
             <button
-              onClick={toggleSidebar}
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="p-2 bg-background border border-gray-200 dark:border-gray-700 rounded-lg"
               aria-label="Toggle sidebar"
             >
               {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
-          <div className="flex-1 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-800">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">Title</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">Difficulty</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">Premium</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-background divide-y divide-gray-200 dark:divide-gray-700">
-                  {problems.map((problem) => (
-                    <tr
-                      key={problem._id}
-                      onClick={() => handleRowClick(problem)}
-                      className={`transition-colors cursor-pointer ${theme === "dark" ? "hover:bg-gray-800" : "hover:bg-gray-100"}`}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{problem.title}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getDifficultyColor(problem.difficulty)}`}>
-                          {problem.difficulty}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span
-                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                            isProblemSolved(problem._id)
-                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                              : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-                          }`}
-                        >
-                          {isProblemSolved(problem._id) ? "Solved" : "Not Solved"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span
-                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                            problem.status === "premium"
-                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                              : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                          }`}
-                        >
-                          {problem.status === "premium" ? "Premium" : "Free"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <div className="flex-1">
+            <Table
+              data={problems}
+              columns={columns}
+              onRowClick={handleRowClick}
+              emptyMessage="No problems found"
+            />
           </div>
           <div className="mt-6">
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />

@@ -1,4 +1,3 @@
-// SkeletonLoader.tsx
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const DashboardSkeleton = () => (
@@ -8,7 +7,7 @@ export const DashboardSkeleton = () => (
       <Skeleton className="h-8 w-[200px]" />
       <Skeleton className="h-10 w-[120px]" />
     </div>
-    
+
     {/* Stats Grid */}
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {[1, 2, 3].map((i) => (
@@ -18,10 +17,10 @@ export const DashboardSkeleton = () => (
         </div>
       ))}
     </div>
-    
+
     {/* Main Content */}
     <div className="rounded-lg border p-6">
-      <Skeleton className="h-[400px]" />
+      <Skeleton className="h-[400px] w-full" />
     </div>
   </div>
 );
@@ -33,7 +32,7 @@ export const TableSkeleton = () => (
       <Skeleton className="h-8 w-[150px]" />
       <Skeleton className="h-10 w-[250px]" />
     </div>
-    
+
     {/* Table */}
     <div className="rounded-lg border">
       <div className="p-4 space-y-4">
@@ -43,7 +42,7 @@ export const TableSkeleton = () => (
             <Skeleton key={i} className="h-4" />
           ))}
         </div>
-        
+
         {/* Table Rows */}
         {[1, 2, 3, 4, 5].map((i) => (
           <div key={i} className="grid grid-cols-4 gap-4">
@@ -54,7 +53,7 @@ export const TableSkeleton = () => (
         ))}
       </div>
     </div>
-    
+
     {/* Pagination */}
     <div className="flex justify-center gap-2">
       {[1, 2, 3, 4, 5].map((i) => (
@@ -149,7 +148,82 @@ export const ProblemDetailsSkeleton = () => (
   </div>
 );
 
-// Default export for general loading
+export const ProblemEditorSkeleton = () => {
+  return (
+    <div className="h-[calc(100vh-5rem)] flex flex-col lg:flex-row overflow-hidden">
+      {/* Mobile Description Toggle Skeleton */}
+      <div className="lg:hidden border-b border-gray-200 dark:border-gray-700">
+        <div className="p-4">
+          <Skeleton className="h-5 w-3/4 mb-2" />
+          <Skeleton className="h-4 w-1/4" />
+        </div>
+        <div className="p-4 space-y-4 max-h-[30vh] overflow-y-auto">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+          {[1, 2].map((i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-4 w-1/3" />
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Layout */}
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        {/* Left Panel: Description Skeleton */}
+        <div className="hidden lg:block lg:w-1/3 border-r border-gray-200 dark:border-gray-700 p-6 overflow-y-auto space-y-4">
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="h-4 w-1/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+          <Skeleton className="h-4 w-2/3" />
+          {[1, 2].map((i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-5 w-1/4" />
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-full" />
+            </div>
+          ))}
+        </div>
+
+        {/* Right Panel: Editor Skeleton */}
+        <div className="w-full lg:w-2/3 flex flex-col h-full">
+          {/* Editor Header Skeleton */}
+          <div className="flex flex-col border-b border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 gap-2">
+              <Skeleton className="h-8 w-32" />
+              <div className="flex gap-2 w-full sm:w-auto justify-end">
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-8 w-20" />
+              </div>
+            </div>
+            <Skeleton className="h-[300px] w-full" />
+          </div>
+
+          {/* Test Cases Skeleton */}
+          <div className="p-4 flex-1 overflow-y-auto space-y-4">
+            <Skeleton className="h-4 w-24" />
+            <div className="flex gap-4">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+            {[1, 2].map((i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-4 w-1/4" />
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SkeletonLoader = () => (
   <div className="min-h-screen">
     {/* Navbar */}
@@ -162,7 +236,7 @@ const SkeletonLoader = () => (
         </div>
       </div>
     </div>
-    
+
     {/* Content */}
     <DashboardSkeleton />
   </div>

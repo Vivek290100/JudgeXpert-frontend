@@ -9,6 +9,7 @@ import { rust } from "@codemirror/lang-rust";
 import { useTheme } from "@/contexts/ThemeContext";
 import { SUPPORTED_LANGUAGES } from "@/config/Languages";
 import { Play, Send, ChevronDown, ChevronUp } from "lucide-react";
+import { ProblemEditorSkeleton } from "@/utils/SkeletonLoader";
 
 // Interfaces based on your backend data structure
 interface DefaultCode {
@@ -54,12 +55,16 @@ interface ApiResponse {
 const ProblemEditor: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [problem, setProblem] = useState<Problem | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState(SUPPORTED_LANGUAGES[0].name);
+  const [selectedLanguage, setSelectedLanguage] = useState(
+    SUPPORTED_LANGUAGES[0].name
+  );
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
   const { theme } = useTheme();
+
+  console.log("ttttttttttttttttttt", code);
 
   // Fetch problem data from the database
   useEffect(() => {
@@ -67,7 +72,10 @@ const ProblemEditor: React.FC = () => {
       if (!slug) return;
       setLoading(true);
       try {
-        const response = await apiRequest<ApiResponse>("get", `/problems/${slug}`);
+        const response = await apiRequest<ApiResponse>(
+          "get",
+          `/problems/${slug}`
+        );
         console.log("=======response======", response);
 
         if (response.success) {
@@ -118,12 +126,11 @@ const ProblemEditor: React.FC = () => {
     }
   };
 
-  if (loading)
-    return (
-      <div className="flex-1 flex items-center justify-center text-foreground h-[calc(100vh-5rem)]">
-        Loading problem...
-      </div>
-    );
+  if (loading){
+    return <ProblemEditorSkeleton />;
+  } 
+    
+
   if (error && !problem)
     return (
       <div className="flex-1 flex items-center justify-center text-red-500 h-[calc(100vh-5rem)]">
@@ -133,14 +140,17 @@ const ProblemEditor: React.FC = () => {
 
   return (
     <div className="h-[calc(100vh-5rem)] flex flex-col lg:flex-row overflow-hidden">
-      {/* Mobile Description Toggle */}
       <div className="lg:hidden bg-background border-b border-gray-200 dark:border-gray-700">
         <button
           onClick={() => setIsDescriptionOpen(!isDescriptionOpen)}
           className="flex items-center justify-between w-full p-4 text-primary text-sm font-semibold"
         >
           <span>{problem ? problem.title : "Loading..."}</span>
-          {isDescriptionOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          {isDescriptionOpen ? (
+            <ChevronUp className="w-5 h-5" />
+          ) : (
+            <ChevronDown className="w-5 h-5" />
+          )}
         </button>
         {isDescriptionOpen && problem && (
           <div className="p-4 max-h-[30vh] overflow-y-auto">
@@ -157,7 +167,9 @@ const ProblemEditor: React.FC = () => {
                 >
                   {problem.difficulty}
                 </span>
-                <h1 className="text-lg font-bold text-primary mt-2">{problem.title}</h1>
+                <h1 className="text-lg font-bold text-primary mt-2">
+                  {problem.title}
+                </h1>
               </div>
               <div className="prose dark:prose-invert max-w-none text-foreground text-sm">
                 <p className="leading-relaxed">{problem.description}</p>
@@ -171,11 +183,15 @@ const ProblemEditor: React.FC = () => {
                       </h2>
                       <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs">
                         <strong>Input:</strong>{" "}
-                        <pre className="whitespace-pre-wrap inline">{tc.input}</pre>
+                        <pre className="whitespace-pre-wrap inline">
+                          {tc.input}
+                        </pre>
                       </div>
                       <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded mt-1 text-xs">
                         <strong>Output:</strong>{" "}
-                        <pre className="whitespace-pre-wrap inline">{tc.output}</pre>
+                        <pre className="whitespace-pre-wrap inline">
+                          {tc.output}
+                        </pre>
                       </div>
                     </div>
                   ))}
@@ -192,7 +208,9 @@ const ProblemEditor: React.FC = () => {
         <div className="hidden lg:block lg:w-1/3 bg-background border-r border-gray-200 dark:border-gray-700 p-6 overflow-y-auto">
           <div className="space-y-4">
             <div>
-              <h1 className="text-xl font-semibold text-primary">{problem?.title ?? "Loading..."}</h1>
+              <h1 className="text-xl font-semibold text-primary">
+                {problem?.title ?? "Loading..."}
+              </h1>
               <span
                 className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium mt-2 ${
                   problem?.difficulty === "EASY"
@@ -206,25 +224,35 @@ const ProblemEditor: React.FC = () => {
               </span>
             </div>
             <div className="prose dark:prose-invert max-w-none text-foreground text-sm">
-              <p className="leading-relaxed">{problem?.description ?? "No description available."}</p>
+              <p className="leading-relaxed">
+                {problem?.description ?? "No description available."}
+              </p>
             </div>
-            {problem && problem.testCases && problem.testCases.slice(0, 2).length > 0 && (
-              <div className="space-y-4">
-                {problem.testCases.slice(0, 2).map((tc, index) => (
-                  <div key={index}>
-                    <h2 className="text-lg font-medium text-primary mb-2">Test Case {index + 1}</h2>
-                    <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm">
-                      <strong>Input:</strong>{" "}
-                      <pre className="whitespace-pre-wrap inline">{tc.input}</pre>
+            {problem &&
+              problem.testCases &&
+              problem.testCases.slice(0, 2).length > 0 && (
+                <div className="space-y-4">
+                  {problem.testCases.slice(0, 2).map((tc, index) => (
+                    <div key={index}>
+                      <h2 className="text-lg font-medium text-primary mb-2">
+                        Test Case {index + 1}
+                      </h2>
+                      <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm">
+                        <strong>Input:</strong>{" "}
+                        <pre className="whitespace-pre-wrap inline">
+                          {tc.input}
+                        </pre>
+                      </div>
+                      <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2 text-sm">
+                        <strong>Output:</strong>{" "}
+                        <pre className="whitespace-pre-wrap inline">
+                          {tc.output}
+                        </pre>
+                      </div>
                     </div>
-                    <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2 text-sm">
-                      <strong>Output:</strong>{" "}
-                      <pre className="whitespace-pre-wrap inline">{tc.output}</pre>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
           </div>
         </div>
 
@@ -273,7 +301,13 @@ const ProblemEditor: React.FC = () => {
           </div>
 
           {/* Test Cases Section */}
-          <div className="p-3 md:p-4 bg-gray-800 text-white overflow-y-auto">
+          <div
+            className={`p-3 md:p-4 ${
+              theme === "dark"
+                ? "bg-gray-800 text-white"
+                : "bg-gray-100 text-gray-900"
+            } overflow-y-auto flex-1`}
+          >
             <h3 className="text-sm font-semibold mb-3">Test results</h3>
             <div className="flex gap-4 mb-4">
               {["Case 1", "Case 2"].map((label, index) => (
@@ -294,13 +328,27 @@ const ProblemEditor: React.FC = () => {
               {problem?.testCases?.slice(0, 2).map((tc, index) => (
                 <div key={index} className="space-y-2">
                   <span className="text-sm font-medium">Case {index + 1}</span>
-                  <div className="bg-gray-700 p-2 rounded text-xs text-white">
+                  <div
+                    className={`p-2 rounded text-xs ${
+                      theme === "dark"
+                        ? "bg-gray-700 text-white"
+                        : "bg-gray-200 text-gray-900"
+                    }`}
+                  >
                     <strong>Input:</strong>{" "}
                     <pre className="whitespace-pre-wrap inline">{tc.input}</pre>
                   </div>
-                  <div className="bg-gray-700 p-2 rounded text-xs text-white">
+                  <div
+                    className={`p-2 rounded text-xs ${
+                      theme === "dark"
+                        ? "bg-gray-700 text-white"
+                        : "bg-gray-200 text-gray-900"
+                    }`}
+                  >
                     <strong>Expected:</strong>{" "}
-                    <pre className="whitespace-pre-wrap inline">{tc.output}</pre>
+                    <pre className="whitespace-pre-wrap inline">
+                      {tc.output}
+                    </pre>
                   </div>
                 </div>
               ))}
