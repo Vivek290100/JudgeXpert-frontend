@@ -1,7 +1,5 @@
-// src/components/user/ProblemFilter.tsx
 import { useTheme } from "@/contexts/ThemeContext";
 
-// Define and export the props interface
 export interface FilterProps {
   onFilterChange: (filters: { difficulty?: string; status?: string }) => void;
   filters: { difficulty?: string; status?: string };

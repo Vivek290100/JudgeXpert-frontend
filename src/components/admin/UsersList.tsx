@@ -1,11 +1,10 @@
-// src/components/admin/UsersList.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import { CheckCircle, Unlock, Lock, Search } from "lucide-react";
-import { useTheme } from "@/contexts/ThemeContext";
-import { TableSkeleton } from "@/utils/SkeletonLoader";
+import Table from "../layout/Table";
 import Pagination from "../layout/Pagination";
 import { useDebounce } from "@/hooks/useDebounce";
+import { TableSkeleton } from "@/utils/SkeletonLoader";
 
 interface AdminUser {
   id: string;
@@ -41,7 +40,6 @@ const ListUsers: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
-  const { theme } = useTheme();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const fetchUsers = async (page: number, query: string = "") => {
@@ -84,6 +82,61 @@ const ListUsers: React.FC = () => {
     }
   };
 
+  const columns = [
+    {
+      key: "sno",
+      header: "S.No",
+      render: (_: AdminUser, index?: number) =>
+        (currentPage - 1) * itemsPerPage + (index ?? 0) + 1, // Use index safely
+    },
+    { key: "id", header: "ID", className: "max-w-[100px] truncate" },
+    { key: "userName", header: "Name" },
+    { key: "email", header: "Email", className: "hidden sm:table-cell max-w-[200px] truncate" },
+    {
+      key: "isPremium",
+      header: "Subscription",
+      render: (user: AdminUser) =>
+        user.isPremium ? (
+          <span className="flex items-center gap-1.5 text-yellow-600">
+            <CheckCircle className="w-4 h-4" />
+            <span>Premium</span>
+          </span>
+        ) : (
+          <span className="text-primary">Free</span>
+        ),
+    },
+    {
+      key: "isBlocked",
+      header: "Status",
+      render: (user: AdminUser) => (
+        <span
+          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+            !user.isBlocked ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+          }`}
+        >
+          {user.isBlocked ? "Blocked" : "Active"}
+        </span>
+      ),
+    },
+    {
+      key: "action",
+      header: "Action",
+      render: (user: AdminUser) => (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleBlockUnblock(user.id, user.isBlocked);
+          }}
+          className={`p-2 rounded-lg transition-colors ${
+            user.isBlocked ? "bg-green-600 hover:bg-green-700 text-white" : "bg-red-600 hover:bg-red-700 text-white"
+          }`}
+        >
+          {user.isBlocked ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+        </button>
+      ),
+    },
+  ];
+
   if (loading) return <TableSkeleton />;
   if (error) return <div>{error}</div>;
 
@@ -107,69 +160,8 @@ const ListUsers: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden rounded-lg border border-background shadow">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-background border-b border-forground">
-                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">S.No</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">ID</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider hidden sm:table-cell">Email</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">Subscription</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">Action</th>
-              </tr>
-            </thead>
-            <tbody className="bg-background divide-y border-gray-600">
-              {users.map((user, index) => (
-                <tr
-                  key={user.id}
-                  className={`transition-colors cursor-pointer ${theme === "dark" ? "hover:bg-gray-800" : "hover:bg-gray-200"}`}
-                >
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-forground">
-                    {(currentPage - 1) * itemsPerPage + index + 1}
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-forground max-w-[100px] truncate">{user.id}</td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-forground">{user.userName}</td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-forground hidden sm:table-cell max-w-[200px] truncate">{user.email}</td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm">
-                    {user.isPremium ? (
-                      <span className="flex items-center gap-1.5 text-yellow-600">
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Premium</span>
-                      </span>
-                    ) : (
-                      <span className="text-primary">Free</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span
-                      className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                        !user.isBlocked ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {user.isBlocked ? "Blocked" : "Active"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleBlockUnblock(user.id, user.isBlocked);
-                      }}
-                      className={`p-2 rounded-lg transition-colors ${
-                        user.isBlocked ? "bg-green-600 hover:bg-green-700 text-white" : "bg-red-600 hover:bg-red-700 text-white"
-                      }`}
-                    >
-                      {user.isBlocked ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div className="flex-1">
+        <Table data={users} columns={columns} emptyMessage="No users found" />
       </div>
 
       <div className="mt-6">

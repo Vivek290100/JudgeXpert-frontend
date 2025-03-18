@@ -18,7 +18,7 @@ import toast from "react-hot-toast";
 
 const Navbar = () => {
   const user = useSelector((state: RootState) => state.auth.user);
-  console.log("=====================",user?.role);
+  console.log("=====user=====",user?.role);
   
   const navigate = useNavigate();
 
@@ -26,7 +26,6 @@ const Navbar = () => {
   const { isMenuOpen, setIsMenuOpen } = useNavigation();
 
   const handleLogout = async () => {
-    console.log("its logout handle function");
     
     try {
       await dispatch(logout()).unwrap();
@@ -34,7 +33,6 @@ const Navbar = () => {
       navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
-      // Optionally show error message to user
     }
   };
 

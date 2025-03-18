@@ -1,4 +1,3 @@
-// src/components/user/Statistics.tsx
 interface IProblem {
   _id: string;
   difficulty: "EASY" | "MEDIUM" | "HARD";

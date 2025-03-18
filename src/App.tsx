@@ -1,5 +1,3 @@
-
-// App.tsx
 import { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import PublicRoutes from "./routes/PublicRoutes";
@@ -16,7 +14,7 @@ const App = () => {
   return (
     <>
       <Routes>
-        {/* Public Routes */}
+        {/* Public */}
         <Route element={<CommonLayout />}>
           <Route
             path="/*"
@@ -28,7 +26,7 @@ const App = () => {
           />
         </Route>
 
-        {/* User Routes */}
+        {/* User */}
         <Route
           path="/user/*"
           element={
@@ -47,7 +45,7 @@ const App = () => {
           />
         </Route>
 
-        {/* Admin Routes */}
+        {/* Admin */}
         <Route
           path="/admin/*"
           element={

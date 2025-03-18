@@ -14,7 +14,7 @@ const axiosInstance = axios.create({
 // Request Interceptor: Attach token from cookie to requests
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = Cookies.get("accessToken");  // Get the token from cookies
+    const token = Cookies.get("accessToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
