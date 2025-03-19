@@ -1,4 +1,3 @@
-// src/components/user/ProblemEditor.tsx
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { apiRequest } from "@/utils/axios/ApiRequest";
@@ -10,6 +9,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { SUPPORTED_LANGUAGES } from "@/config/Languages";
 import { Play, Send, ChevronDown, ChevronUp } from "lucide-react";
 import { ProblemEditorSkeleton } from "@/utils/SkeletonLoader";
+import toast from "react-hot-toast";
 
 // Interfaces based on your backend data structure
 interface DefaultCode {
@@ -46,10 +46,19 @@ interface Problem {
   updatedAt: Date;
 }
 
-interface ApiResponse {
+interface ProblemApiResponse {
   success: boolean;
   message: string;
   data: { problem: Problem };
+}
+
+interface SubmissionApiResponse {
+  success: boolean;
+  message: string;
+  data: {
+    result: string;
+    details: any; // Adjust based on Judge0 response structure
+  };
 }
 
 const ProblemEditor: React.FC = () => {
@@ -64,24 +73,15 @@ const ProblemEditor: React.FC = () => {
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
   const { theme } = useTheme();
 
-  console.log("ttttttttttttttttttt", code);
-
   // Fetch problem data from the database
   useEffect(() => {
     const fetchProblem = async () => {
       if (!slug) return;
       setLoading(true);
       try {
-        const response = await apiRequest<ApiResponse>(
-          "get",
-          `/problems/${slug}`
-        );
-        console.log("=======response======", response);
-
+        const response = await apiRequest<ProblemApiResponse>("get", `/problems/${slug}`);
         if (response.success) {
           const problemData = response.data.problem;
-          console.log("oooooo", problemData);
-
           setProblem({
             _id: problemData._id,
             title: problemData.title,
@@ -110,8 +110,6 @@ const ProblemEditor: React.FC = () => {
     fetchProblem();
   }, [slug, selectedLanguage]);
 
-  console.log("problemproblem", problem);
-
   // Language extension for CodeMirror
   const getLanguageExtension = () => {
     switch (selectedLanguage) {
@@ -126,26 +124,63 @@ const ProblemEditor: React.FC = () => {
     }
   };
 
-  if (loading){
-    return <ProblemEditorSkeleton />;
-  } 
-    
+  const handleSubmit = async () => {
+    if (!problem) {
+      toast.error("Problem not loaded yet. Please wait.");
+      return;
+    }
 
-  if (error && !problem)
+    try {
+      const response = await apiRequest<SubmissionApiResponse>("post", "/execute", {
+        problemId: problem._id,
+        code, // Use 'code' instead of 'currentCode'
+        language: selectedLanguage,
+      });
+
+      console.log("SubmissionApiResponse",response);
+      
+
+      if (response.success) {
+        const { result, details } = response.data;
+        if (result === "Accepted") {
+          toast.success("Submission successful! All test cases passed.");
+        } else {
+          toast.error(`Submission failed: ${result}`, {
+            duration: 5000,
+            style: { maxWidth: "500px" },
+          });
+          console.log("Submission details:", details); 
+        }
+      } else {
+        toast.error(response.message || "Submission failed.");
+      }
+    } catch (error) {
+      toast.error("An error occurred during submission.");
+      console.error("Submission error:", error);
+    }
+  };
+
+  if (loading) {
+    return <ProblemEditorSkeleton />;
+  }
+
+  if (error && !problem) {
     return (
       <div className="flex-1 flex items-center justify-center text-red-500 h-[calc(100vh-5rem)]">
         {error}
       </div>
     );
+  }
 
   return (
     <div className="h-[calc(100vh-5rem)] flex flex-col lg:flex-row overflow-hidden">
+      {/* Mobile Description Toggle */}
       <div className="lg:hidden bg-background border-b border-gray-200 dark:border-gray-700">
         <button
           onClick={() => setIsDescriptionOpen(!isDescriptionOpen)}
           className="flex items-center justify-between w-full p-4 text-primary text-sm font-semibold"
         >
-          <span>{problem ? problem.title : "Loading..."}</span>
+          <span>{problem?.title || "Loading..."}</span>
           {isDescriptionOpen ? (
             <ChevronUp className="w-5 h-5" />
           ) : (
@@ -228,31 +263,29 @@ const ProblemEditor: React.FC = () => {
                 {problem?.description ?? "No description available."}
               </p>
             </div>
-            {problem &&
-              problem.testCases &&
-              problem.testCases.slice(0, 2).length > 0 && (
-                <div className="space-y-4">
-                  {problem.testCases.slice(0, 2).map((tc, index) => (
-                    <div key={index}>
-                      <h2 className="text-lg font-medium text-primary mb-2">
-                        Test Case {index + 1}
-                      </h2>
-                      <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm">
-                        <strong>Input:</strong>{" "}
-                        <pre className="whitespace-pre-wrap inline">
-                          {tc.input}
-                        </pre>
-                      </div>
-                      <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2 text-sm">
-                        <strong>Output:</strong>{" "}
-                        <pre className="whitespace-pre-wrap inline">
-                          {tc.output}
-                        </pre>
-                      </div>
+            {problem && problem.testCases?.slice(0, 2).length > 0 && (
+              <div className="space-y-4">
+                {problem.testCases.slice(0, 2).map((tc, index) => (
+                  <div key={index}>
+                    <h2 className="text-lg font-medium text-primary mb-2">
+                      Test Case {index + 1}
+                    </h2>
+                    <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm">
+                      <strong>Input:</strong>{" "}
+                      <pre className="whitespace-pre-wrap inline">
+                        {tc.input}
+                      </pre>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2 text-sm">
+                      <strong>Output:</strong>{" "}
+                      <pre className="whitespace-pre-wrap inline">
+                        {tc.output}
+                      </pre>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -281,8 +314,8 @@ const ProblemEditor: React.FC = () => {
                   Run
                 </button>
                 <button
-                  disabled={true}
-                  className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-gray-500 cursor-not-allowed"
+                  onClick={handleSubmit}
+                  className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-blue-500 hover:bg-blue-600"
                 >
                   <Send className="w-4 h-4" />
                   Submit
@@ -303,12 +336,10 @@ const ProblemEditor: React.FC = () => {
           {/* Test Cases Section */}
           <div
             className={`p-3 md:p-4 ${
-              theme === "dark"
-                ? "bg-gray-800 text-white"
-                : "bg-gray-100 text-gray-900"
+              theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-900"
             } overflow-y-auto flex-1`}
           >
-            <h3 className="text-sm font-semibold mb-3">Test results</h3>
+            <h3 className="text-sm font-semibold mb-3">Test Results</h3>
             <div className="flex gap-4 mb-4">
               {["Case 1", "Case 2"].map((label, index) => (
                 <label key={index} className="flex items-center gap-2 text-sm">
@@ -330,9 +361,7 @@ const ProblemEditor: React.FC = () => {
                   <span className="text-sm font-medium">Case {index + 1}</span>
                   <div
                     className={`p-2 rounded text-xs ${
-                      theme === "dark"
-                        ? "bg-gray-700 text-white"
-                        : "bg-gray-200 text-gray-900"
+                      theme === "dark" ? "bg-gray-700 text-white" : "bg-gray-200 text-gray-900"
                     }`}
                   >
                     <strong>Input:</strong>{" "}
@@ -340,15 +369,11 @@ const ProblemEditor: React.FC = () => {
                   </div>
                   <div
                     className={`p-2 rounded text-xs ${
-                      theme === "dark"
-                        ? "bg-gray-700 text-white"
-                        : "bg-gray-200 text-gray-900"
+                      theme === "dark" ? "bg-gray-700 text-white" : "bg-gray-200 text-gray-900"
                     }`}
                   >
                     <strong>Expected:</strong>{" "}
-                    <pre className="whitespace-pre-wrap inline">
-                      {tc.output}
-                    </pre>
+                    <pre className="whitespace-pre-wrap inline">{tc.output}</pre>
                   </div>
                 </div>
               ))}
