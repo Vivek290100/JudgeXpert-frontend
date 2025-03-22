@@ -1,24 +1,9 @@
 // src/redux/thunks/ProblemThunks.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { apiRequest } from "@/utils/axios/ApiRequest";
-import { IProblem } from "../types/Index"; // Adjust the import path based on your types location
+import { IProblem, ProcessProblemPayload, ProcessProblemResponse } from "../types/Index"; // Adjust the import path based on your types location
 
-interface ProcessProblemPayload {
-  problemDir: string; // The directory path (e.g., "src/problems/two-sum")
-}
 
-interface ProcessProblemResponse {
-  success: boolean;
-  message: string;
-  status: number;
-  data: {
-    problem: {
-      id: string;
-      title: string;
-      slug: string;
-    };
-  };
-}
 
 export const processSpecificProblem = createAsyncThunk<
   IProblem,

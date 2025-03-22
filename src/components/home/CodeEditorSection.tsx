@@ -12,15 +12,12 @@ const data = [
 export default function CodeEditorSection() {
   return (
     <section className="py-12 px-4 bg-background text-foreground flex flex-col items-center">
-      {/* Title */}
       <div className="w-full max-w-6xl text-center mb-6">
         <h2 className="text-3xl md:text-4xl font-bold">Every Problem Solved is a Step Forward</h2>
         <p className="text-muted-foreground mt-2 text-base md:text-lg">Challenge Yourself Today</p>
       </div>
 
-      {/* Main Content */}
       <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Code Editor Section */}
         <Card className="p-4 bg-card border rounded-xl  h-full flex flex-col">
           <div className="flex justify-between items-center mb-3">
             <div className="text-sm text-muted-foreground flex items-center gap-1">
@@ -58,7 +55,6 @@ console.log(reverse([123, 345, 876, 456]));`}</code>
           </div>
         </Card>
 
-        {/* Submission Results & Graph Section */}
         <Card className="p-4 bg-card border rounded-xl  h-full flex flex-col">
           <div className="text-sm text-muted-foreground mb-3">📜 Submission Results</div>
           <div className="bg-secondary p-3 rounded-md mb-4 flex justify-between">

@@ -2,15 +2,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AuthUser } from '../types/AuthTypes';
 import { updateUserProfile } from '../thunks/UserThunks';
+import { UserState } from '../types/UserTypes';
 
-interface UserState {
-  user: AuthUser | null; // The authenticated user's profile
-  solvedProblems: string[]; // Track solved problem IDs
-  loading: boolean;
-  error: string | null;
-}
-
-const initialState: UserState = {
+export const initialState: UserState = {
   user: null,
   solvedProblems: [],
   loading: false,

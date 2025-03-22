@@ -8,34 +8,35 @@ import ProblemFilter from "./ProblemFilter";
 import { Menu, X, Search } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { TableSkeleton } from "@/utils/SkeletonLoader";
+import { ApiResponse, IProblem, IUserProblemStatus } from "@/types/ProblemTypes";
 
-interface IProblem {
-  _id: string;
-  title: string;
-  slug: string;
-  difficulty: "EASY" | "MEDIUM" | "HARD";
-  status: "premium" | "free";
-  isBlocked?: boolean; // Add isBlocked to interface for safety
-}
+// interface IProblem {
+//   _id: string;
+//   title: string;
+//   slug: string;
+//   difficulty: "EASY" | "MEDIUM" | "HARD";
+//   status: "premium" | "free";
+//   isBlocked?: boolean; // Add isBlocked to interface for safety
+// }
 
-interface IUserProblemStatus {
-  problemId: string;
-  solved: boolean;
-}
+// interface IUserProblemStatus {
+//   problemId: string;
+//   solved: boolean;
+// }
 
-interface ProblemsResponse {
-  problems: IProblem[];
-  userProblemStatus: IUserProblemStatus[];
-  total: number;
-  totalPages: number;
-  currentPage: number;
-}
+// interface ProblemsResponse {
+//   problems: IProblem[];
+//   userProblemStatus: IUserProblemStatus[];
+//   total: number;
+//   totalPages: number;
+//   currentPage: number;
+// }
 
-interface ApiResponse {
-  success: boolean;
-  message: string;
-  data: ProblemsResponse;
-}
+// interface ApiResponse {
+//   success: boolean;
+//   message: string;
+//   data: ProblemsResponse;
+// }
 
 const ProblemsList: React.FC = () => {
   const [problems, setProblems] = useState<IProblem[]>([]);

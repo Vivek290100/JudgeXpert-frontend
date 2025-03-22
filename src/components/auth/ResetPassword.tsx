@@ -1,8 +1,7 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\pages\auth\ResetPassword.tsx
+//Frontend\src\pages\auth\ResetPassword.tsx
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,23 +10,8 @@ import { resetPassword } from "@/redux/thunks/AuthThunks";
 import { AppDispatch } from "@/redux/Store";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
+import { ResetPasswordFormData, resetPasswordSchema } from "@/utils/validations/AuthValidation";
 
-// Validation schema
-const resetPasswordSchema = z.object({
-  newPassword: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/\d/, "Password must contain at least one number")
-    .regex(/[\W_]/, "Password must contain at least one special character"),
-  confirmPassword: z.string(),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords must match",
-  path: ["confirmPassword"],
-});
-
-type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
 export const ResetPassword = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -57,7 +41,7 @@ export const ResetPassword = () => {
       await dispatch(resetPassword({ 
         email, 
         newPassword: data.newPassword,
-        otp: "" // Still included for backend compatibility but not required if verified
+        otp: ""
       })).unwrap();
       toast.success("Password reset successfully!");
       navigate("/login");

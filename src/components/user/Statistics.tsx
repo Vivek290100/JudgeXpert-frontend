@@ -1,17 +1,5 @@
-interface IProblem {
-  _id: string;
-  difficulty: "EASY" | "MEDIUM" | "HARD";
-}
+import { StatisticsProps } from "@/types/ProblemTypes";
 
-interface IUserProblemStatus {
-  problemId: string;
-  solved: boolean;
-}
-
-interface StatisticsProps {
-  problems: IProblem[];
-  userProblemStatus: IUserProblemStatus[];
-}
 
 const Statistics: React.FC<StatisticsProps> = ({ problems, userProblemStatus }) => {
   const totalProblems = problems.length;

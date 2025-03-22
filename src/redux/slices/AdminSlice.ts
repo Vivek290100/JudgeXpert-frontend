@@ -1,13 +1,9 @@
 // C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\redux\slices\AdminSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { fetchUsers, blockUser } from '../thunks/AdminThunks';
-import { AdminUser } from '../types/AdminTypes';
+import { AdminState, AdminUser } from '../types/AdminTypes';
 
-interface AdminState {
-  users: AdminUser[] | null;
-  loading: boolean;
-  error: string | null;
-}
+
 
 const initialState: AdminState = {
   users: null,

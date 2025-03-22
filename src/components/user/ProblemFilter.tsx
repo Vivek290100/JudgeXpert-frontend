@@ -1,9 +1,7 @@
 import { useTheme } from "@/contexts/ThemeContext";
+import { FilterProps } from "@/types/ProblemTypes";
 
-export interface FilterProps {
-  onFilterChange: (filters: { difficulty?: string; status?: string }) => void;
-  filters: { difficulty?: string; status?: string };
-}
+
 
 const ProblemFilter: React.FC<FilterProps> = ({ onFilterChange, filters }) => {
   const { theme } = useTheme();

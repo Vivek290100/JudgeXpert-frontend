@@ -5,11 +5,9 @@ import { updateUserProfile } from '../../redux/thunks/UserThunks';
 import { editProfileSchema } from '../../utils/validations/EditProfileValidation';
 import { FaCamera } from 'react-icons/fa';
 import { z } from 'zod';
+import { EditProfileProps } from '@/types/UserTypes';
 
-interface EditProfileProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+
 
 const EditProfile: React.FC<EditProfileProps> = ({ isOpen, onClose }) => {
   const dispatch = useAppDispatch();

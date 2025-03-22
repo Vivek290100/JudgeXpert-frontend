@@ -1,4 +1,4 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\utils\axios\ApiRequest.ts
+//Frontend\src\utils\axios\ApiRequest.ts
 import axiosInstance from "@/utils/axios/AxiosInstance";
 import { isAxiosError } from "axios";
 

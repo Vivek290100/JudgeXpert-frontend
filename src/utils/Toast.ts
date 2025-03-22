@@ -1,4 +1,4 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\utils\toast\toast.ts
+//Frontend\src\utils\toast\toast.ts
 import toast from "react-hot-toast";
 
 export const setToastMessage = (message: string) => {

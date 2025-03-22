@@ -65,17 +65,26 @@ export const logout = createAsyncThunk(
   "auth/logout",
   async (_, { rejectWithValue }) => {
     try {
-      await apiRequest("post", "/logout");
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        localStorage.clear();
+        return true;
+      }
+
+      await apiRequest("post", "/logout", { userId });
       document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      localStorage.clear();
       return true;
     } catch (error) {
+      document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      localStorage.clear();
       return rejectWithValue("Logout failed");
     }
   }
 );
 
 
-// Add this to your existing AuthThunks.ts
 export const googleLogin = createAsyncThunk<AuthResponse, { credential: string }, { rejectValue: string }>(
   "auth/googleLogin",
   async (data, { rejectWithValue }) => {

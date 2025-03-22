@@ -1,18 +1,7 @@
 // src/components/Admin/AdminSidebar.tsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  Users,
-  LayoutDashboard,
-  Code2,
-  Trophy,
-  CreditCard,
-  LogOut,
-  ChevronLeft,
-  Menu,
-  Sun,
-  Moon,
-} from "lucide-react";
+import { Users, LayoutDashboard, Code2, Trophy, CreditCard, LogOut, ChevronLeft, Menu, Sun, Moon,} from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useDispatch } from "react-redux";
 import { logout } from "@/redux/thunks/AuthThunks";
@@ -31,7 +20,7 @@ export default function AdminSidebar() {
   const dispatch = useDispatch<AppDispatch>();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const { theme, toggleTheme } = useTheme();
-  const [isOpen, setIsOpen] = useState(!isMobile); // Default to closed on mobile
+  const [isOpen, setIsOpen] = useState(!isMobile);
 
   const sidebarItems: SidebarItem[] = [
     { title: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" />, path: "/admin/dashboard" },
@@ -61,7 +50,7 @@ export default function AdminSidebar() {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      setIsOpen(!mobile); // Auto-open on desktop, close on mobile
+      setIsOpen(!mobile);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -103,7 +92,6 @@ export default function AdminSidebar() {
           border-r
         `}
       >
-        {/* Sidebar Header */}
         <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border">
           {isOpen ? (
             <>
@@ -138,7 +126,6 @@ export default function AdminSidebar() {
           )}
         </div>
 
-        {/* Sidebar Items */}
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
           {sidebarItems.map((item) => (
             <button
@@ -165,7 +152,6 @@ export default function AdminSidebar() {
           ))}
         </nav>
 
-        {/* Theme Toggle */}
         <div className="p-3 sm:p-4 border-t border-border">
           <button
             onClick={toggleTheme}
@@ -180,7 +166,6 @@ export default function AdminSidebar() {
           </button>
         </div>
 
-        {/* Sign Out Button */}
         <div className={`p-3 sm:p-4 border-t ${theme === "dark" ? "border-gray-700" : "border-gray-200"}`}>
           <button
             onClick={handleSignOut}

@@ -1,13 +1,9 @@
 // src/components/Admin/AdminDashboard.tsx
+import { ProblemRowProps, StatCardProps } from "@/types/AdminTypes";
 import { Download, Search } from "lucide-react";
 import { useState } from "react";
 
-interface StatCardProps {
-  title: string;
-  value: string;
-  label: string;
-  color: string;
-}
+
 
 const StatCard = ({ title, value, label, color }: StatCardProps) => (
   <div className="bg-card p-3 sm:p-4 md:p-6 rounded-lg border border-border">
@@ -17,12 +13,7 @@ const StatCard = ({ title, value, label, color }: StatCardProps) => (
   </div>
 );
 
-interface ProblemRowProps {
-  number: string;
-  title: string;
-  submissions: string;
-  submissionColor: string;
-}
+
 
 const ProblemRow = ({ number, title, submissions, submissionColor }: ProblemRowProps) => (
   <div className="flex items-center justify-between py-2 sm:py-3 border-b border-border">

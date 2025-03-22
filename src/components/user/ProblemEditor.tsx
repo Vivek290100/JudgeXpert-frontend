@@ -10,70 +10,20 @@ import { SUPPORTED_LANGUAGES } from "@/config/Languages";
 import { Play, Send, ChevronDown, ChevronUp } from "lucide-react";
 import { ProblemEditorSkeleton } from "@/utils/SkeletonLoader";
 import toast from "react-hot-toast";
+import { Problem, ProblemApiResponse, SubmissionApiResponse } from "@/types/UserTypes";
 
-// Interfaces based on your backend data structure
-interface DefaultCode {
-  _id: string;
-  languageId: number;
-  languageName: string;
-  problemId: string;
-  code: string;
-  status?: "active" | "inactive" | "pending";
-  createdAt?: Date;
-  updatedAt?: Date;
-}
 
-interface TestCase {
-  _id: string;
-  problemId: string;
-  input: string;
-  output: string;
-  index: number;
-  status?: "active" | "inactive" | "pending";
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-interface Problem {
-  _id: string;
-  title: string;
-  description: string;
-  difficulty: "EASY" | "MEDIUM" | "HARD";
-  defaultCodes: DefaultCode[];
-  testCases: TestCase[];
-  slug: string;
-  status: "premium" | "free";
-  updatedAt: Date;
-}
-
-interface ProblemApiResponse {
-  success: boolean;
-  message: string;
-  data: { problem: Problem };
-}
-
-interface SubmissionApiResponse {
-  success: boolean;
-  message: string;
-  data: {
-    result: string;
-    details: any; // Adjust based on Judge0 response structure
-  };
-}
 
 const ProblemEditor: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [problem, setProblem] = useState<Problem | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState(
-    SUPPORTED_LANGUAGES[0].name
-  );
+  const [selectedLanguage, setSelectedLanguage] = useState( SUPPORTED_LANGUAGES[0].name );
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
   const { theme } = useTheme();
 
-  // Fetch problem data from the database
   useEffect(() => {
     const fetchProblem = async () => {
       if (!slug) return;
@@ -113,10 +63,10 @@ const ProblemEditor: React.FC = () => {
   // Language extension for CodeMirror
   const getLanguageExtension = () => {
     switch (selectedLanguage) {
-      case "cpp":
-        return cpp();
       case "js":
         return javascript();
+      case "cpp":
+        return cpp();
       case "rust":
         return rust();
       default:
@@ -133,7 +83,7 @@ const ProblemEditor: React.FC = () => {
     try {
       const response = await apiRequest<SubmissionApiResponse>("post", "/execute", {
         problemId: problem._id,
-        code, // Use 'code' instead of 'currentCode'
+        code,
         language: selectedLanguage,
       });
 

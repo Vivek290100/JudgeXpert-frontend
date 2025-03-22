@@ -1,4 +1,4 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\redux\types\AdminTypes.ts
+//Frontend\src\redux\types\AdminTypes.ts
 export interface AdminUser {
   id: string;
   email: string;
@@ -25,4 +25,10 @@ export interface BlockUserResponse {
     userId: string;
     isBlocked: boolean;
   };
+}
+
+export interface AdminState {
+  users: AdminUser[] | null;
+  loading: boolean;
+  error: string | null;
 }

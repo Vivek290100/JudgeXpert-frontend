@@ -1,13 +1,9 @@
 // src/redux/slices/ProblemSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { processSpecificProblem } from "../thunks/ProblemThunks";
-import { IProblem } from "../types/Index"; // Adjust the import path based on your types
+import { IProblem, ProblemState } from "../types/Index"; // Adjust the import path based on your types
 
-interface ProblemState {
-  problems: IProblem[]; // Store processed problems
-  loading: boolean;
-  error: string | null;
-}
+
 
 const initialState: ProblemState = {
   problems: [],
