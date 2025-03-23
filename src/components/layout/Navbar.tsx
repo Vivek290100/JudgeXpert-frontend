@@ -18,18 +18,17 @@ import toast from "react-hot-toast";
 
 const Navbar = () => {
   const user = useSelector((state: RootState) => state.auth.user);
-  console.log("=====user=====",user?.role);
-  
+  console.log("=====user=====", user?.role);
+
   const navigate = useNavigate();
 
   const dispatch = useDispatch<AppDispatch>();
   const { isMenuOpen, setIsMenuOpen } = useNavigation();
 
   const handleLogout = async () => {
-    
     try {
       await dispatch(logout()).unwrap();
-      toast.success("Logged out successfully!")
+      toast.success("Logged out successfully!");
       navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -40,7 +39,6 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-md z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <div className="flex items-center gap-2">
             <Code2 className="w-7 h-7 text-primary" />
             <span className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-blue-800 bg-clip-text text-transparent">
@@ -51,17 +49,6 @@ const Navbar = () => {
               pert
             </span>
           </div>
-
-          {/* <style>{`
-            .shine-effect { position: relative; animation: shine 3s infinite; .
-           text-shadow: 0 0 3px rgba(255, 255, 255, 0.6), 0 0 6px rgba(255, 255, 255, 0.5), 0 0 9px rgba(255, 255, 255, 0.4); }
-            @keyframes shine {0% {text-shadow: 0 0 3px rgba(255, 255, 255, 0.6), 0 0 6px rgba(255, 255, 255, 0.5), 0 0 9px rgba(255, 255, 255, 0.4);}
-              50% {text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 12px rgba(255, 255, 255, 0.7), 0 0 15px rgba(255, 255, 255, 0.5); }
-              100% {text-shadow: 0 0 3px rgba(255, 255, 255, 0.6), 0 0 6px rgba(255, 255, 255, 0.5), 0 0 9px rgba(255, 255, 255, 0.4); }
-            }
-          `}</style> */}
-
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             <Link
               to="/user/problems"
@@ -76,13 +63,12 @@ const Navbar = () => {
               Pricing
             </Link>
 
-            {/* Conditional rendering based on whether the user is logged in */}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2">
                     <img
-                      src={user.profileImage || defaultProfileImage} 
+                      src={user.profileImage || defaultProfileImage}
                       alt="Profile"
                       className="w-8 h-8 rounded-full border-2 object-cover"
                     />
@@ -110,7 +96,6 @@ const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              // If no user is logged in, show "Sign in" and "Sign up"
               <div className="flex items-center gap-4">
                 <Button asChild>
                   <Link to="/login">Sign in</Link>
@@ -124,13 +109,12 @@ const Navbar = () => {
             <ThemeToggle />
           </div>
 
-          {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-4 ">
             <ThemeToggle />
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setIsMenuOpen(!isMenuOpen)} // Toggle mobile menu visibility
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-foreground border border-gray-200 dark:border-gray-700"
             >
               {isMenuOpen ? (
@@ -143,7 +127,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden bg-background/95 backdrop-blur-md border-b">
           <div className="px-2 pt-2 pb-3 space-y-1">

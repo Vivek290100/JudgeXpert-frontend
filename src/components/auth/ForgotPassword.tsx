@@ -34,7 +34,7 @@ export const ForgotPassword = () => {
         navigate("/verifyForgotPasswordOtp", { 
           state: { 
             email: data.email,
-            fromForgotPassword: true // Add this flag
+            fromForgotPassword: true 
           } 
         });
       } else {

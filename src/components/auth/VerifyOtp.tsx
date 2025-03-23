@@ -35,17 +35,15 @@ export const VerifyOTP = () => {
     }
   }, [email, setValue]);
 
-  // Retrieve email and timer from localStorage
   const storedEmail = localStorage.getItem("otpEmail");
   const storedTimer = localStorage.getItem("otpTimer");
 
-  // Initialize timer properly
   const initialTimer = storedEmail === email && storedTimer ? parseInt(storedTimer) : 300;
 
   const [timer, setTimer] = useState(initialTimer);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [canResend, setCanResend] = useState(timer === 0);
-  const [isVerifying, setIsVerifying] = useState(false); // Button loading state
+  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     if (email !== storedEmail) {
@@ -89,7 +87,7 @@ export const VerifyOTP = () => {
         localStorage.removeItem("otpTimer");
         toast.success("OTP verified successfully!");
        
-          navigate("/"); // Signup flow
+          navigate("/");
       } else {
         const errorMessage = (resultAction.payload as string) || "OTP verification failed";
         toast.error(errorMessage);

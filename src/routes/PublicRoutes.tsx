@@ -1,3 +1,4 @@
+// Frontend\src\routes\PublicRoutes.tsx
 import { lazy, Suspense } from "react";
 import { useSelector } from "react-redux";
 import { Navigate, Route, Routes } from "react-router-dom";
@@ -15,10 +16,9 @@ const NotFound = lazy(() => import("@/components/layout/NotFound"));
 
 const PublicRoutes = () => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
-  const redirectPath = user?.role === "admin" ? "/admin/dashboard" : "/user/dashboard";
 
   const AuthenticatedGuard = ({ children }: { children: React.ReactNode }) =>
-    isAuthenticated ? <Navigate to={redirectPath} replace /> : <>{children}</>;
+    isAuthenticated ? <Navigate to={user?.role === "admin" ? "/admin/dashboard" : "/"} replace /> : <>{children}</>;
 
   return (
     <Routes>
@@ -26,8 +26,8 @@ const PublicRoutes = () => {
         path="/"
         element={
           <Suspense fallback={<AuthSkeleton />}>
-            {isAuthenticated && user?.role === "admin" ? (
-              <Navigate to="/admin/dashboard" replace />
+            {isAuthenticated ? (
+              user?.role === "admin" ? <Navigate to="/admin/dashboard" replace /> : <Home />
             ) : (
               <Home />
             )}

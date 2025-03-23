@@ -1,58 +1,65 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\utils\axios\AxiosInstance.ts
+// Frontend\src\utils\axios\AxiosInstance.ts
 import axios from "axios";
 import API_BASE_URL from "./BaseURL";
-import Cookies from "js-cookie"; 
+import { logout } from "@/redux/thunks/AuthThunks";
+import store from "@/redux/Store";
 
 const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_BASE_URL, // e.g., "http://localhost:5000"
   headers: {
     "Content-Type": "application/json",
   },
   withCredentials: true,
 });
 
-// Request Interceptor: Attach token from cookie to requests
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = Cookies.get("accessToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // console.log("Request URL:", config.url);
+    // console.log("Request Headers:", config.headers);
+    // console.log("Request - withCredentials:", config.withCredentials);
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    // console.error("Request interceptor error:", error);
+    return Promise.reject(error);
+  }
 );
 
-// Response Interceptor: Handle expired token (401) and refresh token
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    
     const originalRequest = error.config;
-
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+      console.log("401 detected, attempting to refresh token");
 
       try {
-        const { data } = await axiosInstance.post("/auth/refresh-token");
-        
-        Cookies.set("accessToken", data.accessToken, { expires: 30 }); 
-        
-        axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
-        originalRequest.headers["Authorization"] = `Bearer ${data.accessToken}`;
-        
+        // Get userId from localStorage (set this during login)
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          throw new Error("No user ID found. Please log in again.");
+        }
+
+        const { data } = await axios.post(
+          `${API_BASE_URL}/auth/refresh-token`,
+          { userId },
+          { withCredentials: true }
+        );
+
+        console.log("Refresh successful, new token:", data.accessToken);
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        console.error("Session expired. Please log in again.");
-        Cookies.remove("accessToken");
-        localStorage.clear();
-        window.location.href = "/login";
+        console.error("Refresh failed:", refreshError);
+        localStorage.removeItem("userId"); // Clean up
+        document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; // Clear cookie
+        store.dispatch(logout());
+        window.location.href = "/login"; // Redirect to login
+        return Promise.reject(refreshError);
       }
     }
-
     return Promise.reject(error);
   }
 );
 
 export default axiosInstance;
-

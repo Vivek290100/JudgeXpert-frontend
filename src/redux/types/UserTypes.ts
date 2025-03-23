@@ -1,4 +1,4 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\redux\types\UserTypes.ts
+//Frontend\src\redux\types\UserTypes.ts
 import { AuthUser } from './AuthTypes';
 
 export interface UserState {
@@ -26,3 +26,18 @@ export interface UpdateProfilePayload {
   linkedin?: string;
   profileImage?: string;
 }
+
+export interface UpdateProfileData {
+  fullName: string;
+  github?: string;
+  linkedin?: string;
+  profileImage?: File | string;
+}
+
+export interface UserState {
+  user: AuthUser | null;
+  solvedProblems: string[];
+  loading: boolean;
+  error: string | null;
+}
+

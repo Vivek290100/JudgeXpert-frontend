@@ -1,14 +1,13 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 const ThemeContext = createContext({
-  theme: "dark", // Set default to "dark"
+  theme: "dark",
   toggleTheme: () => {},
 });
 
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  // Check localStorage for saved theme, default to "dark" if not set
   const [theme, setTheme] = useState(
     localStorage.getItem("theme") || "dark"
   );

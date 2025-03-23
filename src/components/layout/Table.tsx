@@ -1,20 +1,8 @@
 import React from "react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { TableProps } from "@/types/Table";
 
-interface Column<T> {
-  key: string;
-  header: string;
-  render?: (item: T, index?: number) => React.ReactNode; // Updated to include optional index
-  className?: string;
-}
 
-interface TableProps<T> {
-  data: T[];
-  columns: Column<T>[];
-  onRowClick?: (item: T) => void;
-  emptyMessage?: string;
-  rowClassName?: string;
-}
 
 const Table = <T,>({
   data,

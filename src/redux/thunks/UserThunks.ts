@@ -2,13 +2,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { AuthUser, AuthResponse } from "../types/AuthTypes";
 import { apiRequest } from "@/utils/axios/ApiRequest";
-
-interface UpdateProfileData {
-  fullName: string;
-  github?: string;
-  linkedin?: string;
-  profileImage?: File | string;
-}
+import { UpdateProfileData } from "../types/UserTypes";
 
 
 

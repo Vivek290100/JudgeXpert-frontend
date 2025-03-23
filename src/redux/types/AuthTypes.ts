@@ -1,5 +1,6 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\redux\types\AuthTypes.ts
+// Frontend\src\redux\types\AuthTypes.ts
 export interface AuthUser {
+  userId: any;
   id: string;
   totalProblems: string;
   email: string;
@@ -21,8 +22,17 @@ export interface AuthResponse {
   success: boolean;
   message: string;
   data: {
+    userId: any;
     user: AuthUser;
   };
   token?: string;  
+}
+
+export interface AuthState {
+  token: string | null;
+  isAuthenticated: boolean;
+  user: AuthUser | null;
+  loading: boolean;
+  error: string | null;
 }
 

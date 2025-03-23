@@ -11,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-// import { FcGoogle } from "react-icons/fc";
 import { useDispatch, useSelector } from "react-redux";
 import { googleLogin, login } from "@/redux/thunks/AuthThunks";
 import { LoginFormData, loginSchema } from "@/utils/validations/AuthValidation";
@@ -40,13 +39,11 @@ export default function LoginPage() {
       const resultAction = await dispatch(login(data));
       if (login.fulfilled.match(resultAction)) {
         const userRole = resultAction.payload?.data?.user?.role;
+        const userId = resultAction.payload?.data?.userId;
+      localStorage.setItem("userId", userId);
         toast.success("Logged in successfully!");
-        if (userRole === "user") {
-          navigate("/");
+        navigate(userRole === "admin" ? "/admin/dashboard" : "/");
         } else {
-          navigate("/admin/dashboard");
-        }
-      } else {
         const errorMessage = (resultAction.payload as string) || "Login failed";
         toast.error(errorMessage);
       }
@@ -62,6 +59,10 @@ export default function LoginPage() {
       );
       if (googleLogin.fulfilled.match(resultAction)) {
         const userRole = resultAction.payload?.data?.user?.role;
+        const userId = resultAction.payload?.data?.user.id;
+
+        localStorage.setItem("userId", userId);
+
         toast.success("Logged in successfully with Google!");
         if (userRole === "user") {
           navigate("/");

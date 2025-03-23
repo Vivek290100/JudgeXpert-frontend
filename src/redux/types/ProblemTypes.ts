@@ -1,8 +1,8 @@
-// src/redux/types/ProblemTypes.ts (or add to Index.ts)
+// src/redux/types/ProblemTypes.ts
 
 export interface IProblem {
   status: string;
-  id: string; // Use 'id' instead of '_id' for frontend (simpler)
+  id: string;
   title: string;
   description: string;
   difficulty: "EASY" | "MEDIUM" | "HARD";
@@ -21,4 +21,26 @@ export interface IProblem {
   }[];
 }
 
-// Update src/redux/types/Index.ts to export IProblem
+export interface ProcessProblemPayload {
+  problemDir: string;
+}
+
+export interface ProcessProblemResponse {
+  success: boolean;
+  message: string;
+  status: number;
+  data: {
+    problem: {
+      id: string;
+      title: string;
+      slug: string;
+    };
+  };
+}
+
+export interface ProblemState {
+  problems: IProblem[];
+  loading: boolean;
+  error: string | null;
+}
+

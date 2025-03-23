@@ -8,12 +8,8 @@ export default function HeroSection() {
     showStoredToast();
   }, []);
   return (
-    // <section className="min-h-[100vh] flex flex-col items-center justify-center text-center p-6 bg-gradient-to-b from-background to-muted relative overflow-hidden">
     <section className="min-h-[100vh] flex flex-col items-center justify-center text-center p-6 bg-gradient-to-b from-forground to-muted relative overflow-hidden">
-      {/* Background Glow */}
-      {/* <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-transparent to-purple-500/10 blur-3xl" /> */}
       
-      {/* Content */}
       <motion.h1 
         initial={{ opacity: 0, y: -20 }} 
         animate={{ opacity: 1, y: 0 }} 

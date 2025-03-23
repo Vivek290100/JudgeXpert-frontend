@@ -2,13 +2,9 @@
 import React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useTheme } from "@/contexts/ThemeContext"
+import { PaginationProps } from "@/types/Pagination";
 
-interface PaginationProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  maxVisibleButtons?: number;
-}
+
 
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
