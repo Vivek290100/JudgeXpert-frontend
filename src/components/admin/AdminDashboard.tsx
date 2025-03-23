@@ -4,7 +4,6 @@ import { Download, Search } from "lucide-react";
 import { useState } from "react";
 
 
-
 const StatCard = ({ title, value, label, color }: StatCardProps) => (
   <div className="bg-card p-3 sm:p-4 md:p-6 rounded-lg border border-border">
     <div className={`text-${color} text-sm sm:text-base mb-2`}>{title}</div>
@@ -12,7 +11,6 @@ const StatCard = ({ title, value, label, color }: StatCardProps) => (
     <div className="text-xs sm:text-sm text-muted-foreground">{label}</div>
   </div>
 );
-
 
 
 const ProblemRow = ({ number, title, submissions, submissionColor }: ProblemRowProps) => (

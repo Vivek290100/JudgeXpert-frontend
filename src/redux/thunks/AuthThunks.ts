@@ -1,8 +1,9 @@
+// Frontend\src\redux\thunks\AuthThunks.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { AuthResponse } from "../types/Index";
 import { ForgotPasswordFormData, LoginFormData, SignUpFormData } from "@/utils/validations/AuthValidation";
 import { VerifyOtpData } from "@/utils/validations/OTPVerifyValidation";
 import { apiRequest } from "@/utils/axios/ApiRequest";
+import { AuthResponse } from "@/types/AuthTypes";
 
 
 

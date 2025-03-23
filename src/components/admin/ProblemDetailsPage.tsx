@@ -4,8 +4,8 @@ import { X, ChevronDown, ChevronUp } from "lucide-react";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import Pagination from "../layout/Pagination";
 import { ProblemDetailsSkeleton } from "@/utils/SkeletonLoader";
-import { ApiResponse, IProblem } from "@/types/AdminTypes";
-
+import { IProblem, ProblemApiResponse } from "@/types/ProblemTypes";
+import { Difficulty, ProblemStatus } from "@/utils/Enums";
 
 const ProblemDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,9 +14,9 @@ const ProblemDetailsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedCode, setExpandedCode] = useState<string | null>(null);
-  const [difficulty, setDifficulty] = useState<"EASY" | "MEDIUM" | "HARD">("MEDIUM");
+  const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.MEDIUM);
   const [isActive, setIsActive] = useState<boolean>(true);
-  const [status, setStatus] = useState<"premium" | "free">("free");
+  const [status, setStatus] = useState<ProblemStatus>(ProblemStatus.FREE);
   const [testCasePage, setTestCasePage] = useState(1);
   const testCasesPerPage = 10;
 
@@ -24,10 +24,7 @@ const ProblemDetailsPage: React.FC = () => {
     const fetchProblem = async () => {
       setLoading(true);
       try {
-        const response = await apiRequest<ApiResponse<{ problem: IProblem }>>(
-          "get",
-          `/admin/problems/${id}`
-        );
+        const response = await apiRequest<ProblemApiResponse>("get", `/admin/problems/${id}`);
         if (response.success && response.data.problem) {
           setProblem(response.data.problem);
           setDifficulty(response.data.problem.difficulty);
@@ -51,14 +48,12 @@ const ProblemDetailsPage: React.FC = () => {
   };
 
   const handleDifficultyChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newDifficulty = e.target.value as "EASY" | "MEDIUM" | "HARD";
+    const newDifficulty = e.target.value as Difficulty;
     setDifficulty(newDifficulty);
     try {
-      const response = await apiRequest<ApiResponse<{ problem: IProblem }>>(
-        "patch",
-        `/admin/problems/${id}`,
-        { difficulty: newDifficulty }
-      );
+      const response = await apiRequest<ProblemApiResponse>("patch", `/admin/problems/${id}`, {
+        difficulty: newDifficulty,
+      });
       if (response.success) {
         setProblem((prev) => (prev ? { ...prev, difficulty: newDifficulty } : null));
       } else {
@@ -71,15 +66,13 @@ const ProblemDetailsPage: React.FC = () => {
   };
 
   const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newStatus = e.target.value as "premium" | "free";
+    const newStatus = e.target.value as ProblemStatus;
     const previousStatus = status;
     setStatus(newStatus);
     try {
-      const response = await apiRequest<ApiResponse<{ problem: IProblem }>>(
-        "patch",
-        `/admin/problems/${id}/status`,
-        { status: newStatus }
-      );
+      const response = await apiRequest<ProblemApiResponse>("patch", `/admin/problems/${id}/status`, {
+        status: newStatus,
+      });
       if (!response.success) {
         throw new Error(response.message || "Failed to update status");
       }
@@ -97,10 +90,7 @@ const ProblemDetailsPage: React.FC = () => {
     setIsActive(newStatus);
     try {
       const endpoint = newStatus ? "unblock" : "block";
-      const response = await apiRequest<ApiResponse<{ problem: IProblem }>>(
-        "patch",
-        `/admin/problems/${id}/${endpoint}`
-      );
+      const response = await apiRequest<ProblemApiResponse>("patch", `/admin/problems/${id}/${endpoint}`);
       if (!response.success || !response.data.problem) {
         throw new Error(response.message || `Failed to ${newStatus ? "activate" : "deactivate"} problem`);
       }
@@ -169,9 +159,9 @@ const ProblemDetailsPage: React.FC = () => {
                   onChange={handleDifficultyChange}
                   className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded p-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors w-full max-w-xs"
                 >
-                  <option value="EASY">EASY</option>
-                  <option value="MEDIUM">MEDIUM</option>
-                  <option value="HARD">HARD</option>
+                  <option value={Difficulty.EASY}>{Difficulty.EASY}</option>
+                  <option value={Difficulty.MEDIUM}>{Difficulty.MEDIUM}</option>
+                  <option value={Difficulty.HARD}>{Difficulty.HARD}</option>
                 </select>
               </div>
               <div className="flex items-center gap-3">
@@ -194,8 +184,8 @@ const ProblemDetailsPage: React.FC = () => {
                   onChange={handleStatusChange}
                   className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded p-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors w-full max-w-xs"
                 >
-                  <option value="free">Free</option>
-                  <option value="premium">Premium</option>
+                  <option value={ProblemStatus.FREE}>{ProblemStatus.FREE}</option>
+                  <option value={ProblemStatus.PREMIUM}>{ProblemStatus.PREMIUM}</option>
                 </select>
               </div>
               <div className="flex items-center gap-3">

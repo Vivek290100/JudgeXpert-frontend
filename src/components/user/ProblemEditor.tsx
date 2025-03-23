@@ -10,20 +10,20 @@ import { SUPPORTED_LANGUAGES } from "@/config/Languages";
 import { Play, Send, ChevronDown, ChevronUp } from "lucide-react";
 import { ProblemEditorSkeleton } from "@/utils/SkeletonLoader";
 import toast from "react-hot-toast";
-import { Problem, ProblemApiResponse, SubmissionApiResponse } from "@/types/UserTypes";
-
-
+import { IProblem, ProblemApiResponse, SubmissionApiResponse } from "@/types/ProblemTypes";
+import { Difficulty } from "@/utils/Enums";
 
 const ProblemEditor: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const [problem, setProblem] = useState<Problem | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState( SUPPORTED_LANGUAGES[0].name );
+  const [problem, setProblem] = useState<IProblem | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState(SUPPORTED_LANGUAGES[0].name);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
   const { theme } = useTheme();
 
+  // Fetch problem data from the database
   useEffect(() => {
     const fetchProblem = async () => {
       if (!slug) return;
@@ -32,19 +32,9 @@ const ProblemEditor: React.FC = () => {
         const response = await apiRequest<ProblemApiResponse>("get", `/problems/${slug}`);
         if (response.success) {
           const problemData = response.data.problem;
-          setProblem({
-            _id: problemData._id,
-            title: problemData.title,
-            description: problemData.description,
-            difficulty: problemData.difficulty,
-            defaultCodes: problemData.defaultCodes,
-            testCases: problemData.testCases,
-            slug: problemData.slug,
-            status: problemData.status,
-            updatedAt: new Date(problemData.updatedAt),
-          });
-          const defaultCode = problemData.defaultCodes.find(
-            (dc) => dc.languageName === selectedLanguage
+          setProblem(problemData);
+          const defaultCode = problemData.defaultCodeIds.find(
+            (dc) => dc.languageName.toLowerCase() === selectedLanguage.toLowerCase()
           );
           setCode(defaultCode?.code || "");
         } else {
@@ -62,11 +52,12 @@ const ProblemEditor: React.FC = () => {
 
   // Language extension for CodeMirror
   const getLanguageExtension = () => {
-    switch (selectedLanguage) {
-      case "js":
-        return javascript();
+    switch (selectedLanguage.toLowerCase()) {
       case "cpp":
         return cpp();
+      case "js":
+      case "javascript":
+        return javascript();
       case "rust":
         return rust();
       default:
@@ -84,11 +75,10 @@ const ProblemEditor: React.FC = () => {
       const response = await apiRequest<SubmissionApiResponse>("post", "/execute", {
         problemId: problem._id,
         code,
-        language: selectedLanguage,
+        language: selectedLanguage.toLowerCase(),
       });
 
-      console.log("SubmissionApiResponse",response);
-      
+      console.log("SubmissionApiResponse", response);
 
       if (response.success) {
         const { result, details } = response.data;
@@ -99,7 +89,7 @@ const ProblemEditor: React.FC = () => {
             duration: 5000,
             style: { maxWidth: "500px" },
           });
-          console.log("Submission details:", details); 
+          console.log("Submission details:", details);
         }
       } else {
         toast.error(response.message || "Submission failed.");
@@ -131,11 +121,7 @@ const ProblemEditor: React.FC = () => {
           className="flex items-center justify-between w-full p-4 text-primary text-sm font-semibold"
         >
           <span>{problem?.title || "Loading..."}</span>
-          {isDescriptionOpen ? (
-            <ChevronUp className="w-5 h-5" />
-          ) : (
-            <ChevronDown className="w-5 h-5" />
-          )}
+          {isDescriptionOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
         </button>
         {isDescriptionOpen && problem && (
           <div className="p-4 max-h-[30vh] overflow-y-auto">
@@ -143,40 +129,30 @@ const ProblemEditor: React.FC = () => {
               <div>
                 <span
                   className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                    problem.difficulty === "EASY"
+                    problem.difficulty === Difficulty.EASY
                       ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                      : problem.difficulty === "MEDIUM"
+                      : problem.difficulty === Difficulty.MEDIUM
                       ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                       : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                   }`}
                 >
                   {problem.difficulty}
                 </span>
-                <h1 className="text-lg font-bold text-primary mt-2">
-                  {problem.title}
-                </h1>
+                <h1 className="text-lg font-bold text-primary mt-2">{problem.title}</h1>
               </div>
               <div className="prose dark:prose-invert max-w-none text-foreground text-sm">
                 <p className="leading-relaxed">{problem.description}</p>
               </div>
-              {problem.testCases?.slice(0, 2).length > 0 && (
+              {problem.testCaseIds?.slice(0, 2).length > 0 && (
                 <div className="space-y-4">
-                  {problem.testCases.slice(0, 2).map((tc, index) => (
-                    <div key={index}>
-                      <h2 className="text-md font-medium text-primary mb-2">
-                        Test Case {index + 1}
-                      </h2>
+                  {problem.testCaseIds.slice(0, 2).map((tc, index) => (
+                    <div key={tc._id}>
+                      <h2 className="text-md font-medium text-primary mb-2">Test Case {index + 1}</h2>
                       <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs">
-                        <strong>Input:</strong>{" "}
-                        <pre className="whitespace-pre-wrap inline">
-                          {tc.input}
-                        </pre>
+                        <strong>Input:</strong> <pre className="whitespace-pre-wrap inline">{tc.input}</pre>
                       </div>
                       <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded mt-1 text-xs">
-                        <strong>Output:</strong>{" "}
-                        <pre className="whitespace-pre-wrap inline">
-                          {tc.output}
-                        </pre>
+                        <strong>Output:</strong> <pre className="whitespace-pre-wrap inline">{tc.output}</pre>
                       </div>
                     </div>
                   ))}
@@ -193,44 +169,32 @@ const ProblemEditor: React.FC = () => {
         <div className="hidden lg:block lg:w-1/3 bg-background border-r border-gray-200 dark:border-gray-700 p-6 overflow-y-auto">
           <div className="space-y-4">
             <div>
-              <h1 className="text-xl font-semibold text-primary">
-                {problem?.title ?? "Loading..."}
-              </h1>
+              <h1 className="text-xl font-semibold text-primary">{problem?.title ?? "Loading..."}</h1>
               <span
                 className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium mt-2 ${
-                  problem?.difficulty === "EASY"
+                  problem?.difficulty === Difficulty.EASY
                     ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                    : problem?.difficulty === "MEDIUM"
+                    : problem?.difficulty === Difficulty.MEDIUM
                     ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                     : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                 }`}
               >
-                {problem?.difficulty ?? "EASY"}
+                {problem?.difficulty ?? Difficulty.EASY}
               </span>
             </div>
             <div className="prose dark:prose-invert max-w-none text-foreground text-sm">
-              <p className="leading-relaxed">
-                {problem?.description ?? "No description available."}
-              </p>
+              <p className="leading-relaxed">{problem?.description ?? "No description available."}</p>
             </div>
-            {problem && problem.testCases?.slice(0, 2).length > 0 && (
+            {problem && problem.testCaseIds?.slice(0, 2).length > 0 && (
               <div className="space-y-4">
-                {problem.testCases.slice(0, 2).map((tc, index) => (
-                  <div key={index}>
-                    <h2 className="text-lg font-medium text-primary mb-2">
-                      Test Case {index + 1}
-                    </h2>
+                {problem.testCaseIds.slice(0, 2).map((tc, index) => (
+                  <div key={tc._id}>
+                    <h2 className="text-lg font-medium text-primary mb-2">Test Case {index + 1}</h2>
                     <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm">
-                      <strong>Input:</strong>{" "}
-                      <pre className="whitespace-pre-wrap inline">
-                        {tc.input}
-                      </pre>
+                      <strong>Input:</strong> <pre className="whitespace-pre-wrap inline">{tc.input}</pre>
                     </div>
                     <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded mt-2 text-sm">
-                      <strong>Output:</strong>{" "}
-                      <pre className="whitespace-pre-wrap inline">
-                        {tc.output}
-                      </pre>
+                      <strong>Output:</strong> <pre className="whitespace-pre-wrap inline">{tc.output}</pre>
                     </div>
                   </div>
                 ))}
@@ -306,24 +270,22 @@ const ProblemEditor: React.FC = () => {
               ))}
             </div>
             <div className="space-y-4">
-              {problem?.testCases?.slice(0, 2).map((tc, index) => (
-                <div key={index} className="space-y-2">
+              {problem?.testCaseIds?.slice(0, 2).map((tc, index) => (
+                <div key={tc._id} className="space-y-2">
                   <span className="text-sm font-medium">Case {index + 1}</span>
                   <div
                     className={`p-2 rounded text-xs ${
                       theme === "dark" ? "bg-gray-700 text-white" : "bg-gray-200 text-gray-900"
                     }`}
                   >
-                    <strong>Input:</strong>{" "}
-                    <pre className="whitespace-pre-wrap inline">{tc.input}</pre>
+                    <strong>Input:</strong> <pre className="whitespace-pre-wrap inline">{tc.input}</pre>
                   </div>
                   <div
                     className={`p-2 rounded text-xs ${
                       theme === "dark" ? "bg-gray-700 text-white" : "bg-gray-200 text-gray-900"
                     }`}
                   >
-                    <strong>Expected:</strong>{" "}
-                    <pre className="whitespace-pre-wrap inline">{tc.output}</pre>
+                    <strong>Expected:</strong> <pre className="whitespace-pre-wrap inline">{tc.output}</pre>
                   </div>
                 </div>
               ))}

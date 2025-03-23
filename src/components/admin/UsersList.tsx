@@ -1,35 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { apiRequest } from "@/utils/axios/ApiRequest";
-import { CheckCircle, Unlock, Lock, Search } from "lucide-react";
+import { CheckCircle, Unlock, Lock, Search, X } from "lucide-react";
 import Table from "../layout/Table";
 import Pagination from "../layout/Pagination";
 import { useDebounce } from "@/hooks/useDebounce";
 import { TableSkeleton } from "@/utils/SkeletonLoader";
-
-interface AdminUser {
-  id: string;
-  email: string;
-  userName: string;
-  fullName: string;
-  role: string;
-  isBlocked: boolean;
-  joinedDate: string;
-  isPremium?: boolean;
-}
-
-interface AdminUsersResponse {
-  users: AdminUser[];
-  total: number;
-  totalPages: number;
-  currentPage: number;
-}
-
-interface ApiResponse {
-  success: boolean;
-  status: number;
-  message: string;
-  data: AdminUsersResponse;
-}
+import { AdminUser, AdminUsersResponse } from "@/types/AdminTypes";
+import { ApiResponse } from "@/types/ProblemTypes";
 
 const ListUsers: React.FC = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -44,11 +21,13 @@ const ListUsers: React.FC = () => {
 
   const fetchUsers = async (page: number, query: string = "") => {
     setLoading(true);
+    console.log("Fetching users with page:", page, "and search query:", query); // Debug log
     try {
-      const response = await apiRequest<ApiResponse>(
+      const response = await apiRequest<ApiResponse<AdminUsersResponse>>(
         "get",
         `/admin/users?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(query)}`
       );
+      console.log("API Response:", response); // Debug log
       if (response.data && response.data.users) {
         setUsers(response.data.users);
         setTotalPages(response.data.totalPages || 1);
@@ -57,6 +36,7 @@ const ListUsers: React.FC = () => {
       }
     } catch (err) {
       setError("Failed to fetch users");
+      console.error("Fetch error:", err); // Debug log
     } finally {
       setLoading(false);
       searchInputRef.current?.focus();
@@ -74,7 +54,7 @@ const ListUsers: React.FC = () => {
       prevUsers.map((user) => (user.id === userId ? { ...user, isBlocked: !isBlocked } : user))
     );
     try {
-      const response = await apiRequest<ApiResponse>("post", endpoint);
+      const response = await apiRequest<ApiResponse<AdminUsersResponse>>("post", endpoint);
       if (!response.success) throw new Error("API call failed");
     } catch (err) {
       console.error("Failed to update user status:", err);
@@ -87,7 +67,7 @@ const ListUsers: React.FC = () => {
       key: "sno",
       header: "S.No",
       render: (_: AdminUser, index?: number) =>
-        (currentPage - 1) * itemsPerPage + (index ?? 0) + 1, // Use index safely
+        (currentPage - 1) * itemsPerPage + (index ?? 0) + 1,
     },
     { key: "id", header: "ID", className: "max-w-[100px] truncate" },
     { key: "userName", header: "Name" },
@@ -137,14 +117,14 @@ const ListUsers: React.FC = () => {
     },
   ];
 
-  if (loading) return <TableSkeleton />;
-  if (error) return <div>{error}</div>;
+  if (loading && !users.length) return <TableSkeleton />; // Only show skeleton on initial load
+  if (error) return <div className="text-red-500 text-center py-4">{error}</div>;
 
   return (
     <div className="container mx-auto px-4 py-9 min-h-screen flex flex-col">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-semibold text-primary">Users List</h1>
-        <div className="relative w-full sm:w-72">
+        <div className="relative w-full sm:w-72 flex items-center">
           <input
             ref={searchInputRef}
             type="text"
@@ -154,9 +134,29 @@ const ListUsers: React.FC = () => {
               setCurrentPage(1);
             }}
             placeholder="Search by username or email..."
-            className="w-full pl-10 pr-4 py-2 text-sm rounded-lg border bg-background border-gray-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+            className="w-full pl-10 pr-10 py-2 text-sm rounded-lg border bg-background border-gray-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
           />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
+          {loading ? (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <svg className="animate-spin h-5 w-5 text-gray-500" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z" />
+              </svg>
+            </div>
+          ) : (
+            searchQuery && (
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setCurrentPage(1);
+                }}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )
+          )}
         </div>
       </div>
 

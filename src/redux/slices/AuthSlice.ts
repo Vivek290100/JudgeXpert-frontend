@@ -1,7 +1,7 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\redux\slices\AuthSlice.ts
+// Frontend\src\redux\slices\AuthSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { signUp, verifyOtp, logout, login, googleLogin } from "../thunks/AuthThunks";
-import { AuthResponse, AuthState, AuthUser } from "../types/Index";
+import { AuthResponse, AuthState, AuthUser } from "../../types/Index";
 import { updateUserProfile } from "../thunks/UserThunks";
 
 

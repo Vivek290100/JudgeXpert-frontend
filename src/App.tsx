@@ -67,7 +67,7 @@ const App = () => {
         {/* Catch-all Route */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <Toaster />
+      <Toaster position="bottom-right" />
     </>
   );
 };

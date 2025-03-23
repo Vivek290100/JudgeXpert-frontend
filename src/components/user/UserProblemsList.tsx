@@ -8,35 +8,8 @@ import ProblemFilter from "./ProblemFilter";
 import { Menu, X, Search } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { TableSkeleton } from "@/utils/SkeletonLoader";
-import { ApiResponse, IProblem, IUserProblemStatus } from "@/types/ProblemTypes";
-
-// interface IProblem {
-//   _id: string;
-//   title: string;
-//   slug: string;
-//   difficulty: "EASY" | "MEDIUM" | "HARD";
-//   status: "premium" | "free";
-//   isBlocked?: boolean; // Add isBlocked to interface for safety
-// }
-
-// interface IUserProblemStatus {
-//   problemId: string;
-//   solved: boolean;
-// }
-
-// interface ProblemsResponse {
-//   problems: IProblem[];
-//   userProblemStatus: IUserProblemStatus[];
-//   total: number;
-//   totalPages: number;
-//   currentPage: number;
-// }
-
-// interface ApiResponse {
-//   success: boolean;
-//   message: string;
-//   data: ProblemsResponse;
-// }
+import { ApiResponse, ProblemsResponse } from "@/types/ProblemTypes";
+import { IProblem, IUserProblemStatus } from "@/types/ProblemTypes";
 
 const ProblemsList: React.FC = () => {
   const [problems, setProblems] = useState<IProblem[]>([]);
@@ -47,7 +20,7 @@ const ProblemsList: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<{ difficulty?: string; status?: string }>({ difficulty: "", status: "" });
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const debouncedSearchQuery = useDebounce(searchQuery, 500); // Debounce search query by 500ms
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const itemsPerPage = 10;
   const navigate = useNavigate();
@@ -70,7 +43,7 @@ const ProblemsList: React.FC = () => {
       }
       if (query) url += `&search=${encodeURIComponent(query)}`;
 
-      const response = await apiRequest<ApiResponse>("get", url);
+      const response = await apiRequest<ApiResponse<ProblemsResponse>>("get", url);
       if (response.success) {
         const filteredProblems = response.data.problems.filter((problem) => !problem.isBlocked);
         setProblems(filteredProblems);
@@ -89,9 +62,10 @@ const ProblemsList: React.FC = () => {
     }
   };
 
+  // Ensure fetchProblems only runs when currentPage, debouncedSearchQuery, or filters change
   useEffect(() => {
     fetchProblems(currentPage, filters, debouncedSearchQuery);
-  }, [currentPage, debouncedSearchQuery, filters]);
+  }, [currentPage, debouncedSearchQuery, filters]); // Dependencies include filters
 
   const handleRowClick = (problem: IProblem) => {
     navigate(`/user/problems/${problem.slug}`);
@@ -172,7 +146,7 @@ const ProblemsList: React.FC = () => {
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              setCurrentPage(1);
+              setCurrentPage(1); // Reset to first page on new search
             }}
             placeholder="Search problems by title..."
             className="w-full pl-10 pr-4 py-2 text-sm rounded-lg border bg-background border-gray-200 dark:border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { verifyOtpSchema, VerifyOtpData,} from "@/utils/validations/OTPVerifyValidation";
+import { verifyOtpSchema, VerifyOtpData } from "@/utils/validations/OTPVerifyValidation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,10 +17,7 @@ export const VerifyForgotPasswordOtp = () => {
   const location = useLocation();
   const email = location.state?.email || "";
 
-  const { register, handleSubmit, formState: { errors },setValue,} = useForm<VerifyOtpData>({
-    resolver: zodResolver(verifyOtpSchema),
-    defaultValues: { email },
-  });
+  const {register,handleSubmit, formState: { errors }, setValue,} = useForm<VerifyOtpData>({resolver: zodResolver(verifyOtpSchema), defaultValues: { email },});
 
   useEffect(() => {
     if (email) {
@@ -79,13 +76,11 @@ export const VerifyForgotPasswordOtp = () => {
         localStorage.removeItem("otpEmail");
         localStorage.removeItem("otpTimer");
         toast.success("OTP verified successfully!");
-        navigate("/reset-password", {
-          state: { email: data.email },
+        navigate("/reset-password", { 
+          state: { email: data.email }
         });
       } else {
-        toast.error(
-          (resultAction.payload as string) || "OTP verification failed"
-        );
+        toast.error(resultAction.payload as string || "OTP verification failed");
       }
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
@@ -116,10 +111,7 @@ export const VerifyForgotPasswordOtp = () => {
 
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div>
-            <label
-              htmlFor="otp"
-              className="block text-sm font-medium text-muted-foreground"
-            >
+            <label htmlFor="otp" className="block text-sm font-medium text-muted-foreground">
               Enter OTP
             </label>
             <Input
@@ -129,9 +121,7 @@ export const VerifyForgotPasswordOtp = () => {
               {...register("otp")}
               className="mt-1 block w-full"
             />
-            {errors.otp && (
-              <p className="text-red-500 text-sm">{errors.otp.message}</p>
-            )}
+            {errors.otp && <p className="text-red-500 text-sm">{errors.otp.message}</p>}
           </div>
 
           <Button type="submit" className="w-full" disabled={isVerifying}>
@@ -141,17 +131,12 @@ export const VerifyForgotPasswordOtp = () => {
 
         <div className="text-center mt-4 text-sm text-muted-foreground">
           {canResend ? (
-            <Button
-              onClick={handleResendOTP}
-              variant="link"
-              className="text-primary"
-            >
+            <Button onClick={handleResendOTP} variant="link" className="text-primary">
               Resend OTP
             </Button>
           ) : (
             <span>
-              Resend OTP in {Math.floor(timer / 60)}:
-              {(timer % 60).toString().padStart(2, "0")}
+              Resend OTP in {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, "0")}
             </span>
           )}
         </div>

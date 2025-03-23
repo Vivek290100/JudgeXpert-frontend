@@ -1,8 +1,8 @@
 // src/redux/thunks/UserThunks.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { AuthUser, AuthResponse } from "../types/AuthTypes";
+import { AuthUser, AuthResponse } from "../../types/AuthTypes";
 import { apiRequest } from "@/utils/axios/ApiRequest";
-import { UpdateProfileData } from "../types/UserTypes";
+import { UpdateProfileData } from "../../types/UserTypes";
 
 
 
