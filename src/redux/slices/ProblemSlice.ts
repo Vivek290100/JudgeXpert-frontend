@@ -1,7 +1,7 @@
 // src/redux/slices/ProblemSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { processSpecificProblem } from "../thunks/ProblemThunks";
-import { IProblem, ProblemState } from "../types/Index"; // Adjust the import path based on your types
+import { IProblem, ProblemState } from "../../types/Index";
 
 
 
@@ -15,7 +15,6 @@ const problemSlice = createSlice({
   name: "problems",
   initialState,
   reducers: {
-    // Optional: Add reducers for manual problem updates if needed
     resetProblems(state) {
       state.problems = [];
       state.error = null;
@@ -29,7 +28,6 @@ const problemSlice = createSlice({
       })
       .addCase(processSpecificProblem.fulfilled, (state, action: PayloadAction<IProblem>) => {
         state.loading = false;
-        // Add or update the problem in the list (upsert logic)
         const existingIndex = state.problems.findIndex((p) => p.slug === action.payload.slug);
         if (existingIndex !== -1) {
           state.problems[existingIndex] = action.payload; // Update existing problem

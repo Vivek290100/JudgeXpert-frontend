@@ -1,7 +1,7 @@
-// C:\Users\vivek_laxvnt1\Desktop\JudgeXpert\Frontend\src\redux\slices\AdminSlice.ts
+//Frontend\src\redux\slices\AdminSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { fetchUsers, blockUser } from '../thunks/AdminThunks';
-import { AdminState, AdminUser } from '../types/AdminTypes';
+import { AdminState, AdminUser } from '../../types/AdminTypes';
 
 
 

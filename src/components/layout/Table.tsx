@@ -1,6 +1,6 @@
 import React from "react";
 import { useTheme } from "@/contexts/ThemeContext";
-import { TableProps } from "@/types/Table";
+import { TableProps } from "@/types/ComponentsTypes";
 
 
 

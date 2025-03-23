@@ -39,7 +39,7 @@ export default function LoginPage() {
       const resultAction = await dispatch(login(data));
       if (login.fulfilled.match(resultAction)) {
         const userRole = resultAction.payload?.data?.user?.role;
-        const userId = resultAction.payload?.data?.userId;
+        const userId = resultAction.payload?.data?.user.id;
       localStorage.setItem("userId", userId);
         toast.success("Logged in successfully!");
         navigate(userRole === "admin" ? "/admin/dashboard" : "/");

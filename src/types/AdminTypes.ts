@@ -1,48 +1,52 @@
-export interface ProblemRowProps {
-    number: string;
-    title: string;
-    submissions: string;
-    submissionColor: string;
+// Frontend\src\redux\types\AdminTypes.ts
+export interface AdminUser {
+    id: string;
+    email: string;
+    userName: string;
+    fullName: string;
+    role: "user" | "admin";
+    isBlocked: boolean;
+    joinedDate: string;
+    isPremium?: boolean;
   }
-
+  
+  export interface AdminUsersResponse {
+    users: AdminUser[];
+    total: number;
+    totalPages: number;
+    currentPage: number;
+  }
+  
+  export interface BlockUserResponse {
+    userId: string;
+    isBlocked: boolean;
+  }
+  
+  export interface AdminState {
+    users: AdminUser[] | null;
+    loading: boolean;
+    error: string | null;
+  }
+  
   export interface StatCardProps {
     title: string;
     value: string;
     label: string;
     color: string;
   }
-
   
-export interface DefaultCode {
-    _id: string;
-    languageId: number;
-    languageName: string;
-    code: string;
-    status: string;
-  }
-  
-  export interface TestCase {
-    _id: string;
-    input: string;
-    output: string;
-    index: number;
-  }
-  
-  export interface IProblem {
-    _id: string;
+  export interface ProblemRowProps {
+    number: string;
     title: string;
-    slug: string;
-    difficulty: "EASY" | "MEDIUM" | "HARD";
-    status: "premium" | "free";
-    updatedAt: string;
-    description: string;
-    defaultCodeIds: DefaultCode[];
-    testCaseIds: TestCase[];
-    isBlocked: boolean;
+    submissions: string;
+    submissionColor: string;
   }
-  
-  export interface ApiResponse<T> {
-    success: boolean;
-    message: string;
-    data: T;
-  }
+
+
+
+// export interface ApiResponse {
+//   success: boolean;
+//   status: number;
+//   message: string;
+//   data: AdminUsersResponse;
+// }

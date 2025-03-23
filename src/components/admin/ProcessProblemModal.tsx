@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 interface ProcessProblemModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void; // Callback to refresh the problem list
+  onSuccess: () => void;
 }
 
 const ProcessProblemModal: React.FC<ProcessProblemModalProps> = ({

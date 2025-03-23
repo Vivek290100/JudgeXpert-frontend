@@ -2,7 +2,7 @@
 import React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useTheme } from "@/contexts/ThemeContext"
-import { PaginationProps } from "@/types/Pagination";
+import { PaginationProps } from "@/types/ComponentsTypes";
 
 
 

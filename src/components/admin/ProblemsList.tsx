@@ -7,42 +7,16 @@ import Pagination from "../layout/Pagination";
 import { useDebounce } from "@/hooks/useDebounce";
 import { lazy, Suspense } from "react";
 import { TableSkeleton } from "@/utils/SkeletonLoader";
+import { ApiResponse, IProblem, ProblemsResponse } from "@/types/ProblemTypes";
 
 const ProcessProblemModal = lazy(() => import("./ProcessProblemModal"));
-
-interface IProblem {
-  isBlocked: boolean;
-  id: string;
-  _id: string;
-  title: string;
-  slug: string;
-  difficulty: "EASY" | "MEDIUM" | "HARD";
-  status: "premium" | "free";
-  updatedAt: string;
-  description: string;
-  defaultCodeIds: { _id: string; languageId: number; languageName: string; code: string; status: string }[];
-  testCaseIds: { _id: string; input: string; output: string; index: number }[];
-}
-
-interface ProblemsResponse {
-  problems: IProblem[];
-  total: number;
-  totalPages: number;
-  currentPage: number;
-}
-
-interface ApiResponse<T = ProblemsResponse> {
-  success: boolean;
-  message: string;
-  data: T;
-}
 
 const ProblemsList: React.FC = () => {
   const [problems, setProblems] = useState<IProblem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const debouncedSearchQuery = useDebounce(searchQuery, 500); // Debounce search query by 500ms
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
@@ -74,9 +48,10 @@ const ProblemsList: React.FC = () => {
     }
   };
 
+  // Ensure fetchProblems only runs when debouncedSearchQuery or currentPage changes
   useEffect(() => {
     fetchProblems(currentPage, debouncedSearchQuery);
-  }, [currentPage, debouncedSearchQuery]);
+  }, [currentPage, debouncedSearchQuery]); // Dependencies are currentPage and debouncedSearchQuery only
 
   const handleRowClick = (problem: IProblem) => {
     navigate(`/admin/problems/${problem._id}`);
@@ -138,7 +113,7 @@ const ProblemsList: React.FC = () => {
     },
     {
       key: "isBlocked",
-      header: "Status", // Updated from "Blocked" to "Status"
+      header: "Status",
       render: (problem: IProblem) => {
         const isActive = !problem.isBlocked;
         return (
@@ -171,7 +146,7 @@ const ProblemsList: React.FC = () => {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setCurrentPage(1);
+                setCurrentPage(1); // Reset to first page on new search
               }}
               placeholder="Search by title or slug..."
               className="w-full pl-10 pr-4 py-2 text-sm rounded-lg border bg-background border-gray-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"

@@ -7,12 +7,9 @@ import { useDispatch } from "react-redux";
 import { logout } from "@/redux/thunks/AuthThunks";
 import toast from "react-hot-toast";
 import { AppDispatch } from "@/redux/Store";
+import { SidebarItem } from "@/types/ComponentsTypes";
 
-interface SidebarItem {
-  title: string;
-  icon: React.ReactNode;
-  path: string;
-}
+
 
 export default function AdminSidebar() {
   const navigate = useNavigate();
