@@ -8,8 +8,7 @@ import ProblemFilter from "./ProblemFilter";
 import { Menu, X, Search } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { TableSkeleton } from "@/utils/SkeletonLoader";
-import { ApiResponse, ProblemsResponse } from "@/types/ProblemTypes";
-import { IProblem, IUserProblemStatus } from "@/types/ProblemTypes";
+import { ApiResponse, ProblemsResponse, IProblem, IUserProblemStatus } from "@/types/ProblemTypes";
 
 const ProblemsList: React.FC = () => {
   const [problems, setProblems] = useState<IProblem[]>([]);
@@ -20,7 +19,7 @@ const ProblemsList: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<{ difficulty?: string; status?: string }>({ difficulty: "", status: "" });
-  const debouncedSearchQuery = useDebounce(searchQuery, 500); // Debounce search query by 500ms
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const itemsPerPage = 10;
   const navigate = useNavigate();
@@ -44,7 +43,7 @@ const ProblemsList: React.FC = () => {
       if (query) url += `&search=${encodeURIComponent(query)}`;
 
       const response = await apiRequest<ApiResponse<ProblemsResponse>>("get", url);
-      if (response.success) {
+      if (response.success && response.data) {
         const filteredProblems = response.data.problems.filter((problem) => !problem.isBlocked);
         setProblems(filteredProblems);
         setUserProblemStatus(response.data.userProblemStatus || []);
@@ -62,10 +61,9 @@ const ProblemsList: React.FC = () => {
     }
   };
 
-  // Ensure fetchProblems only runs when currentPage, debouncedSearchQuery, or filters change
   useEffect(() => {
     fetchProblems(currentPage, filters, debouncedSearchQuery);
-  }, [currentPage, debouncedSearchQuery, filters]); // Dependencies include filters
+  }, [currentPage, debouncedSearchQuery, filters]);
 
   const handleRowClick = (problem: IProblem) => {
     navigate(`/user/problems/${problem.slug}`);
@@ -95,7 +93,11 @@ const ProblemsList: React.FC = () => {
       key: "difficulty",
       header: "Difficulty",
       render: (problem: IProblem) => (
-        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getDifficultyColor(problem.difficulty)}`}>
+        <span
+          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getDifficultyColor(
+            problem.difficulty
+          )}`}
+        >
           {problem.difficulty}
         </span>
       ),
@@ -132,26 +134,46 @@ const ProblemsList: React.FC = () => {
     },
   ];
 
-  if (loading) return <TableSkeleton />;
+  if (loading && !problems.length) return <TableSkeleton />;
   if (error) return <div className="text-red-500 text-center py-4">{error}</div>;
 
   return (
     <div className="container mx-auto px-4 py-6 min-h-screen flex flex-col">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-semibold text-primary">Problems</h1>
-        <div className="relative w-full sm:w-72">
+        <div className="relative w-full sm:w-72 flex items-center">
           <input
             ref={searchInputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              setCurrentPage(1); // Reset to first page on new search
+              setCurrentPage(1);
             }}
             placeholder="Search problems by title..."
-            className="w-full pl-10 pr-4 py-2 text-sm rounded-lg border bg-background border-gray-200 dark:border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+            className="w-full pl-10 pr-10 py-2 text-sm rounded-lg border bg-background border-gray-200 dark:border-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
           />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
+          {loading ? (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <svg className="animate-spin h-5 w-5 text-gray-500" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z" />
+              </svg>
+            </div>
+          ) : (
+            searchQuery && (
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setCurrentPage(1);
+                }}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )
+          )}
         </div>
       </div>
 
@@ -215,9 +237,15 @@ const ProblemsList: React.FC = () => {
               emptyMessage="No problems found"
             />
           </div>
-          <div className="mt-6">
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-          </div>
+          {totalPages > 1 && (
+            <div className="mt-6">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+// Frontend\src\components\ProblemEditor.tsx
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { apiRequest } from "@/utils/axios/ApiRequest";
@@ -6,7 +7,7 @@ import { cpp } from "@codemirror/lang-cpp";
 import { javascript } from "@codemirror/lang-javascript";
 import { rust } from "@codemirror/lang-rust";
 import { useTheme } from "@/contexts/ThemeContext";
-import { SUPPORTED_LANGUAGES } from "@/config/Languages";
+import { SUPPORTED_LANGUAGES } from "@/utils/Languages";
 import { Play, Send, ChevronDown, ChevronUp } from "lucide-react";
 import { ProblemEditorSkeleton } from "@/utils/SkeletonLoader";
 import toast from "react-hot-toast";
@@ -21,9 +22,9 @@ const ProblemEditor: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
+  const [testResults, setTestResults] = useState<any[]>([]); // To display test case results
   const { theme } = useTheme();
 
-  // Fetch problem data from the database
   useEffect(() => {
     const fetchProblem = async () => {
       if (!slug) return;
@@ -34,7 +35,7 @@ const ProblemEditor: React.FC = () => {
           const problemData = response.data.problem;
           setProblem(problemData);
           const defaultCode = problemData.defaultCodeIds.find(
-            (dc) => dc.languageName.toLowerCase() === selectedLanguage.toLowerCase()
+            (dc) => dc.languageName.toLowerCase() === SUPPORTED_LANGUAGES[0].name.toLowerCase()
           );
           setCode(defaultCode?.code || "");
         } else {
@@ -48,20 +49,61 @@ const ProblemEditor: React.FC = () => {
       }
     };
     fetchProblem();
-  }, [slug, selectedLanguage]);
+  }, [slug]);
 
-  // Language extension for CodeMirror
+  useEffect(() => {
+    if (!problem) return;
+    const defaultCode = problem.defaultCodeIds.find(
+      (dc) => dc.languageName.toLowerCase() === selectedLanguage.toLowerCase()
+    );
+    setCode(defaultCode?.code || "");
+  }, [selectedLanguage, problem]);
+
   const getLanguageExtension = () => {
     switch (selectedLanguage.toLowerCase()) {
       case "cpp":
         return cpp();
-      case "js":
       case "javascript":
         return javascript();
       case "rust":
         return rust();
       default:
         return javascript();
+    }
+  };
+
+  const handleRun = async () => {
+    if (!problem) {
+      toast.error("Problem not loaded yet. Please wait.");
+      return;
+    }
+
+    try {
+      const response = await apiRequest<SubmissionApiResponse>("post", "/execute", {
+        problemId: problem._id,
+        code,
+        language: selectedLanguage.toLowerCase(),
+        isRunOnly: true, // Indicate this is a "Run" action
+      });
+
+      if (response.success) {
+        setTestResults(response.data.results);
+        const allPassed = response.data.results.every((r) => r.passed);
+        if (allPassed) {
+          toast.success("Run successful! First 2 test cases passed.");
+        } else {
+          toast.error(`Run failed: ${response.data.results.filter((r) => !r.passed).length}/2 test cases failed`, {
+            duration: 5000,
+            style: { maxWidth: "500px" },
+          });
+          console.log("Run details:", response.data.results);
+        }
+      } else {
+        toast.error(response.message || "Run failed.");
+      }
+    } catch (error) {
+      toast.error("An error occurred during run.");
+      console.error("Run error:", error);
     }
   };
 
@@ -76,20 +118,20 @@ const ProblemEditor: React.FC = () => {
         problemId: problem._id,
         code,
         language: selectedLanguage.toLowerCase(),
+        isRunOnly: false, // Indicate this is a "Submit" action
       });
 
-      console.log("SubmissionApiResponse", response);
-
       if (response.success) {
-        const { result, details } = response.data;
-        if (result === "Accepted") {
+        setTestResults(response.data.results);
+        const allPassed = response.data.results.every((r) => r.passed);
+        if (allPassed) {
           toast.success("Submission successful! All test cases passed.");
         } else {
-          toast.error(`Submission failed: ${result}`, {
+          toast.error(`Submission failed: ${response.data.results.filter((r) => !r.passed).length} test case(s) failed`, {
             duration: 5000,
             style: { maxWidth: "500px" },
           });
-          console.log("Submission details:", details);
+          console.log("Submission details:", response.data.results);
         }
       } else {
         toast.error(response.message || "Submission failed.");
@@ -221,8 +263,8 @@ const ProblemEditor: React.FC = () => {
               </select>
               <div className="flex gap-2 w-full sm:w-auto justify-end">
                 <button
-                  disabled={true}
-                  className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-gray-500 cursor-not-allowed"
+                  onClick={handleRun}
+                  className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-green-500 hover:bg-green-600"
                 >
                   <Play className="w-4 h-4" />
                   Run
@@ -254,42 +296,49 @@ const ProblemEditor: React.FC = () => {
             } overflow-y-auto flex-1`}
           >
             <h3 className="text-sm font-semibold mb-3">Test Results</h3>
-            <div className="flex gap-4 mb-4">
-              {["Case 1", "Case 2"].map((label, index) => (
-                <label key={index} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name="testCase"
-                    value={index}
-                    checked={index === 0}
-                    disabled={true}
-                    className="w-4 h-4 accent-blue-500"
-                  />
-                  {label}
-                </label>
-              ))}
-            </div>
-            <div className="space-y-4">
-              {problem?.testCaseIds?.slice(0, 2).map((tc, index) => (
-                <div key={tc._id} className="space-y-2">
-                  <span className="text-sm font-medium">Case {index + 1}</span>
-                  <div
-                    className={`p-2 rounded text-xs ${
-                      theme === "dark" ? "bg-gray-700 text-white" : "bg-gray-200 text-gray-900"
-                    }`}
-                  >
-                    <strong>Input:</strong> <pre className="whitespace-pre-wrap inline">{tc.input}</pre>
+            {testResults.length > 0 ? (
+              <div className="space-y-4">
+                {testResults.map((result, index) => (
+                  <div key={index} className="space-y-2">
+                    <span className="text-sm font-medium">Case {result.testCaseIndex + 1}</span>
+                    <div
+                      className={`p-2 rounded text-xs ${
+                        result.passed
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                          : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                      }`}
+                    >
+                      <strong>Input:</strong> <pre className="whitespace-pre-wrap inline">{result.input}</pre>
+                    </div>
+                    <div
+                      className={`p-2 rounded text-xs ${
+                        result.passed
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                          : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                      }`}
+                    >
+                      <strong>Expected:</strong> <pre className="whitespace-pre-wrap inline">{result.expectedOutput}</pre>
+                    </div>
+                    <div
+                      className={`p-2 rounded text-xs ${
+                        result.passed
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                          : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                      }`}
+                    >
+                      <strong>Output:</strong> <pre className="whitespace-pre-wrap inline">{result.actualOutput}</pre>
+                    </div>
+                    {result.stderr && (
+                      <div className="p-2 rounded text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                        <strong>Error:</strong> <pre className="whitespace-pre-wrap inline">{result.stderr}</pre>
+                      </div>
+                    )}
                   </div>
-                  <div
-                    className={`p-2 rounded text-xs ${
-                      theme === "dark" ? "bg-gray-700 text-white" : "bg-gray-200 text-gray-900"
-                    }`}
-                  >
-                    <strong>Expected:</strong> <pre className="whitespace-pre-wrap inline">{tc.output}</pre>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">Run or submit your code to see test results.</p>
+            )}
           </div>
         </div>
       </div>

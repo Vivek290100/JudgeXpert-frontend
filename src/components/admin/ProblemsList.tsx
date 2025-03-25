@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "@/utils/axios/ApiRequest";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, X } from "lucide-react";
 import Table from "../layout/Table";
 import Pagination from "../layout/Pagination";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -16,7 +16,7 @@ const ProblemsList: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const debouncedSearchQuery = useDebounce(searchQuery, 500); // Debounce search query by 500ms
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
@@ -31,8 +31,7 @@ const ProblemsList: React.FC = () => {
         "get",
         `/admin/problems?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(query)}`
       );
-      if (response.success) {
-        console.log("Fetched problems:", response.data.problems);
+      if (response.success && response.data) {
         setProblems(response.data.problems);
         setTotalPages(response.data.totalPages);
         setCurrentPage(response.data.currentPage);
@@ -48,10 +47,9 @@ const ProblemsList: React.FC = () => {
     }
   };
 
-  // Ensure fetchProblems only runs when debouncedSearchQuery or currentPage changes
   useEffect(() => {
     fetchProblems(currentPage, debouncedSearchQuery);
-  }, [currentPage, debouncedSearchQuery]); // Dependencies are currentPage and debouncedSearchQuery only
+  }, [currentPage, debouncedSearchQuery]);
 
   const handleRowClick = (problem: IProblem) => {
     navigate(`/admin/problems/${problem._id}`);
@@ -60,13 +58,13 @@ const ProblemsList: React.FC = () => {
   const getDifficultyColor = (difficulty: "EASY" | "MEDIUM" | "HARD") => {
     switch (difficulty) {
       case "EASY":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+        return "bg-green-100 text-green-800";
       case "MEDIUM":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+        return "bg-yellow-100 text-yellow-800";
       case "HARD":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+        return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -78,7 +76,11 @@ const ProblemsList: React.FC = () => {
       key: "difficulty",
       header: "Difficulty",
       render: (problem: IProblem) => (
-        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getDifficultyColor(problem.difficulty)}`}>
+        <span
+          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getDifficultyColor(
+            problem.difficulty
+          )}`}
+        >
           {problem.difficulty}
         </span>
       ),
@@ -103,8 +105,8 @@ const ProblemsList: React.FC = () => {
         <span
           className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
             problem.status === "premium"
-              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-              : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+              ? "bg-yellow-100 text-yellow-800"
+              : "bg-green-100 text-green-800"
           }`}
         >
           {problem.status.charAt(0).toUpperCase() + problem.status.slice(1)}
@@ -114,25 +116,20 @@ const ProblemsList: React.FC = () => {
     {
       key: "isBlocked",
       header: "Status",
-      render: (problem: IProblem) => {
-        const isActive = !problem.isBlocked;
-        return (
-          <span
-            className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-              isActive
-                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-            }`}
-          >
-            {isActive ? "Active" : "Inactive"}
-          </span>
-        );
-      },
+      render: (problem: IProblem) => (
+        <span
+          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+            problem.isBlocked ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
+          }`}
+        >
+          {problem.isBlocked ? "Blocked" : "Active"}
+        </span>
+      ),
     },
   ];
 
-  if (loading) return <TableSkeleton />;
-  if (error) return <div>{error}</div>;
+  if (loading && !problems.length) return <TableSkeleton />;
+  if (error) return <div className="text-red-500 text-center py-4">{error}</div>;
 
   return (
     <div className="container mx-auto px-4 py-9 min-h-screen flex flex-col">
@@ -146,12 +143,32 @@ const ProblemsList: React.FC = () => {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setCurrentPage(1); // Reset to first page on new search
+                setCurrentPage(1);
               }}
               placeholder="Search by title or slug..."
-              className="w-full pl-10 pr-4 py-2 text-sm rounded-lg border bg-background border-gray-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+              className="w-full pl-10 pr-10 py-2 text-sm rounded-lg border bg-background border-gray-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
+            {loading ? (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <svg className="animate-spin h-5 w-5 text-gray-500" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z" />
+                </svg>
+              </div>
+            ) : (
+              searchQuery && (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setCurrentPage(1);
+                  }}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )
+            )}
           </div>
           <button
             onClick={() => setIsProcessModalOpen(true)}
@@ -172,9 +189,15 @@ const ProblemsList: React.FC = () => {
         />
       </div>
 
-      <div className="mt-6">
-        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-      </div>
+      {totalPages > 1 && (
+        <div className="mt-6">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      )}
 
       <Suspense fallback={<div>Loading Process Modal...</div>}>
         <ProcessProblemModal
