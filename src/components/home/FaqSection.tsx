@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, Plus } from "lucide-react";
+import { motion } from "framer-motion";
+import { fadeInUp, staggerContainer } from "../../utils/animations";
 
 export default function FAQSection() {
   const faqs = [
@@ -10,38 +12,49 @@ export default function FAQSection() {
     { question: "Can I track my progress?", answer: "Yes, you can track your ranking and performance through our leaderboard system." },
   ];
 
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [openIndex, setOpenIndex] = useState(null);
 
-  const toggleFAQ = (index: number) => {
+  const toggleFAQ = (index: any) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
   return (
-    <section className="py-16 px-6 bg-background text-foreground">
+    <motion.section
+      variants={staggerContainer}
+      initial="initial"
+      whileInView="animate"
+      viewport={{ once: true }}
+      className="py-8 sm:py-12 md:py-16 px-2 sm:px-4 md:px-6 bg-background text-foreground"
+    >
       <div className="max-w-3xl mx-auto">
-        <h2 className="text-3xl font-bold text-center">FAQ</h2>
-        <p className="text-center text-muted-foreground mt-2">Got other questions? Reach out.</p>
+        <motion.h2 variants={fadeInUp} className="text-xl sm:text-2xl md:text-3xl font-bold text-center">
+          FAQ
+        </motion.h2>
+        <motion.p variants={fadeInUp} className="text-center text-muted-foreground mt-2 text-xs sm:text-sm md:text-base">
+          Got other questions? Reach out.
+        </motion.p>
 
-        <div className="mt-8 space-y-3">
+        <div className="mt-4 sm:mt-6 md:mt-8 space-y-2 sm:space-y-3">
           {faqs.map((faq, index) => (
-            <div
+            <motion.div
               key={index}
-              className="bg-card p-4 rounded-lg cursor-pointer border-2 flex flex-col"
+              variants={fadeInUp}
+              className="bg-card p-3 sm:p-4 rounded-lg cursor-pointer border-2"
               onClick={() => toggleFAQ(index)}
             >
               <div className="flex items-center justify-between">
-                <span className="text-lg font-medium">{faq.question}</span>
-                <div className="w-6 h-6 flex items-center justify-center bg-muted rounded-full">
-                  {openIndex === index ? <ChevronDown size={18} /> : <Plus size={18} />}
+                <span className="text-sm sm:text-base md:text-lg font-medium">{faq.question}</span>
+                <div className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center bg-muted rounded-full">
+                  {openIndex === index ? <ChevronDown size={14}  /> : <Plus size={14} />}
                 </div>
               </div>
               {openIndex === index && (
-                <p className="mt-2 text-sm text-muted-foreground">{faq.answer}</p>
+                <p className="mt-2 text-[10px] sm:text-xs md:text-sm text-muted-foreground">{faq.answer}</p>
               )}
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }

@@ -21,14 +21,13 @@ const ListUsers: React.FC = () => {
 
   const fetchUsers = async (page: number, query: string = "") => {
     setLoading(true);
-    console.log("Fetching users with page:", page, "and search query:", query); // Debug log
     try {
       const response = await apiRequest<ApiResponse<AdminUsersResponse>>(
         "get",
         `/admin/users?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(query)}`
       );
-      console.log("API Response:", response); // Debug log
-      if (response.data && response.data.users) {
+      
+      if (response.success && response.data) {
         setUsers(response.data.users);
         setTotalPages(response.data.totalPages || 1);
       } else {
@@ -36,7 +35,7 @@ const ListUsers: React.FC = () => {
       }
     } catch (err) {
       setError("Failed to fetch users");
-      console.error("Fetch error:", err); // Debug log
+      console.error("Fetch error:", err);
     } finally {
       setLoading(false);
       searchInputRef.current?.focus();
@@ -50,15 +49,21 @@ const ListUsers: React.FC = () => {
   const handleBlockUnblock = async (userId: string, isBlocked: boolean) => {
     const originalUsers = [...users];
     const endpoint = isBlocked ? `/admin/users/${userId}/unblock` : `/admin/users/${userId}/block`;
+    
+    // Optimistic update
     setUsers((prevUsers) =>
-      prevUsers.map((user) => (user.id === userId ? { ...user, isBlocked: !isBlocked } : user))
+      prevUsers.map((user) =>
+        user.id === userId ? { ...user, isBlocked: !isBlocked } : user
+      )
     );
+
     try {
       const response = await apiRequest<ApiResponse<AdminUsersResponse>>("post", endpoint);
-      if (!response.success) throw new Error("API call failed");
+      if (!response.success) throw new Error("Failed to update user status");
     } catch (err) {
       console.error("Failed to update user status:", err);
-      setUsers(originalUsers);
+      setUsers(originalUsers); // Revert on failure
+      setError("Failed to update user status");
     }
   };
 
@@ -108,7 +113,9 @@ const ListUsers: React.FC = () => {
             handleBlockUnblock(user.id, user.isBlocked);
           }}
           className={`p-2 rounded-lg transition-colors ${
-            user.isBlocked ? "bg-green-600 hover:bg-green-700 text-white" : "bg-red-600 hover:bg-red-700 text-white"
+            user.isBlocked
+              ? "bg-green-600 hover:bg-green-700 text-white"
+              : "bg-red-600 hover:bg-red-700 text-white"
           }`}
         >
           {user.isBlocked ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
@@ -117,7 +124,7 @@ const ListUsers: React.FC = () => {
     },
   ];
 
-  if (loading && !users.length) return <TableSkeleton />; // Only show skeleton on initial load
+  if (loading && !users.length) return <TableSkeleton />;
   if (error) return <div className="text-red-500 text-center py-4">{error}</div>;
 
   return (
@@ -164,9 +171,15 @@ const ListUsers: React.FC = () => {
         <Table data={users} columns={columns} emptyMessage="No users found" />
       </div>
 
-      <div className="mt-6">
-        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-      </div>
+      {totalPages > 1 && (
+        <div className="mt-6">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      )}
     </div>
   );
 };

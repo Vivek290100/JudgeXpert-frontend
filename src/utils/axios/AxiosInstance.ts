@@ -14,9 +14,6 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    // console.log("Request URL:", config.url);
-    // console.log("Request Headers:", config.headers);
-    // console.log("Request - withCredentials:", config.withCredentials);
     return config;
   },
   (error) => {
@@ -51,10 +48,10 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         console.error("Refresh failed:", refreshError);
-        localStorage.removeItem("userId"); // Clean up
-        document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; // Clear cookie
+        localStorage.removeItem("userId");
+        document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         store.dispatch(logout());
-        window.location.href = "/login"; // Redirect to login
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }

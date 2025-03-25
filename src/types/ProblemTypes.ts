@@ -105,11 +105,20 @@ export interface ProblemApiResponse {
   data: { problem: IProblem };
 }
 
+export interface TestCaseResult {
+  testCaseIndex: number;
+  input: string;
+  expectedOutput: string;
+  actualOutput: string;
+  stderr: string;
+  passed: boolean;
+}
+
 export interface SubmissionApiResponse {
   success: boolean;
   message: string;
   data: {
-    result: string;
+    results: TestCaseResult[];
     details: any; 
   };
 }
