@@ -3,26 +3,6 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import { IProblem, ProcessProblemPayload, ProcessProblemResponse } from "@/types/ProblemTypes";
 
-// interface ProcessProblemPayload {
-//   problemDir: string; // The directory path (e.g., "src/problems/two-sum")
-// }
-
-
-
-// interface ProcessProblemResponse {
-//   success: boolean;
-//   message: string;
-//   status: number;
-//   data: {
-//     problem: {
-//       id: string;
-//       title: string;
-//       slug: string;
-//     };
-//   };
-// }
-
-
 
 export const processSpecificProblem = createAsyncThunk<
   IProblem,

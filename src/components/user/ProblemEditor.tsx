@@ -1,6 +1,6 @@
 // Frontend\src\components\ProblemEditor.tsx
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import CodeMirror from "@uiw/react-codemirror";
 import { cpp } from "@codemirror/lang-cpp";
@@ -22,7 +22,7 @@ const ProblemEditor: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
-  const [testResults, setTestResults] = useState<any[]>([]); // To display test case results
+  const [testResults, setTestResults] = useState<any[]>([]);
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -31,6 +31,7 @@ const ProblemEditor: React.FC = () => {
       setLoading(true);
       try {
         const response = await apiRequest<ProblemApiResponse>("get", `/problems/${slug}`);
+        
         if (response.success) {
           const problemData = response.data.problem;
           setProblem(problemData);
@@ -170,13 +171,12 @@ const ProblemEditor: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <span
-                  className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                    problem.difficulty === Difficulty.EASY
+                  className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${problem.difficulty === Difficulty.EASY
                       ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                       : problem.difficulty === Difficulty.MEDIUM
-                      ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                      : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                  }`}
+                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                        : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                    }`}
                 >
                   {problem.difficulty}
                 </span>
@@ -213,13 +213,12 @@ const ProblemEditor: React.FC = () => {
             <div>
               <h1 className="text-xl font-semibold text-primary">{problem?.title ?? "Loading..."}</h1>
               <span
-                className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium mt-2 ${
-                  problem?.difficulty === Difficulty.EASY
+                className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium mt-2 ${problem?.difficulty === Difficulty.EASY
                     ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                     : problem?.difficulty === Difficulty.MEDIUM
-                    ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                    : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                }`}
+                      ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                      : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                  }`}
               >
                 {problem?.difficulty ?? Difficulty.EASY}
               </span>
@@ -262,6 +261,12 @@ const ProblemEditor: React.FC = () => {
                 ))}
               </select>
               <div className="flex gap-2 w-full sm:w-auto justify-end">
+                <Link
+                  to={`/user/submissions?problemSlug=${slug}`}               
+                  className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-gray-500 hover:bg-gray-600"
+                >
+                  Submissions
+                </Link>
                 <button
                   onClick={handleRun}
                   className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-green-500 hover:bg-green-600"
@@ -291,9 +296,8 @@ const ProblemEditor: React.FC = () => {
 
           {/* Test Cases Section */}
           <div
-            className={`p-3 md:p-4 ${
-              theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-900"
-            } overflow-y-auto flex-1`}
+            className={`p-3 md:p-4 ${theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-900"
+              } overflow-y-auto flex-1`}
           >
             <h3 className="text-sm font-semibold mb-3">Test Results</h3>
             {testResults.length > 0 ? (
@@ -302,29 +306,26 @@ const ProblemEditor: React.FC = () => {
                   <div key={index} className="space-y-2">
                     <span className="text-sm font-medium">Case {result.testCaseIndex + 1}</span>
                     <div
-                      className={`p-2 rounded text-xs ${
-                        result.passed
+                      className={`p-2 rounded text-xs ${result.passed
                           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                           : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                      }`}
+                        }`}
                     >
                       <strong>Input:</strong> <pre className="whitespace-pre-wrap inline">{result.input}</pre>
                     </div>
                     <div
-                      className={`p-2 rounded text-xs ${
-                        result.passed
+                      className={`p-2 rounded text-xs ${result.passed
                           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                           : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                      }`}
+                        }`}
                     >
                       <strong>Expected:</strong> <pre className="whitespace-pre-wrap inline">{result.expectedOutput}</pre>
                     </div>
                     <div
-                      className={`p-2 rounded text-xs ${
-                        result.passed
+                      className={`p-2 rounded text-xs ${result.passed
                           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                           : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                      }`}
+                        }`}
                     >
                       <strong>Output:</strong> <pre className="whitespace-pre-wrap inline">{result.actualOutput}</pre>
                     </div>

@@ -1,4 +1,6 @@
+//Frontend\src\types\ProblemTypes.ts
 import { Difficulty, ProblemStatus, Status } from "@/utils/Enums";
+import { ReactNode } from "react";
 
 
   export interface TestCase {
@@ -123,18 +125,31 @@ export interface SubmissionApiResponse {
   };
 }
 
+export interface Submission {
+  problemTitle: ReactNode;
+  _id: string;
+  language: string;
+  passed: boolean;
+  testCasesPassed: number;
+  totalTestCases: number;
+  code: string;
+  createdAt: string;
+}
+
+export interface SubmissionsApiResponse {
+  success: boolean;
+  message: string;
+  data: {
+    submissions: Submission[];
+  };
+}
+
 
 export interface ApiResponse<T> {
     success: boolean;
     message: string;
     data: T;
   }
-
-// export interface ApiResponse<T = ProblemsResponse> {
-//   success: boolean;
-//   message: string;
-//   data: T;
-// }
 
 
 
