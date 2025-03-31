@@ -230,12 +230,15 @@ const ProblemsList: React.FC = () => {
             </button>
           </div>
           <div className="flex-1">
-            <Table
+            {problems.length<1?(
+              <div className="text-center text-gray-500">No problems available</div>
+
+            ):(<Table
               data={problems}
               columns={columns}
               onRowClick={handleRowClick}
               emptyMessage="No problems found"
-            />
+            />)}
           </div>
           {totalPages > 1 && (
             <div className="mt-6">

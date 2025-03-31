@@ -8,7 +8,6 @@ import { ChevronUp } from "lucide-react";
 import CodeMirror from "@uiw/react-codemirror";
 import { cpp } from "@codemirror/lang-cpp";
 import { javascript } from "@codemirror/lang-javascript";
-import { rust } from "@codemirror/lang-rust";
 
 const SubmissionsPage: React.FC = () => {
   const location = useLocation();
@@ -48,8 +47,6 @@ const SubmissionsPage: React.FC = () => {
         return cpp();
       case "javascript":
         return javascript();
-      case "rust":
-        return rust();
       default:
         return javascript();
     }

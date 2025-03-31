@@ -6,5 +6,4 @@ export interface LanguageConfig {
   export const SUPPORTED_LANGUAGES: LanguageConfig[] = [
     { name: "javascript", id: 63 },
     { name: "cpp", id: 54 },
-    { name: "rust", id: 73 },
   ];
