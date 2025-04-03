@@ -21,7 +21,7 @@ const ProblemEditor: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
-  const [isDiscussionOpen, setIsDiscussionOpen] = useState(false); // New state for mobile discussion toggle
+  const [isDiscussionOpen, setIsDiscussionOpen] = useState(false);
   const [testResults, setTestResults] = useState<any[]>([]);
   const { theme } = useTheme();
 
@@ -225,7 +225,7 @@ const ProblemEditor: React.FC = () => {
           {isDiscussionOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
         </button>
         {isDiscussionOpen && problem && (
-          <div className="p-4">
+          <div className="p-4 max-h-[40vh] overflow-y-auto">
             <Discussion problemId={problem._id} problemTitle={problem.title} />
           </div>
         )}
@@ -234,8 +234,8 @@ const ProblemEditor: React.FC = () => {
       {/* Main Layout */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Left Panel: Problem Description and Discussion (Desktop Only) */}
-        <div className="hidden lg:block lg:w-1/3 bg-background border-r border-gray-200 dark:border-gray-700 p-6 overflow-y-auto">
-          <div className="space-y-6">
+        <div className="hidden lg:block lg:w-1/3 bg-background border-r border-gray-200 dark:border-gray-700 overflow-y-auto h-screen">
+          <div className="p-6 space-y-6">
             <div className="space-y-4">
               <div>
                 <h1 className="text-xl font-semibold text-primary truncate">{problem?.title ?? "Loading..."}</h1>
@@ -276,10 +276,10 @@ const ProblemEditor: React.FC = () => {
         </div>
 
         {/* Right Panel: Editor and Test Cases */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden h-screen">
           {/* Editor Section */}
-          <div className="flex flex-col border-b border-gray-200 dark:border-gray-700">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 gap-3">
+          <div className="flex flex-col border-b border-gray-200 dark:border-gray-700 flex-1 overflow-hidden">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 gap-3 shrink-0">
               <select
                 value={selectedLanguage}
                 onChange={(e) => setSelectedLanguage(e.target.value)}
@@ -316,18 +316,17 @@ const ProblemEditor: React.FC = () => {
             </div>
             <CodeMirror
               value={code}
-              height="min(50vh, 400px)"
-              minHeight="200px"
+              height="50vh" // Fixed height for editor
               theme={theme === "dark" ? "dark" : "light"}
               extensions={[getLanguageExtension()]}
               onChange={(value) => setCode(value)}
-              className="border-t border-gray-200 dark:border-gray-700 flex-1"
+              className="border-t border-gray-200 dark:border-gray-700 overflow-y-auto"
             />
           </div>
 
           {/* Test Cases Section */}
           <div
-            className={`p-4 ${theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-900"} overflow-y-auto flex-1`}
+            className={`p-4 ${theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-900"} overflow-y-auto h-[40vh]`}
           >
             <h3 className="text-sm font-semibold mb-3">Test Results</h3>
             {testResults.length > 0 ? (
