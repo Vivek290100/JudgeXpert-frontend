@@ -44,6 +44,7 @@
     "react-router-dom": "^7.4.0",
     "recharts": "^2.15.1",
     "redux-persist": "^6.0.0",
+    "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.24.2"
@@ -53,6 +54,7 @@
     "@types/node": "^22.13.13",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
+    "@types/socket.io-client": "^3.0.0",
     "@typescript-eslint/eslint-plugin": "^8.24.0",
     "@typescript-eslint/parser": "^8.24.0",
     "@vitejs/plugin-react": "^4.3.4",
