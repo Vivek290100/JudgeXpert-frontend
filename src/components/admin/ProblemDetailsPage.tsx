@@ -87,19 +87,15 @@ const ProblemDetailsPage: React.FC = () => {
   const handleActiveChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newStatus = e.target.value === "true";
     const previousStatus = isActive;
-    setIsActive(newStatus);
+    setIsActive(newStatus); // Optimistic update
     try {
       const endpoint = newStatus ? "unblock" : "block";
-      const response = await apiRequest<ProblemApiResponse>("patch", `/admin/problems/${id}/${endpoint}`);
-      if (!response.success || !response.data.problem) {
-        throw new Error(response.message || `Failed to ${newStatus ? "activate" : "deactivate"} problem`);
-      }
-      setProblem(response.data.problem);
-      setIsActive(!response.data.problem.isBlocked);
+      const response = await apiRequest<ProblemApiResponse>("patch", `/admin/problems/${id}/${endpoint}`, {}); // Ensure empty object as payload
+      console.log("API Response:", response); // Debug the response
     } catch (err) {
       console.error(`Failed to ${newStatus ? "activate" : "deactivate"} problem:`, err);
-      setError(`Failed to ${newStatus ? "activate" : "deactivate"} problem`);
-      setIsActive(previousStatus);
+      setError(`Failed to ${newStatus ? "activate" : "deactivate"} problem: ${err}`);
+      setIsActive(previousStatus); // Revert on failure
     }
   };
 
@@ -116,6 +112,12 @@ const ProblemDetailsPage: React.FC = () => {
     testCasePage * testCasesPerPage
   );
   const totalTestCasePages = Math.ceil(problem.testCaseIds.length / testCasesPerPage);
+
+  // Format input and output values for display
+  const formatTestCase = (testCase: any) => ({
+    input: testCase.inputs.map((input: any) => `${input.name}: ${input.value}`).join('\n'),
+    output: testCase.outputs.map((output: any) => `${output.name}: ${output.value}`).join('\n'),
+  });
 
   return (
     <div className="container mx-auto px-4 py-9 min-h-screen bg-background">
@@ -232,7 +234,7 @@ const ProblemDetailsPage: React.FC = () => {
                     className="w-full flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors duration-200"
                   >
                     <span className="text-sm font-medium text-primary truncate">
-                      {code.languageName} (ID: {code.languageId})
+                      {code.languageName} (ID: {code._id})
                     </span>
                     {expandedCode === code._id ? (
                       <ChevronUp className="w-5 h-5 text-gray-600 dark:text-gray-400" />
@@ -266,41 +268,31 @@ const ProblemDetailsPage: React.FC = () => {
                 <table className="w-full text-sm text-foreground">
                   <thead>
                     <tr className="bg-gray-100 dark:bg-gray-900">
-                      <th className="px-4 py-3 text-left font-medium text-primary">ID</th>
                       <th className="px-4 py-3 text-left font-medium text-primary">Input</th>
                       <th className="px-4 py-3 text-left font-medium text-primary">Output</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedTestCases.length > 0 ? (
-                      paginatedTestCases.map((test) => (
+                    {paginatedTestCases.map((testCase) => {
+                      const formattedTestCase = formatTestCase(testCase);
+                      return (
                         <tr
-                          key={test._id}
+                          key={testCase._id}
                           className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                         >
-                          <td className="px-4 py-3 truncate max-w-[150px]">{test._id}</td>
                           <td className="px-4 py-3">
                             <pre className="bg-gray-100 dark:bg-gray-900 p-2 rounded text-sm whitespace-pre-wrap">
-                              {test.input}
+                              {formattedTestCase.input}
                             </pre>
                           </td>
                           <td className="px-4 py-3">
                             <pre className="bg-gray-100 dark:bg-gray-900 p-2 rounded text-sm whitespace-pre-wrap">
-                              {test.output}
+                              {formattedTestCase.output}
                             </pre>
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={3}
-                          className="px-4 py-3 text-center text-sm text-gray-500 dark:text-gray-400 italic"
-                        >
-                          No test cases available
-                        </td>
-                      </tr>
-                    )}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

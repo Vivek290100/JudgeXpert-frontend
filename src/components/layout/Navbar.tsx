@@ -18,7 +18,7 @@ import toast from "react-hot-toast";
 
 const Navbar = () => {
   const user = useSelector((state: RootState) => state.auth.user);
-  console.log("=====user=====", user?.role);
+  // console.log("=====user=====", user?.role);
 
   const navigate = useNavigate();
 
