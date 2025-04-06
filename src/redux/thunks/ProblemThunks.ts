@@ -1,4 +1,3 @@
-// src/redux/thunks/ProblemThunks.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import { IProblem, ProcessProblemPayload, ProcessProblemResponse } from "@/types/ProblemTypes";

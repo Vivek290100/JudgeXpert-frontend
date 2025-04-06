@@ -43,7 +43,6 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
 
   useEffect(() => {
     if (isOpen && userId) {
-      console.log("Connecting to Socket.IO at:", SOCKET_URL);
       const socketInstance = io(SOCKET_URL, {
         query: { userId },
       });
@@ -51,7 +50,7 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
       setSocket(socketInstance);
 
       socketInstance.on("connect", () => {
-        console.log("Socket connected:", socketInstance.id);
+        console.log("socket connected", socketInstance.id);
       });
 
       socketInstance.on("connect_error", (error) => {
@@ -61,7 +60,6 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
       socketInstance.emit("joinProblemRoom", problemId);
 
       socketInstance.on("messageReceived", (newMessage: any) => {
-        console.log("New message received:", newMessage);
         const normalizedMessage: Message = {
           _id: newMessage._id,
           user: newMessage.userId
@@ -74,14 +72,12 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
           createdAt: newMessage.createdAt || new Date().toISOString(),
           replies: newMessage.replies || [],
         };
-        console.log("Normalized message:", normalizedMessage);
         setDiscussions((prev) => [...prev, normalizedMessage].sort(
           (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         ));
       });
 
       socketInstance.on("replyReceived", (newReply: any) => {
-        console.log("New reply received:", newReply);
         const normalizedReply: Reply & { discussionId: string } = {
           user: newReply.userId
             ? {
@@ -93,7 +89,6 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
           createdAt: newReply.createdAt || new Date().toISOString(),
           discussionId: newReply.discussionId,
         };
-        console.log("Normalized reply:", normalizedReply);
         setDiscussions((prev) =>
           prev.map((msg) =>
             msg._id === newReply.discussionId
@@ -167,8 +162,6 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
 
       if (response.success) {
         const newMessage = response.data;
-        console.log("API response.data (newMessage):", newMessage);
-        console.log("Emitting newMessage:", newMessage);
         socket.emit("newMessage", { problemId, message: newMessage });
         setMessage("");
       }
@@ -191,8 +184,6 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
 
       if (response.success) {
         const newReply = response.data;
-        console.log("API response.data (newReply):", newReply);
-        console.log("Emitting newReply:", { problemId, reply: { ...newReply, discussionId } });
         socket.emit("newReply", { problemId, reply: { ...newReply, discussionId } });
         setReplyMessage((prev) => ({ ...prev, [discussionId]: "" }));
         setShowReplyForm((prev) => ({ ...prev, [discussionId]: false }));
@@ -223,8 +214,6 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
       date.toLocaleDateString([], { month: "short", day: "numeric" })
     );
   };
-
-  console.log("Current discussions:", discussions);
 
   return (
     <div className="w-full max-w-full py-1">

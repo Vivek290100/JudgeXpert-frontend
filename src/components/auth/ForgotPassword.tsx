@@ -26,9 +26,6 @@ export const ForgotPassword = () => {
     try {
       const resultAction = await dispatch(forgotPassword(data));
 
-      console.log("wwwwwww",resultAction);
-      
-      
       if (resultAction.meta.requestStatus === "fulfilled") {
         toast.success("OTP sent to your email!");
         navigate("/verifyForgotPasswordOtp", { 
@@ -46,8 +43,6 @@ export const ForgotPassword = () => {
       setIsSubmitting(false);
     }
   };
-
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">

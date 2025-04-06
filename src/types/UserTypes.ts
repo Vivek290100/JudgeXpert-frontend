@@ -1,5 +1,3 @@
-// //Frontend\src\redux\types\UserTypes.ts
-
 import { AuthUser } from "./AuthTypes";
 
 export interface UserState {

@@ -6,11 +6,11 @@ import { cpp } from "@codemirror/lang-cpp";
 import { javascript } from "@codemirror/lang-javascript";
 import { useTheme } from "@/contexts/ThemeContext";
 import { SUPPORTED_LANGUAGES } from "@/utils/Languages";
-import { Play, Send, ChevronDown, ChevronUp } from "lucide-react";
-import { ProblemEditorSkeleton } from "@/utils/SkeletonLoader";
+import { Play, Send, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { IProblem, ProblemApiResponse, SubmissionApiResponse } from "@/types/ProblemTypes";
 import { Difficulty } from "@/utils/Enums";
+import { ProblemEditorSkeleton } from "@/utils/SkeletonLoader";
 import Discussion from "./Discussion";
 
 const ProblemEditor: React.FC = () => {
@@ -18,7 +18,9 @@ const ProblemEditor: React.FC = () => {
   const [problem, setProblem] = useState<IProblem | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState(SUPPORTED_LANGUAGES[0].name);
   const [code, setCode] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isRunning, setIsRunning] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
   const [isDiscussionOpen, setIsDiscussionOpen] = useState(false);
@@ -29,10 +31,10 @@ const ProblemEditor: React.FC = () => {
     const fetchProblem = async () => {
       if (!slug) {
         setError("No slug provided");
-        setLoading(false);
+        setInitialLoading(false);
         return;
       }
-      setLoading(true);
+      setInitialLoading(true);
       try {
         const response = await apiRequest<ProblemApiResponse>("get", `/problems/${slug}`);
         if (response.success && response.data.problem) {
@@ -49,11 +51,11 @@ const ProblemEditor: React.FC = () => {
         setError("Failed to fetch problem. Please try again.");
         console.error(err);
       } finally {
-        setLoading(false);
+        setInitialLoading(false);
       }
     };
     fetchProblem();
-  }, [slug, selectedLanguage]);
+  }, [slug]);
 
   useEffect(() => {
     if (!problem) return;
@@ -61,7 +63,7 @@ const ProblemEditor: React.FC = () => {
       (dc) => dc.languageName.toLowerCase() === selectedLanguage.toLowerCase()
     )?.code;
     setCode(defaultCode || "");
-    setTestResults([]); // Clear test results when language changes
+    setTestResults([]);
   }, [selectedLanguage, problem]);
 
   const getLanguageExtension = () => {
@@ -70,12 +72,8 @@ const ProblemEditor: React.FC = () => {
         return cpp();
       case "javascript":
         return javascript();
-      case "python":
-      case "kotlin":
-      case "ruby":
-      case "go":
       default:
-        return javascript(); // Fallback to JavaScript syntax for unsupported languages
+        return javascript();
     }
   };
 
@@ -84,8 +82,8 @@ const ProblemEditor: React.FC = () => {
       toast.error("Problem not loaded yet. Please wait.");
       return;
     }
-  
-    setLoading(true);
+
+    setIsRunning(true);
     try {
       const languageConfig = SUPPORTED_LANGUAGES.find(
         (lang) => lang.name.toLowerCase() === selectedLanguage.toLowerCase()
@@ -94,19 +92,15 @@ const ProblemEditor: React.FC = () => {
         toast.error("Unsupported language");
         return;
       }
-  
-      console.log("frontend", problem._id, selectedLanguage, languageConfig.version, code, languageConfig.ext);
-  
+
       const response = await apiRequest<SubmissionApiResponse>("post", "/execute", {
         problemId: problem._id,
-        language: selectedLanguage, // Use selectedLanguage directly
+        language: selectedLanguage,
         version: languageConfig.version,
         code,
         isRunOnly: true,
       });
-  
-      console.log("gggggggggggggggg", response);
-  
+
       if (response.success) {
         setTestResults(response.data.results);
         const allPassed = response.data.results.every((r) => r.passed);
@@ -116,7 +110,6 @@ const ProblemEditor: React.FC = () => {
             : `Run failed: ${response.data.results.filter((r) => !r.passed).length}/2 test cases failed`,
           { duration: 5000, style: { maxWidth: "500px" } }
         );
-        console.log("Run details:", response.data.results);
       } else {
         toast.error(response.message || "Run failed.");
       }
@@ -124,17 +117,17 @@ const ProblemEditor: React.FC = () => {
       toast.error("An error occurred during run.");
       console.error("Run error:", error);
     } finally {
-      setLoading(false);
+      setIsRunning(false);
     }
   };
-  
+
   const handleSubmit = async () => {
     if (!problem || !problem._id) {
       toast.error("Problem not loaded yet. Please wait.");
       return;
     }
-  
-    setLoading(true);
+
+    setIsSubmitting(true);
     try {
       const languageConfig = SUPPORTED_LANGUAGES.find(
         (lang) => lang.name.toLowerCase() === selectedLanguage.toLowerCase()
@@ -143,17 +136,15 @@ const ProblemEditor: React.FC = () => {
         toast.error("Unsupported language");
         return;
       }
-  
-      console.log("frontend", problem._id, selectedLanguage, languageConfig.version, code, languageConfig.ext);
-  
+
       const response = await apiRequest<SubmissionApiResponse>("post", "/execute", {
         problemId: problem._id,
-        language: selectedLanguage, // Use selectedLanguage directly
+        language: selectedLanguage,
         version: languageConfig.version,
         code,
         isRunOnly: false,
       });
-  
+
       if (response.success) {
         setTestResults(response.data.results);
         const allPassed = response.data.results.every((r) => r.passed);
@@ -163,7 +154,6 @@ const ProblemEditor: React.FC = () => {
             : `Submission failed: ${response.data.results.filter((r) => !r.passed).length} test case(s) failed`,
           { duration: 5000, style: { maxWidth: "500px" } }
         );
-        console.log("Submission details:", response.data.results);
       } else {
         toast.error(response.message || "Submission failed.");
       }
@@ -171,7 +161,7 @@ const ProblemEditor: React.FC = () => {
       toast.error("An error occurred during submission.");
       console.error("Submission error:", error);
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -203,7 +193,7 @@ const ProblemEditor: React.FC = () => {
     return { input: inputStr, output: outputStr };
   };
 
-  if (loading) {
+  if (initialLoading) {
     return <ProblemEditorSkeleton />;
   }
 
@@ -338,6 +328,7 @@ const ProblemEditor: React.FC = () => {
                 value={selectedLanguage}
                 onChange={(e) => setSelectedLanguage(e.target.value)}
                 className="w-full sm:w-32 p-1.5 border rounded bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-700"
+                disabled={isRunning || isSubmitting}
               >
                 {SUPPORTED_LANGUAGES.map((lang, index) => (
                   <option key={index} value={lang.name}>
@@ -354,18 +345,18 @@ const ProblemEditor: React.FC = () => {
                 </Link>
                 <button
                   onClick={handleRun}
-                  className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-green-500 hover:bg-green-600"
-                  disabled={loading}
+                  className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-green-500 hover:bg-green-600 disabled:opacity-50"
+                  disabled={isRunning || isSubmitting}
                 >
-                  <Play className="w-4 h-4" />
+                  {isRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
                   Run
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-blue-500 hover:bg-blue-600"
-                  disabled={loading}
+                  className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-blue-500 hover:bg-blue-600 disabled:opacity-50"
+                  disabled={isRunning || isSubmitting}
                 >
-                  <Send className="w-4 h-4" />
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   Submit
                 </button>
               </div>
@@ -377,7 +368,6 @@ const ProblemEditor: React.FC = () => {
               extensions={[getLanguageExtension()]}
               onChange={(value) => setCode(value)}
               className="border-t border-gray-200 dark:border-gray-700 overflow-y-auto"
-              readOnly={loading}
             />
           </div>
 

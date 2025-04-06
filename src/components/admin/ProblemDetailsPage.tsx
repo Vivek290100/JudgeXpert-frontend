@@ -90,12 +90,12 @@ const ProblemDetailsPage: React.FC = () => {
     setIsActive(newStatus); // Optimistic update
     try {
       const endpoint = newStatus ? "unblock" : "block";
-      const response = await apiRequest<ProblemApiResponse>("patch", `/admin/problems/${id}/${endpoint}`, {}); // Ensure empty object as payload
-      console.log("API Response:", response); // Debug the response
+      const response = await apiRequest<ProblemApiResponse>("patch", `/admin/problems/${id}/${endpoint}`, {}); 
+      console.log("API Response:", response);
     } catch (err) {
       console.error(`Failed to ${newStatus ? "activate" : "deactivate"} problem:`, err);
       setError(`Failed to ${newStatus ? "activate" : "deactivate"} problem: ${err}`);
-      setIsActive(previousStatus); // Revert on failure
+      setIsActive(previousStatus);
     }
   };
 
@@ -113,7 +113,6 @@ const ProblemDetailsPage: React.FC = () => {
   );
   const totalTestCasePages = Math.ceil(problem.testCaseIds.length / testCasesPerPage);
 
-  // Format input and output values for display
   const formatTestCase = (testCase: any) => ({
     input: testCase.inputs.map((input: any) => `${input.name}: ${input.value}`).join('\n'),
     output: testCase.outputs.map((output: any) => `${output.name}: ${output.value}`).join('\n'),

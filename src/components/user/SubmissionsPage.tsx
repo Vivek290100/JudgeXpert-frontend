@@ -23,9 +23,7 @@ const SubmissionsPage: React.FC = () => {
     const fetchSubmissions = async () => {
       setLoading(true);
       try {
-        const response = await apiRequest<SubmissionsApiResponse>( "get", `/submissions${slug ? `?problemSlug=${slug}` : ""}` );
-        console.log("submissions",response);
-             
+        const response = await apiRequest<SubmissionsApiResponse>( "get", `/submissions${slug ? `?problemSlug=${slug}` : ""}` );             
         if (response.success) {
           setSubmissions(response.data.submissions);
         } else {

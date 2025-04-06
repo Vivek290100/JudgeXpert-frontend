@@ -27,7 +27,7 @@ const adminSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchUsers.rejected, (state, action: PayloadAction<string | undefined>) => {
-        state.error = action.payload ?? 'Failed to fetch users'; // Handle undefined payload with a default message
+        state.error = action.payload ?? 'Failed to fetch users';
         state.loading = false;
       })
       .addCase(blockUser.pending, (state) => {
@@ -43,7 +43,7 @@ const adminSlice = createSlice({
         state.error = null;
       })
       .addCase(blockUser.rejected, (state, action: PayloadAction<string | undefined>) => {
-        state.error = action.payload ?? 'Failed to update user block status'; // Handle undefined payload with a default message
+        state.error = action.payload ?? 'Failed to update user block status';
         state.loading = false;
       });
   },

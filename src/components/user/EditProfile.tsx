@@ -87,13 +87,6 @@ const EditProfile: React.FC<EditProfileProps> = ({ isOpen, onClose }) => {
         ...formData,
         profileImage: formData.profileImage || null,
       });
-
-      console.log("validatedDatavalidatedData",
-        validatedData.fullName,
-        validatedData.github,
-        validatedData.linkedin,
-        validatedData.profileImage
-      );
       
       setErrors({});
 

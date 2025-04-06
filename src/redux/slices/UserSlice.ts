@@ -1,4 +1,3 @@
-// src/redux/slices/userSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AuthUser } from '../../types/AuthTypes';
 import { updateUserProfile } from '../thunks/UserThunks';
@@ -22,7 +21,6 @@ const userSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      // Update User Profile
       .addCase(updateUserProfile.pending, (state) => {
         state.loading = true;
         state.error = null;

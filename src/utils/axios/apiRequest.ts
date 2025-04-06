@@ -1,9 +1,7 @@
-//Frontend\src\utils\axios\ApiRequest.ts
 import axiosInstance from "@/utils/axios/AxiosInstance";
 import { isAxiosError } from "axios";
 
 export async function apiRequest<T>(method: "post" | "get" | "put" | "patch", url: string, data?: any, rejectWithValue?: (value: string) => any, config?: { headers?: Record<string, string>; [key: string]: any }): Promise<T> {
-  // console.log("lets see", { method, url, data });
   
   try {
     const response = await axiosInstance({

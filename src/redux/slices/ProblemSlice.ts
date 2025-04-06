@@ -1,9 +1,6 @@
-// src/redux/slices/ProblemSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { processSpecificProblem } from "../thunks/ProblemThunks";
 import { IProblem, ProblemState } from "../../types/Index";
-
-
 
 const initialState: ProblemState = {
   problems: [],
@@ -30,9 +27,9 @@ const problemSlice = createSlice({
         state.loading = false;
         const existingIndex = state.problems.findIndex((p) => p.slug === action.payload.slug);
         if (existingIndex !== -1) {
-          state.problems[existingIndex] = action.payload; // Update existing problem
+          state.problems[existingIndex] = action.payload;
         } else {
-          state.problems.push(action.payload); // Add new problem
+          state.problems.push(action.payload);
         }
       })
       .addCase(processSpecificProblem.rejected, (state, action: PayloadAction<string | undefined>) => {

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, Plus } from "lucide-react";
 import { motion } from "framer-motion";
-import { fadeInUp, staggerContainer } from "../../utils/animations";
+import { fadeInUp, staggerContainer } from "../../utils/Animations";
 
 export default function FAQSection() {
   const faqs = [
