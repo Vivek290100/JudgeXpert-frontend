@@ -1,11 +1,10 @@
-// Frontend\src\utils\axios\AxiosInstance.ts
 import axios from "axios";
 import API_BASE_URL from "./BaseURL";
 import { logout } from "@/redux/thunks/AuthThunks";
 import store from "@/redux/Store";
 
 const axiosInstance = axios.create({
-  baseURL: API_BASE_URL, // e.g., "http://localhost:5000"
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -17,7 +16,6 @@ axiosInstance.interceptors.request.use(
     return config;
   },
   (error) => {
-    // console.error("Request interceptor error:", error);
     return Promise.reject(error);
   }
 );
@@ -31,7 +29,6 @@ axiosInstance.interceptors.response.use(
       console.log("401 detected, attempting to refresh token");
 
       try {
-        // Get userId from localStorage (set this during login)
         const userId = localStorage.getItem("userId");
         if (!userId) {
           throw new Error("No user ID found. Please log in again.");

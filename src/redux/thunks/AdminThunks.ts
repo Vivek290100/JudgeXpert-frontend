@@ -1,4 +1,3 @@
-// Frontend\src\redux\thunks\AdminThunks.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { AdminUser, AdminUsersResponse, BlockUserResponse } from "../../types/AdminTypes";
 import { apiRequest } from "@/utils/axios/ApiRequest";

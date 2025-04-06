@@ -8,8 +8,6 @@ const UserDashboard = () => {
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
-  console.log("DashboardUser ", user);
-
   if (!isAuthenticated || !user) {
     return (
       <div className="bg-background text-foreground min-h-[calc(100vh-100px)] flex items-center justify-center">

@@ -1,4 +1,3 @@
-// Frontend\src\routes\PublicRoutes.tsx
 import { lazy, Suspense } from "react";
 import { useSelector } from "react-redux";
 import { Navigate, Route, Routes } from "react-router-dom";

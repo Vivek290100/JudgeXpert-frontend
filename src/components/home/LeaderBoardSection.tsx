@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { fadeInUp, staggerContainer } from "../../utils/animations";
+import { fadeInUp, staggerContainer } from "../../utils/Animations";
 
 export default function LeaderboardSection() {
   const leaderboardData = [

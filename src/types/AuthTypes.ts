@@ -1,4 +1,3 @@
-// // Frontend\src\redux\types\AuthTypes.ts
 export interface AuthUser {
     id: string;
     email: string;

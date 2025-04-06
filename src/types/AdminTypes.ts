@@ -1,4 +1,3 @@
-// Frontend\src\redux\types\AdminTypes.ts
 export interface AdminUser {
     id: string;
     email: string;

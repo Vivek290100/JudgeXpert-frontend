@@ -6,7 +6,7 @@ interface UpdatedFilterProps {
   filters: { difficulty?: Difficulty; status?: Status };
 }
 
-const ProblemFilter: React.FC<UpdatedFilterProps> = ({ onFilterChange, filters }) => {
+const ProblemFilter: React.FC<UpdatedFilterProps> = ({ onFilterChange, filters  }) => {
   const { theme } = useTheme();
 
   const handleFilterChange = (key: keyof UpdatedFilterProps["filters"], value: Difficulty | Status) => {

@@ -1,6 +1,3 @@
-
-
-// src/routes/AdminRoutes.tsx
 import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./protectedRoutes";

@@ -1,10 +1,7 @@
-// src/redux/thunks/UserThunks.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { AuthUser, AuthResponse } from "../../types/AuthTypes";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import { UpdateProfileData } from "../../types/UserTypes";
-
-
 
 export const updateUserProfile = createAsyncThunk<
   AuthUser,
@@ -13,7 +10,6 @@ export const updateUserProfile = createAsyncThunk<
 >(
   "auth/updateProfile",
   async (profileData, { rejectWithValue }) => {
-    console.log("its update profile thunk", profileData);
 
     try {
       const formData = new FormData();
@@ -36,8 +32,7 @@ export const updateUserProfile = createAsyncThunk<
           timeout: 10000,
         }
       );
-
-      console.log("Update Profile Frontend Response:", response)
+      
       return response.data.user;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to update profile";

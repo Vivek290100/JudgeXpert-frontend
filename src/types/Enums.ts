@@ -4,7 +4,6 @@ export enum Difficulty {
     HARD = "HARD",
   }
   
-  // Enum for problem status options
   export enum Status {
     SOLVED = "SOLVED",
     NOT_SOLVED = "NOT_SOLVED",

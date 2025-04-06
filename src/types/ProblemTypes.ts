@@ -1,7 +1,5 @@
-//Frontend\src\types\ProblemTypes.ts
 import { Difficulty, ProblemStatus, Status } from "@/utils/Enums";
 import { ReactNode } from "react";
-
 
   export interface TestCase {
     _id: string;
@@ -10,7 +8,6 @@ import { ReactNode } from "react";
     index: number;
   }
   
-
   export interface IProblem {
   id: string;
   _id: string;
@@ -26,7 +23,6 @@ import { ReactNode } from "react";
   defaultCodeIds: DefaultCode[];
   testCaseIds: TestCase[];
 }
-
   
   export interface ProblemsResponse {
     problems: IProblem[];
@@ -70,13 +66,10 @@ export interface StatisticsProps {
   userProblemStatus: IUserProblemStatus[];
 }
 
-
-
 export interface FilterProps {
   onFilterChange: (filters: { difficulty?: string; status?: string }) => void;
   filters: { difficulty?: string; status?: string };
 }
-
 
 export interface DefaultCode {
   _id: string;

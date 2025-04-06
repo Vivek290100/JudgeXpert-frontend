@@ -1,11 +1,8 @@
-// Frontend\src\redux\thunks\AuthThunks.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { ForgotPasswordFormData, LoginFormData, SignUpFormData } from "@/utils/validations/AuthValidation";
 import { VerifyOtpData } from "@/utils/validations/OTPVerifyValidation";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import { AuthResponse } from "@/types/AuthTypes";
-
-
 
 export const signUp = createAsyncThunk<AuthResponse, SignUpFormData, { rejectValue: string }>(
   "auth/signUp",
@@ -20,8 +17,6 @@ export const verifyOtp = createAsyncThunk<AuthResponse, VerifyOtpData>(
     return apiRequest<AuthResponse>("post", "/verify-otp", { otp, email }, rejectWithValue);
   }
 );
-
-
 
 export const resendOtp = createAsyncThunk<void, string>(
   "auth/resendOtp",
@@ -40,7 +35,6 @@ export const login = createAsyncThunk<AuthResponse, LoginFormData>(
 export const forgotPassword = createAsyncThunk<void, ForgotPasswordFormData, { rejectValue: string }>(
   "auth/forgotPassword",
   async (data, { rejectWithValue }) => {
-    console.log("000000000000000",data);
     
     return apiRequest<void>("post", "/forgot-password", { email: data.email }, rejectWithValue);
   }
@@ -59,7 +53,6 @@ export const resetPassword = createAsyncThunk<void, { email: string; newPassword
     return apiRequest<void>("post", "/reset-password", data, rejectWithValue);
   }
 );
-
 
 
 export const logout = createAsyncThunk(

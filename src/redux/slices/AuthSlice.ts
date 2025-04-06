@@ -1,4 +1,3 @@
-// Frontend\src\redux\slices\AuthSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { signUp, verifyOtp, logout, login, googleLogin } from "../thunks/AuthThunks";
 import { AuthResponse, AuthState, AuthUser } from "../../types/Index";
@@ -38,7 +37,7 @@ const authSlice = createSlice({
       })
       .addCase(updateUserProfile.pending, (state) => {
         state.loading = true;
-        state.error = null; // Clear error on pending
+        state.error = null;
       })
       .addCase(googleLogin.pending, (state) => {
         state.loading = true;
@@ -61,7 +60,6 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(updateUserProfile.fulfilled, (state, action: PayloadAction<AuthUser>) => {
-        console.log("Updating state.auth.user with:", action.payload);
         state.user = action.payload;
         state.loading = false;
       })

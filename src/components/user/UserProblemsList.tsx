@@ -9,6 +9,7 @@ import { Menu, X, Search } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { TableSkeleton } from "@/utils/SkeletonLoader";
 import { ApiResponse, ProblemsResponse, IProblem, IUserProblemStatus } from "@/types/ProblemTypes";
+import { Difficulty, Status } from "@/types/Enums";
 
 const ProblemsList: React.FC = () => {
   const [problems, setProblems] = useState<IProblem[]>([]);
@@ -18,7 +19,7 @@ const ProblemsList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<{ difficulty?: string; status?: string }>({ difficulty: "", status: "" });
+  const [filters, setFilters] = useState<{ difficulty?: Difficulty; status?: Status}>({});
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const itemsPerPage = 10;
@@ -192,12 +193,12 @@ const ProblemsList: React.FC = () => {
                 setFilters(newFilters);
                 setCurrentPage(1);
               }}
-              filters={filters}
+              filters ={filters}
             />
             <div className="p-4">
               <button
                 onClick={() => {
-                  setFilters({ difficulty: "", status: "" });
+                  setFilters({  difficulty: undefined, status: undefined });
                   setSearchQuery("");
                   setCurrentPage(1);
                 }}
