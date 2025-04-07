@@ -114,6 +114,7 @@ export interface SubmissionApiResponse {
   message: string;
   data: {
     results: TestCaseResult[];
+    executionTime: number;
     details: any; 
   };
 }
@@ -125,6 +126,7 @@ export interface Submission {
   passed: boolean;
   testCasesPassed: number;
   totalTestCases: number;
+  executionTime:number;
   code: string;
   createdAt: string;
 }
