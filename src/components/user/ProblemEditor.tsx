@@ -26,6 +26,7 @@ const ProblemEditor: React.FC = () => {
   const [isDiscussionOpen, setIsDiscussionOpen] = useState(false);
   const [testResults, setTestResults] = useState<SubmissionApiResponse["data"]["results"]>([]);
   const { theme } = useTheme();
+  const [executionStats, setExecutionStats] = useState<{ executionTime: number } | null>(null);
 
   useEffect(() => {
     const fetchProblem = async () => {
@@ -78,92 +79,89 @@ const ProblemEditor: React.FC = () => {
   };
 
   const handleRun = async () => {
-    if (!problem || !problem._id) {
-      toast.error("Problem not loaded yet. Please wait.");
-      return;
-    }
+    if (!problem?._id) return toast.error("Problem not loaded.");
 
     setIsRunning(true);
     try {
-      const languageConfig = SUPPORTED_LANGUAGES.find(
-        (lang) => lang.name.toLowerCase() === selectedLanguage.toLowerCase()
+      const langConfig = SUPPORTED_LANGUAGES.find(
+        lang => lang.name.toLowerCase() === selectedLanguage.toLowerCase()
       );
-      if (!languageConfig) {
-        toast.error("Unsupported language");
-        return;
-      }
+      if (!langConfig) return toast.error("Unsupported language");
 
       const response = await apiRequest<SubmissionApiResponse>("post", "/execute", {
         problemId: problem._id,
         language: selectedLanguage,
-        version: languageConfig.version,
+        version: langConfig.version,
         code,
         isRunOnly: true,
       });
 
       if (response.success) {
         setTestResults(response.data.results);
-        const allPassed = response.data.results.every((r) => r.passed);
+        setExecutionStats({
+          executionTime: response.data.executionTime ?? 0,
+        });
+
+        const allPassed = response.data.results.every(r => r.passed);
         toast.success(
           allPassed
             ? "Run successful! First 2 test cases passed."
-            : `Run failed: ${response.data.results.filter((r) => !r.passed).length}/2 test cases failed`,
-          { duration: 5000, style: { maxWidth: "500px" } }
+            : `${response.data.results.filter(r => !r.passed).length}/2 test cases failed`,
+          { duration: 5000 }
         );
       } else {
         toast.error(response.message || "Run failed.");
       }
-    } catch (error) {
-      toast.error("An error occurred during run.");
-      console.error("Run error:", error);
+    } catch (err) {
+      toast.error("Error during run.");
+      console.error("Run error:", err);
     } finally {
       setIsRunning(false);
     }
   };
 
   const handleSubmit = async () => {
-    if (!problem || !problem._id) {
-      toast.error("Problem not loaded yet. Please wait.");
-      return;
-    }
+    if (!problem?._id) return toast.error("Problem not loaded.");
 
     setIsSubmitting(true);
     try {
-      const languageConfig = SUPPORTED_LANGUAGES.find(
-        (lang) => lang.name.toLowerCase() === selectedLanguage.toLowerCase()
+      const langConfig = SUPPORTED_LANGUAGES.find(
+        lang => lang.name.toLowerCase() === selectedLanguage.toLowerCase()
       );
-      if (!languageConfig) {
-        toast.error("Unsupported language");
-        return;
-      }
+      if (!langConfig) return toast.error("Unsupported language");
 
       const response = await apiRequest<SubmissionApiResponse>("post", "/execute", {
         problemId: problem._id,
         language: selectedLanguage,
-        version: languageConfig.version,
+        version: langConfig.version,
         code,
         isRunOnly: false,
       });
 
       if (response.success) {
         setTestResults(response.data.results);
-        const allPassed = response.data.results.every((r) => r.passed);
+        setExecutionStats({
+          executionTime: response.data.executionTime,
+        });
+
+        const allPassed = response.data.results.every(r => r.passed);
         toast.success(
           allPassed
             ? "Submission successful! All test cases passed."
-            : `Submission failed: ${response.data.results.filter((r) => !r.passed).length} test case(s) failed`,
-          { duration: 5000, style: { maxWidth: "500px" } }
+            : `${response.data.results.filter(r => !r.passed).length} test case(s) failed`,
+          { duration: 5000 }
         );
       } else {
         toast.error(response.message || "Submission failed.");
       }
-    } catch (error) {
-      toast.error("An error occurred during submission.");
-      console.error("Submission error:", error);
+    } catch (err) {
+      toast.error("Error during submission.");
+      console.error("Submission error:", err);
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   const extractRelevantError = (stderr: string) => {
     if (!stderr) return "Unknown error occurred.";
@@ -376,6 +374,12 @@ const ProblemEditor: React.FC = () => {
             className={`p-4 ${theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-900"} overflow-y-auto h-[40vh]`}
           >
             <h3 className="text-sm font-semibold mb-3">Test Results</h3>
+            {executionStats && (
+              <div className="mb-3 text-xs">
+                <p>Execution Time: {executionStats.executionTime === 0 ? "N/A" : `${executionStats.executionTime} ms`}</p>
+                {/* <p>Memory Used: {executionStats.memoryUsed === 0 ? "N/A" : `${executionStats.memoryUsed} KB`}</p> */}
+              </div>
+            )}
             {testResults.length > 0 ? (
               <div className="space-y-4">
                 {testResults.map((result, index) => (

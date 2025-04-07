@@ -12,7 +12,7 @@ import { javascript } from "@codemirror/lang-javascript";
 const SubmissionsPage: React.FC = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const slug = queryParams.get("problemSlug"); 
+  const slug = queryParams.get("problemSlug");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +23,9 @@ const SubmissionsPage: React.FC = () => {
     const fetchSubmissions = async () => {
       setLoading(true);
       try {
-        const response = await apiRequest<SubmissionsApiResponse>( "get", `/submissions${slug ? `?problemSlug=${slug}` : ""}` );             
+        const response = await apiRequest<SubmissionsApiResponse>("get", `/submissions${slug ? `?problemSlug=${slug}` : ""}`);
+        console.log("rrrrrrrrrrrr",response);
+        
         if (response.success) {
           setSubmissions(response.data.submissions);
         } else {
@@ -83,9 +85,8 @@ const SubmissionsPage: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <p
-                    className={`font-semibold ${
-                      submission.passed ? "text-green-500" : "text-red-500"
-                    }`}
+                    className={`font-semibold ${submission.passed ? "text-green-500" : "text-red-500"
+                      }`}
                   >
                     {submission.passed ? "Passed" : "Failed"}
                   </p>
@@ -103,9 +104,8 @@ const SubmissionsPage: React.FC = () => {
       {selectedSubmission && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div
-            className={`rounded-lg p-6 w-full max-w-3xl ${
-              theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-            }`}
+            className={`rounded-lg p-6 w-full max-w-3xl ${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+              }`}
           >
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">
@@ -123,7 +123,7 @@ const SubmissionsPage: React.FC = () => {
               readOnly
               className="border rounded"
             />
-            <div className="mt-4 flex justify-between">
+            <div className="mt-4 flex justify-between flex-wrap gap-4">
               <p>
                 Status: <span className={selectedSubmission.passed ? "text-green-500" : "text-red-500"}>
                   {selectedSubmission.passed ? "Passed" : "Failed"}
@@ -132,7 +132,13 @@ const SubmissionsPage: React.FC = () => {
               <p>
                 Test Cases: {selectedSubmission.testCasesPassed}/{selectedSubmission.totalTestCases}
               </p>
+              <p>
+                Execution Time: <span className="text-blue-500">
+                  {selectedSubmission.executionTime} <span className="text-sm">ms</span>
+                </span>
+              </p>
             </div>
+
             <button
               onClick={closeModal}
               className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
