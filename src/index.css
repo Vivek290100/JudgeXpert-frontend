@@ -5,8 +5,8 @@
 @layer base {
   :root {
     --background: 90 80% 99%;
-    --foreground: 220 20% 15%; 
-    --card: 220 40% 97%; 
+    --foreground: 220 20% 15%;
+    --card: 220 40% 97%;
     --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
@@ -17,7 +17,7 @@
     --muted: 0 0% 96.1%;
     --muted-foreground: 0 0% 25.1%;
     --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%; 
+    --accent-foreground: 0 0% 9%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 89.8%;
@@ -66,20 +66,41 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  html, body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overflow-x: hidden;
+  }
+
+  .thin-scrollbar {
+
+    &::-webkit-scrollbar {
+      display: block;
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: hsl(var(--background));
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: hsl(var(--muted));
+      border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: hsl(var(--muted-foreground));
+    }
+
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted)) hsl(var(--background));
+  }
 }
-
-/* Hide Scrollbars */
-::-webkit-scrollbar {
-  display: none; /* For Chrome, Safari */
-}
-
-html, body {
-  scrollbar-width: none; /* For Firefox */
-  -ms-overflow-style: none; /* For IE/Edge */
-  overflow-x: hidden; /* Prevent horizontal scrolling */
-}
-
-
 
 @layer base {
   * {
