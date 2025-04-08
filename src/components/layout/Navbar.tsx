@@ -89,7 +89,7 @@ const Navbar = () => {
                     <Link to="/user/Dashboard">Your Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="">Settings</Link>
+                    <Link to="/user/leaderboard">Leaderboard</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
