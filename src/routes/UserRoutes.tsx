@@ -5,6 +5,7 @@ import NotFound from "@/components/layout/NotFound";
 import { DashboardSkeleton, ProblemEditorSkeleton, TableSkeleton } from "@/utils/SkeletonLoader";
 import ProblemEditor from "@/pages/user/ProblemEditor";
 import SubmissionsPage from "@/components/user/SubmissionsPage";
+import LeaderboardPage from "@/components/user/LeaderBoard";
 
 const Dashboard = lazy(() => import("@/pages/user/UserDashboard"));
 const ProblemsList = lazy(() => import("@/pages/user/UserProblemsList"));
@@ -17,6 +18,7 @@ const UserRoutes = () => {
         <Route path="problems" element={<Suspense fallback={<TableSkeleton />}><ProblemsList /> </Suspense>}/>
         <Route path="problems/:slug"  element={ <Suspense fallback={<ProblemEditorSkeleton/>}> <ProblemEditor /> </Suspense> }/>
         <Route path="submissions" element={<SubmissionsPage/>}></Route>
+        <Route path="leaderboard" element={<LeaderboardPage/>}></Route>
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
