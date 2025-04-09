@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { MessageSquare, X, Reply, ChevronDown, ChevronUp, Clock } from "lucide-react";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import toast from "react-hot-toast";
@@ -26,6 +26,7 @@ interface Message {
 }
 
 const SOCKET_URL = "http://localhost:3000";
+const LIMIT = 10;
 
 const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,12 +35,31 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
   const [discussions, setDiscussions] = useState<Message[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [showReplies, setShowReplies] = useState<{ [key: string]: boolean }>({});
   const [showReplyForm, setShowReplyForm] = useState<{ [key: string]: boolean }>({});
   const [socket, setSocket] = useState<Socket | null>(null);
 
   const currentUser = useSelector((state: RootState) => state.auth.user?.userName);
   const userId = useSelector((state: RootState) => state.auth.user?.id);
+
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastDiscussionElementRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (isLoading) return;
+      if (observer.current) observer.current.disconnect();
+
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage((prev) => prev + 1);
+        }
+      });
+
+      if (node) observer.current.observe(node);
+    },
+    [isLoading, hasMore]
+  );
 
   useEffect(() => {
     if (isOpen && userId) {
@@ -50,7 +70,7 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
       setSocket(socketInstance);
 
       socketInstance.on("connect", () => {
-        console.log("socket connected", socketInstance.id);
+        console.log("Socket connected", socketInstance.id);
       });
 
       socketInstance.on("connect_error", (error) => {
@@ -63,27 +83,21 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
         const normalizedMessage: Message = {
           _id: newMessage._id,
           user: newMessage.userId
-            ? {
-                userName: newMessage.userId.userName || "Unknown",
-                profileImage: newMessage.userId.profileImage,
-              }
+            ? { userName: newMessage.userId.userName || "Unknown", profileImage: newMessage.userId.profileImage }
             : { userName: "Unknown" },
           message: newMessage.message || "No message content",
           createdAt: newMessage.createdAt || new Date().toISOString(),
           replies: newMessage.replies || [],
         };
-        setDiscussions((prev) => [...prev, normalizedMessage].sort(
-          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        setDiscussions((prev) => [normalizedMessage, ...prev].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         ));
       });
 
       socketInstance.on("replyReceived", (newReply: any) => {
         const normalizedReply: Reply & { discussionId: string } = {
           user: newReply.userId
-            ? {
-                userName: newReply.userId.userName || "Unknown",
-                profileImage: newReply.userId.profileImage,
-              }
+            ? { userName: newReply.userId.userName || "Unknown", profileImage: newReply.userId.profileImage }
             : { userName: "Unknown" },
           message: newReply.message || "No reply content",
           createdAt: newReply.createdAt || new Date().toISOString(),
@@ -103,8 +117,6 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
         );
       });
 
-      fetchDiscussions();
-
       return () => {
         socketInstance.disconnect();
         setSocket(null);
@@ -112,12 +124,24 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
     }
   }, [isOpen, userId, problemId]);
 
+  useEffect(() => {
+    if (isOpen) {
+      fetchDiscussions();
+    }
+  }, [isOpen, page]);
+
   const fetchDiscussions = async () => {
+    if (!hasMore || isLoading) return;
+
+    setIsLoading(true);
     try {
       const response = await apiRequest<any>(
         "get",
-        `/discussions/${problemId}?page=${page}&limit=10`
+        `/discussions/${problemId}?page=${page}&limit=${LIMIT}`
       );
+
+      console.log("dissssssssssssss",response);
+      
 
       if (response.success) {
         const sortedMessages = response.data.discussions
@@ -139,14 +163,18 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
             })),
           }))
           .sort((a: { createdAt: string }, b: { createdAt: string }) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
-        setDiscussions(sortedMessages);
+
+        setDiscussions((prev) => (page === 1 ? sortedMessages : [...prev, ...sortedMessages]));
         setTotalPages(response.data.totalPages);
+        setHasMore(page < response.data.totalPages);
       }
     } catch (error) {
       toast.error("Failed to fetch discussions");
       console.error("Fetch discussions error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -241,13 +269,18 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
             </button>
           </div>
 
-          <div className="flex-1 p-4 overflow-y-auto space-y-4 md:h-[50vh] lg:h-[40vh]">
-            {discussions.map((msg) => {
+          <div className="flex-1 p-4 overflow-y-auto space-y-4 md:h-[50vh] lg:h-[40vh] thin-scrollbar">
+            {discussions.map((msg, index) => {
               const isSender = msg.user?.userName === currentUser;
               const hasReplies = msg.replies.length > 0;
+              const isLastElement = index === discussions.length - 1;
 
               return (
-                <div key={msg._id} className="space-y-2">
+                <div
+                  key={msg._id}
+                  ref={isLastElement ? lastDiscussionElementRef : null}
+                  className="space-y-2"
+                >
                   <div className={`flex ${isSender ? "justify-end" : "justify-start"} items-start gap-2`}>
                     {!isSender && (
                       <img
@@ -257,26 +290,29 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
                       />
                     )}
                     <div
-                      className={`w-full max-w-[80%] p-3 rounded-lg shadow-md ${
-                        isSender
-                          ? "bg-blue-600 text-white border border-blue-500"
-                          : "bg-gray-200 dark:bg-gray-600 text-black dark:text-white border border-gray-400 dark:border-gray-500"
+                      className={`w-full max-w-[80%] p-3 rounded-lg shadow-md ${isSender
+                        ? "bg-blue-600 text-white border border-blue-500"
+                        : "bg-gray-200 dark:bg-gray-600 text-black dark:text-white border border-gray-400 dark:border-gray-500"
                       }`}
                     >
-                      <div className="text-xs font-medium text-gray-300 dark:text-gray-300 mb-1">
-                        {msg.user?.userName || "Unknown User"}
-                      </div>
-                      <div className="text-sm break-words mb-2">{msg.message}</div>
-                      <div className="flex items-center justify-between text-xs text-gray-300 dark:text-gray-300">
-                        <span className="flex items-center">
-                          <Clock className="w-3 h-3 mr-1" />
+                      <div className="flex justify-between items-center text-[10px] text-gray-300 dark:text-gray-300 mb-1">
+                        <span className="font-medium text-gray-400 dark:text-gray-300">{msg.user?.userName || "Unknown User"}</span>
+                        <span className="flex items-center text-gray-400 dark:text-gray-300">
+                          <Clock className="w-2 h-2 mr-1" />
                           {formatDate(msg.createdAt)}
                         </span>
+                      </div>
+                      <div
+                        className={`text-sm break-words mb-2 p-2 rounded-md ${isSender ? "bg-blue-500/70" : "bg-white/20 dark:bg-white/10"}`}
+                      >
+                        {msg.message}
+                      </div>
+                      <div className="flex justify-end text-[10px] text-gray-300 dark:text-gray-300">
                         <button
                           onClick={() => toggleReplyForm(msg._id)}
-                          className="flex items-center hover:text-gray-100"
+                          className="flex items-center hover:text-gray-500"
                         >
-                          <Reply className="w-3 h-3 mr-1" />
+                          <Reply className="w-3 h-3 mr-1 text-gray-400 dark:text-gray-300" />
                           Reply
                         </button>
                       </div>
@@ -309,7 +345,6 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
 
                   {showReplies[msg._id] && hasReplies && (
                     <div className="ml-8 space-y-2 relative">
-                      {/* Optional: Add a vertical line to connect replies to the parent comment */}
                       <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gray-300 dark:bg-gray-600" />
                       {msg.replies.map((reply, index) => {
                         const isReplySender = reply.user?.userName === currentUser;
@@ -318,7 +353,6 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
                             key={index}
                             className={`flex ${isSender ? "justify-end" : "justify-start"} items-start gap-2 relative pl-4`}
                           >
-                            {/* Optional: Add a small horizontal line to connect the reply to the vertical line */}
                             <div className="absolute left-0 top-1/2 w-4 h-0.5 bg-gray-300 dark:bg-gray-600" />
                             {!isSender && (
                               <img
@@ -328,10 +362,9 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
                               />
                             )}
                             <div
-                              className={`w-full max-w-[75%] p-2 rounded-lg shadow ${
-                                isReplySender
-                                  ? "bg-blue-50 dark:bg-blue-800 text-blue-800 dark:text-blue-100 border-l-4 border-blue-300 dark:border-blue-600"
-                                  : "bg-gray-50 dark:bg-gray-700 text-black dark:text-white border-l-4 border-gray-300 dark:border-gray-500"
+                              className={`w-full max-w-[75%] p-2 rounded-lg shadow ${isReplySender
+                                ? "bg-blue-50 dark:bg-blue-800 text-blue-800 dark:text-blue-100 border-l-4 border-blue-300 dark:border-blue-600"
+                                : "bg-gray-50 dark:bg-gray-700 text-black dark:text-white border-l-4 border-gray-300 dark:border-gray-500"
                               }`}
                             >
                               <div className="text-xs font-medium text-gray-500 dark:text-gray-300 mb-1">
@@ -360,19 +393,20 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
                     <div className="ml-8">
                       <form
                         onSubmit={(e) => handleReplySubmit(msg._id, e)}
-                        className="flex gap-2"
+                        className="mt-2 flex items-center gap-2"
                       >
-                        <textarea
+                        <input
+                          type="text"
                           value={replyMessage[msg._id] || ""}
                           onChange={(e) =>
                             setReplyMessage((prev) => ({ ...prev, [msg._id]: e.target.value }))
                           }
                           placeholder="Write a reply..."
-                          className="flex-1 p-2 border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-700 resize-none h-12"
+                          className="flex-1 p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-black dark:text-white"
                         />
                         <button
                           type="submit"
-                          className="px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm"
+                          className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded-md transition-colors"
                         >
                           Send
                         </button>
@@ -382,6 +416,12 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
                 </div>
               );
             })}
+            {isLoading && (
+              <div className="text-center text-gray-500 dark:text-gray-400">Loading more discussions...</div>
+            )}
+            {!hasMore && discussions.length > 0 && (
+              <div className="text-center text-gray-500 dark:text-gray-400">discuss more</div>
+            )}
           </div>
 
           <form

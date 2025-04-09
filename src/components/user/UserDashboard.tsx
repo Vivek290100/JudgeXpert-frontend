@@ -1,175 +1,257 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { RootState } from "../../redux/Store";
-import { FaGithub, FaLinkedin } from "react-icons/fa";
+import { FaGithub, FaLinkedin, FaStar, FaChevronRight } from "react-icons/fa";
+import { apiRequest } from "@/utils/axios/ApiRequest";
 import EditProfile from "./EditProfile";
+import { ApiResponse, ProblemsResponse, IProblem, IUserProblemStatus } from "@/types/ProblemTypes";
+import { Difficulty } from "@/types/Enums";
 
 const UserDashboard = () => {
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [userProblemStatus, setUserProblemStatus] = useState<IUserProblemStatus[]>([]);
+  const [problems, setProblems] = useState<IProblem[]>([]);
+  const [totalProblemsInDb, setTotalProblemsInDb] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const fetchUserStats = async () => {
+    setLoading(true);
+    try {
+      const response = await apiRequest<ApiResponse<ProblemsResponse>>("get", "/problems?page=1&limit=1000");
+      console.log("aaaaaaaaaaaaaaaaaa",response);
+      
+      if (response.success && response.data) {
+        setProblems(response.data.problems || []);
+        setUserProblemStatus(response.data.userProblemStatus || []);
+        setTotalProblemsInDb(response.data.totalProblemsInDb || 0);
+      }
+    } catch (err) {
+      console.error("Failed to fetch user stats:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchUserStats();
+    }
+  }, [isAuthenticated, user]);
 
   if (!isAuthenticated || !user) {
     return (
-      <div className="bg-background text-foreground min-h-[calc(100vh-100px)] flex items-center justify-center">
-        <p>Please log in to view your dashboard.</p>
+      <div className="bg-black text-white min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <button
+            className="px-6 py-2 bg-yellow-500 text-black font-medium rounded hover:bg-yellow-600 transition-colors"
+            onClick={() => navigate("/login")}>
+            Log In
+          </button>
+        </div>
       </div>
     );
   }
 
+  const solvedProblems = userProblemStatus.filter((status) => status.solved).length;
+  const progressPercentage = totalProblemsInDb ? ((solvedProblems / totalProblemsInDb) * 100).toFixed(1) : 0;
+
+  const solvedByDifficulty = {
+    [Difficulty.EASY]: 0,
+    [Difficulty.MEDIUM]: 0,
+    [Difficulty.HARD]: 0,
+  };
+
+
+
+  const getDifficultyPillColor = (difficulty: string) => {
+    switch (difficulty) {
+      case Difficulty.EASY:
+        return "text-green-300";
+      case Difficulty.MEDIUM:
+        return "text-yellow-300";
+      case Difficulty.HARD:
+        return "text-red-300";
+      default:
+        return "text-gray-400";
+    }
+  };
+
   return (
-    <div className="bg-background text-foreground min-h-[calc(100vh-100px)]">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-7xl mx-auto p-4">
-        {/* Profile Section */}
-        <div className="bg-card text-card-foreground rounded-lg border shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <div className="p-6 flex flex-col items-center relative">
-            <div className="w-48 h-48 bg-muted rounded-lg flex items-center justify-center mb-2 relative overflow-hidden">
-              {user.profileImage ? (
-                <img
-                  src={user.profileImage}
-                  alt={user.fullName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-4xl font-bold">{user.fullName.charAt(0)}</span>
-              )}
-            </div>
-            <h3 className="text-lg font-medium">Profile</h3>
-          </div>
-          <div className="border-t p-4 space-y-2">
-            <button
-              className="w-full py-2 text-primary bg-secondary hover:bg-muted rounded-lg transition"
-              onClick={() => setIsEditProfileOpen(true)}
-            >
-              Edit Profile
-            </button>
-            {/* <button className="w-full py-2 text-primary bg-secondary hover:bg-muted rounded-lg transition">
-              Change Password
-            </button>
-            <button className="w-full py-2 text-primary bg-secondary hover:bg-muted rounded-lg transition">
-              Forgot Password
-            </button> */}
-          </div>
-        </div>
+    <div className="bg-background text-white min-h-screen p-6">
+      <div className="container mx-auto max-w-7xl">
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Left Column - Profile */}
+          <div className="lg:col-span-3 flex flex-col gap-4">
+            {/* Profile Card */}
+            <div className="bg-card rounded-lg overflow-hidden relative w-full">
+              <div className="p-6 flex flex-col items-center rounded-lg border border-blue-500 relative">
 
-        {/* Right Side Content */}
-        <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* User Info Section */}
-          <div className="bg-card text-card-foreground rounded-lg border p-6">
-            <h2 className="text-xl font-bold mb-2">{user.fullName}</h2>
-            <p className="text-sm text-muted-foreground">{user.email}</p>
-            <div className="mt-4 space-y-3">
-              {user.github ? (
-                <a
-                  href={user.github}
-                  className="text-sm hover:underline flex items-center gap-2 group"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 group-hover:bg-gray-200 transition-colors">
-                    <FaGithub className="w-5 h-5 text-black" />
-                  </div>
-                  <span className="text-primary">GitHub</span>
-                </a>
-              ) : (
-                <div className="text-sm text-muted-foreground flex items-center gap-2">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100">
-                    <FaGithub className="w-5 h-5 text-gray-500" />
-                  </div>
-                  <span>GitHub: Not linked</span>
+                <div className="w-24 h-24 bg-gray-800 border-2 border-gray-700 rounded-md flex items-center justify-center mb-3 overflow-hidden">
+                  {user.profileImage ? (
+                    <img
+                      src={user.profileImage}
+                      alt={user.fullName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-4xl font-bold text-gray-400">
+                      {user.fullName?.charAt(0).toUpperCase() || "U"}
+                    </span>
+                  )}
                 </div>
-              )}
-
-              {user.linkedin ? (
-                <a
-                  href={user.linkedin}
-                  className="text-sm hover:underline flex items-center gap-2 group"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 group-hover:bg-blue-100 transition-colors">
-                    <FaLinkedin className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <span className="text-primary">LinkedIn</span>
-                </a>
-              ) : (
-                <div className="text-sm text-muted-foreground flex items-center gap-2">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-50">
-                    <FaLinkedin className="w-5 h-5 text-gray-500" />
-                  </div>
-                  <span>LinkedIn: Not linked</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Rank Section */}
-          <div className="bg-card text-card-foreground rounded-lg border p-6 text-center">
-            <h3 className="font-medium mb-4">My Rank</h3>
-            <div className="text-4xl font-bold">#{user.rank || 0}</div>
-            <p className="text-sm text-muted-foreground mt-2">Level Up!</p>
-            <button className="w-full mt-4 bg-secondary text-primary py-2 rounded-md">
-              Leader Board
-            </button>
-          </div>
-
-          {/* Contests Section */}
-          <div className="bg-card rounded-lg border border-border p-6">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-2">
-                <svg
-                  className="w-6 h-10 text-card-foreground"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-.118l-3.976-2.888c-.784-.57-.38-1.81.588-.181h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                  />
-                </svg>
-                <h3 className="text-card-foreground font-medium">Contests</h3>
+                <h2 className="text-lg font-semibold text-white text-center">Profile</h2>
               </div>
-              <button className="bg-secondary text-secondary-foreground text-xs px-2 py-2 rounded-md hover:bg-accent">
-                Participate
+            </div>
+
+            {/* Profile Actions */}
+            <div className="bg-card rounded-lg overflow-hidden w-full">
+              <button
+                className="w-full p-3 text-left text-gray-300 hover:bg-gray-800 flex items-center justify-between border-gray-800 text-sm"
+                onClick={() => setIsEditProfileOpen(true)}
+              >
+                Edit Profile
+                <FaChevronRight className="w-3 h-3 text-gray-500" />
+              </button>
+              {/* <button
+                className="w-full p-3 text-left text-gray-300 hover:bg-gray-800 flex items-center justify-between border-b border-gray-800 text-sm"
+              >
+                Change Password
+                <FaLock className="w-3 h-3 text-gray-500" />
+              </button> */}
+            </div>
+          </div>
+
+          {/* Middle Column - User Info & Contests */}
+          <div className="lg:col-span-5 flex flex-col gap-4">
+            {/* User Info */}
+            <div className="bg-card rounded-lg p-6">
+              <h2 className="text-lg font-semibold mb-1">{user.fullName || "Vivek"}</h2>
+              <h2 className="text-gray-400 text-sm mb-3">{user.email || "name@gmail.com"}</h2>
+              <div className="flex gap-4">
+                <a
+                  href={user.github || "#"}
+                  className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <FaGithub className="w-4 h-4" />
+                  <span className="text-sm">{user.github?"Github" : "www.github"}</span>
+                </a>
+                <a
+                  href={user.linkedin || "#"}
+                  className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <FaLinkedin className="w-4 h-4" />
+                  <span className="text-sm">{user.linkedin?"Linkedin" : "www.linkedin"}</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Contests */}
+            <div className="bg-card rounded-lg p-6">
+              <div className="flex items-center mb-4">
+                <FaStar className="w-5 h-5 text-yellow-500 mr-2" />
+                <h3 className="text-lg font-semibold">Contests</h3>
+              </div>
+              <p className="text-sm text-gray-300">
+                <span className="font-medium">Code. Compete. Win! 🏆</span>
+              </p>
+              <p className="text-sm text-gray-400 mt-1 mb-4">Participate in exciting coding battles!</p>
+
+              <div className="flex justify-between items-center">
+                <button
+                  className="px-4 py-1 bg-gray-800 text-gray-300 rounded-md hover:bg-gray-700 transition-colors text-sm"
+                  onClick={() => navigate("/contest-winners")}
+                >
+                  Contest Winners
+                </button>
+                
+                <button
+                  className="px-4 py-1 bg-gray-100 text-gray-900 text-sm rounded-md hover:bg-gray-200 transition-colors"
+                  onClick={() => navigate("/contests")}
+                >
+                  Participate
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Rankings & Problem Stats */}
+          <div className="lg:col-span-4 flex flex-col gap-4">
+            {/* My Rank */}
+            <div className="bg-card rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-3">My Rank</h3>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm text-gray-300">Level Up!</p>
+                  <p className="text-sm text-gray-400 mt-1">Solve more challenges to boost your rank!</p>
+                </div>
+                <div className="relative">
+                  <div className="flex items-center justify-center bg-yellow-500 w-10 h-10 rounded-full">
+                    <span className="text-black font-bold text-lg">#{user.rank || "8"}</span>
+                  </div>
+                </div>
+              </div>
+              <button
+                className="w-full py-2 bg-gray-800 text-gray-300 rounded-md hover:bg-gray-700 transition-colors text-sm"
+                onClick={() => navigate("/user/leaderboard")}
+              >
+                Leader Board
               </button>
             </div>
 
-            <div className="text-sm text-card-foreground mb-4">
-              <p>Code. Compete. Win! ✨</p>
-              <p className="text-muted-foreground mt-1">
-                Participate in exciting coding battles!
-              </p>
-            </div>
+            {/* Problem Statistics */}
+            <div className="bg-card rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-3">Acceptance</h3>
+              {loading ? (
+                <p className="text-sm text-gray-400">Loading stats...</p>
+              ) : (
+                <>
+                  <div className="text-center mb-4">
+  <span className="text-2xl font-bold">
+    {solvedProblems}/{totalProblemsInDb}
+  </span>
+</div>
 
-            <button className="w-full mt-12 bg-secondary text-primary py-2 my-6 rounded-md">
-              Contest Winners
-            </button>
-          </div>
+<div className="relative w-full bg-gray-700 rounded-full h-5 mb-4 overflow-hidden">
+  <div
+    className="absolute top-0 left-0 h-full bg-yellow-500 text-black text-xs font-semibold flex items-center justify-center transition-all duration-500"
+    style={{ width: `${progressPercentage}%` }}
+  >
+    {progressPercentage}%
+  </div>
+</div>
 
-          {/* Acceptance Section */}
-          <div className="bg-card text-card-foreground rounded-lg border p-8">
-            <h1 className="font-medium mb-5">Problems Solved</h1>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold">
-                  {user.problemsSolved ?? 0}
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">Solved</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm capitalize">Progress</span>
-                  <span className="bg-muted text-primary px-3 py-1 rounded-md text-xs">
-                    {user.problemsSolved ? `${user.problemsSolved} solved` : "N/A"}
-                  </span>
-                </div>
-              </div>
+
+                  
+                  <div className="space-y-2 mb-4">
+                    {Object.entries(solvedByDifficulty).map(([difficulty, count]) => (
+                      <div key={difficulty} className="flex items-center justify-between bg-gray-800 px-3 py-1 rounded">
+                        <span className={`text-sm ${getDifficultyPillColor(difficulty)}`}>
+                          {difficulty.charAt(0).toUpperCase() + difficulty.slice(1).toLowerCase()}
+                        </span>
+                        <span className="text-sm">
+                          {count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <button
+                    className="w-full py-2 bg-gray-800 text-gray-300 rounded-md hover:bg-gray-700 transition-colors text-sm"
+                    onClick={() => navigate("/problems")}
+                  >
+                    Solved Problems
+                  </button>
+                </>
+              )}
             </div>
-            <button className="w-full mt-6 bg-secondary text-primary py-2 rounded-md">
-              Solved Problems
-            </button>
           </div>
         </div>
       </div>

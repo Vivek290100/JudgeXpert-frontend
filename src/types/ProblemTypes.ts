@@ -29,6 +29,7 @@ import { ReactNode } from "react";
     userProblemStatus?: IUserProblemStatus[];
     total: number;
     totalPages: number;
+    totalProblemsInDb: number; // Add this
     currentPage: number;
   }
   
