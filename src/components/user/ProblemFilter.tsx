@@ -6,7 +6,7 @@ interface UpdatedFilterProps {
   filters: { difficulty?: Difficulty; status?: Status };
 }
 
-const ProblemFilter: React.FC<UpdatedFilterProps> = ({ onFilterChange, filters  }) => {
+const ProblemFilter: React.FC<UpdatedFilterProps> = ({ onFilterChange, filters }) => {
   const { theme } = useTheme();
 
   const handleFilterChange = (key: keyof UpdatedFilterProps["filters"], value: Difficulty | Status) => {
@@ -15,11 +15,11 @@ const ProblemFilter: React.FC<UpdatedFilterProps> = ({ onFilterChange, filters  
   };
 
   return (
-    <div className="w-full p-4 bg-background flex flex-col gap-4">
+    <div className="w-full p-4 bg-background flex flex-col gap-4 rounded-lg border border-border">
       <select
         value={filters.difficulty || ""}
         onChange={(e) => handleFilterChange("difficulty", e.target.value as Difficulty)}
-        className={`w-full p-2.5 border rounded-lg bg-background border-gray-200 dark:border-gray-700 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors ${
+        className={`w-full p-2.5 border rounded-lg bg-background border-gray-200 dark:border-gray-700 text-foreground text-sm focus:outline-none transition-colors ${
           theme === "dark" ? "text-gray-200" : "text-gray-800"
         }`}
       >
@@ -34,7 +34,7 @@ const ProblemFilter: React.FC<UpdatedFilterProps> = ({ onFilterChange, filters  
       <select
         value={filters.status || ""}
         onChange={(e) => handleFilterChange("status", e.target.value as Status)}
-        className={`w-full p-2.5 border rounded-lg bg-background border-gray-200 dark:border-gray-700 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors ${
+        className={`w-full p-2.5 border rounded-lg bg-background border-gray-200 dark:border-gray-700 text-foreground text-sm focus:outline-none transition-colors ${
           theme === "dark" ? "text-gray-200" : "text-gray-800"
         }`}
       >

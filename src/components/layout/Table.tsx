@@ -14,15 +14,16 @@ const Table = <T,>({
   const { theme } = useTheme();
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm ">
       <table className="w-full">
         <thead className="bg-gray-50 dark:bg-gray-800">
           <tr>
             {columns.map((column) => (
               <th
-                key={column.key}
-                className={`px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider ${column.className || ""}`}
-              >
+              key={column.key}
+              className={`px-4 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider ${column.className || ""}`}
+            >
+            
                 {column.header}
               </th>
             ))}
@@ -48,8 +49,8 @@ const Table = <T,>({
                 } ${rowClassName}`}
               >
                 {columns.map((column) => (
-                  <td key={column.key} className="px-4 py-2 whitespace-nowrap text-sm text-foreground">
-                    {column.render
+                  <td key={column.key} className="px-4 py-3 whitespace-nowrap text-sm text-foreground">
+                  {column.render
                       ? column.render(item, index) // Pass index to render
                       : (item[column.key as keyof T] as React.ReactNode)}
                   </td>

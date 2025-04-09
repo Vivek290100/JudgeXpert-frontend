@@ -420,7 +420,7 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
               <div className="text-center text-gray-500 dark:text-gray-400">Loading more discussions...</div>
             )}
             {!hasMore && discussions.length > 0 && (
-              <div className="text-center text-gray-500 dark:text-gray-400">No more discussions to load</div>
+              <div className="text-center text-gray-500 dark:text-gray-400">discuss more</div>
             )}
           </div>
 

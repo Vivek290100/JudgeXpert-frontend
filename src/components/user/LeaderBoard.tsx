@@ -180,8 +180,8 @@ const LeaderboardPage: React.FC = () => {
   return (
     <div className="min-h-[calc(100vh-5rem)] p-4">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="w-full md:w-64 flex flex-col gap-6">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="w-full md:w-64 flex flex-col gap-4">
             <div className="bg-card rounded-lg shadow-md p-4 border border-border">
               <h2 className="text-lg font-bold mb-3 flex items-center">
                 <Trophy className="w-5 h-5 mr-2 text-blue-500" />

@@ -89,6 +89,9 @@ const Navbar = () => {
                     <Link to="/user/Dashboard">Your Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link to="/user/problems">problems</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link to="/user/leaderboard">Leaderboard</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -161,20 +164,28 @@ const Navbar = () => {
                 </div>
               </div>
               <div className="mt-3 space-y-1">
-                <Button
-                  variant="ghost"
-                  asChild
-                  className="w-full justify-start text-sm"
-                >
-                  <Link to="/user/Dashboard">Your Profile</Link>
-                </Button>
-                <Button
-                  variant="ghost"
-                  asChild
-                  className="w-full justify-start text-sm"
-                >
-                  <Link to="/settings">Settings</Link>
-                </Button>
+              <Button
+  variant="ghost"
+  asChild
+  className="w-full justify-start text-sm"
+>
+  <Link to="/user/Dashboard" onClick={() => setIsMenuOpen(false)}>Your Profile</Link>
+</Button>
+<Button
+  variant="ghost"
+  asChild
+  className="w-full justify-start text-sm"
+>
+  <Link to="/user/problems" onClick={() => setIsMenuOpen(false)}>Problems</Link>
+</Button>
+<Button
+  variant="ghost"
+  asChild
+  className="w-full justify-start text-sm"
+>
+  <Link to="/user/leaderboard" onClick={() => setIsMenuOpen(false)}>Leaderboard</Link>
+</Button>
+
                 <Button
                   variant="ghost"
                   className="w-full justify-start text-sm"
