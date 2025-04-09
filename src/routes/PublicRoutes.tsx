@@ -12,6 +12,8 @@ const ForgotPassword = lazy(() => import("@/pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("@/pages/auth/ResetPassword"));
 const VerifyForgotPasswordOtp = lazy(() => import("@/pages/auth/VerifyForgotPasswordOtp"));
 const NotFound = lazy(() => import("@/components/layout/NotFound"));
+import ServerDown from "@/components/layout/ServerDown";
+
 
 const PublicRoutes = () => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
@@ -93,7 +95,9 @@ const PublicRoutes = () => {
           </AuthenticatedGuard>
         }
       />
+
       <Route path="*" element={<Suspense fallback={<AuthSkeleton />}><NotFound /></Suspense>} />
+        <Route path="/server-down" element={<ServerDown />} />
     </Routes>
   );
 };

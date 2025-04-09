@@ -94,6 +94,9 @@ const Navbar = () => {
                   <DropdownMenuItem asChild>
                     <Link to="/user/leaderboard">Leaderboard</Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/user/contests">Contests</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
                     Sign out
@@ -164,27 +167,34 @@ const Navbar = () => {
                 </div>
               </div>
               <div className="mt-3 space-y-1">
-              <Button
-  variant="ghost"
-  asChild
-  className="w-full justify-start text-sm"
->
-  <Link to="/user/Dashboard" onClick={() => setIsMenuOpen(false)}>Your Profile</Link>
-</Button>
-<Button
-  variant="ghost"
-  asChild
-  className="w-full justify-start text-sm"
->
-  <Link to="/user/problems" onClick={() => setIsMenuOpen(false)}>Problems</Link>
-</Button>
-<Button
-  variant="ghost"
-  asChild
-  className="w-full justify-start text-sm"
->
-  <Link to="/user/leaderboard" onClick={() => setIsMenuOpen(false)}>Leaderboard</Link>
-</Button>
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="w-full justify-start text-sm"
+                >
+                  <Link to="/user/Dashboard" onClick={() => setIsMenuOpen(false)}>Your Profile</Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="w-full justify-start text-sm"
+                >
+                  <Link to="/user/problems" onClick={() => setIsMenuOpen(false)}>Problems</Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="w-full justify-start text-sm"
+                >
+                  <Link to="/user/leaderboard" onClick={() => setIsMenuOpen(false)}>Leaderboard</Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="w-full justify-start text-sm"
+                >
+                  <Link to="/user/contests" onClick={() => setIsMenuOpen(false)}>Contests</Link>
+                </Button>
 
                 <Button
                   variant="ghost"
