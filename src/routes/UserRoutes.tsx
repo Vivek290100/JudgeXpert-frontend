@@ -6,6 +6,9 @@ import { DashboardSkeleton, ProblemEditorSkeleton, TableSkeleton } from "@/utils
 import ProblemEditor from "@/pages/user/ProblemEditor";
 import SubmissionsPage from "@/components/user/SubmissionsPage";
 import LeaderboardPage from "@/components/user/LeaderBoard";
+import ContestsPage from "@/components/user/ContestsPage";
+import ServerDown from "@/components/layout/ServerDown";
+
 
 const Dashboard = lazy(() => import("@/pages/user/UserDashboard"));
 const ProblemsList = lazy(() => import("@/pages/user/UserProblemsList"));
@@ -19,6 +22,9 @@ const UserRoutes = () => {
         <Route path="problems/:slug"  element={ <Suspense fallback={<ProblemEditorSkeleton/>}> <ProblemEditor /> </Suspense> }/>
         <Route path="submissions" element={<SubmissionsPage/>}></Route>
         <Route path="leaderboard" element={<LeaderboardPage/>}></Route>
+        <Route path="contests" element={<ContestsPage />} />
+        <Route path="/server-down" element={<ServerDown />} />
+
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

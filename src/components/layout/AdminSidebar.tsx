@@ -23,7 +23,7 @@ export default function AdminSidebar() {
     { title: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" />, path: "/admin/dashboard" },
     { title: "Users", icon: <Users className="w-5 h-5" />, path: "/admin/users" },
     { title: "Problems", icon: <Code2 className="w-5 h-5" />, path: "/admin/problems" }, 
-    { title: "Contests", icon: <Trophy className="w-5 h-5" />, path: "" },
+    { title: "Contests", icon: <Trophy className="w-5 h-5" />, path: "/admin/contests" },
     { title: "Subscription", icon: <CreditCard className="w-5 h-5" />, path: "" },
   ];
 

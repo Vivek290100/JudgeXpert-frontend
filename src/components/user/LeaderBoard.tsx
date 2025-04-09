@@ -9,6 +9,7 @@ import { Trophy, Medal, Award, Activity, Users } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/Store";
 import { LeaderboardApiResponse, LeaderboardEntry, UserStats } from "@/types/LeaderboardTypes";
+import { TableSkeleton } from "@/utils/SkeletonLoader";
 
 
 const LeaderboardPage: React.FC = () => {
@@ -170,7 +171,7 @@ const LeaderboardPage: React.FC = () => {
   const progressPercentage = Math.round((userStats.solvedProblems / userStats.totalProblems) * 100) || 0;
 
   if (loading) {
-    return <div className="p-6">Loading leaderboard...</div>;
+    return <TableSkeleton />
   }
 
   if (error) {
