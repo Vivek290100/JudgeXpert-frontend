@@ -6,9 +6,10 @@ import AddContestForm from "./AddContestForm";
 import Table from "../layout/Table";
 import Pagination from "../layout/Pagination";
 import { useDebounce } from "@/hooks/useDebounce";
+import { TableSkeleton } from "@/utils/SkeletonLoader";
 
 interface Contest {
-  id: string;
+  _id: string;
   title: string;
   description: string;
   startTime: string;
@@ -50,15 +51,20 @@ const AdminContestsPage: React.FC = () => {
         "get",
         `/admin/contests?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(debouncedSearchQuery)}`
       );
-      if (response.success && response.data) {
-        setContests(response.data.contests);
-        setTotalPages(response.data.totalPages);
+      if (response.success && response.data && Array.isArray(response.data.contests)) {
+        const validContests = response.data.contests.filter(
+          (contest): contest is Contest => contest && typeof contest._id === "string"
+        );
+        setContests(validContests);
+        setTotalPages(response.data.totalPages || 1);
       } else {
         setError(response.message || "Failed to load contests");
+        setContests([]);
       }
     } catch (err) {
       setError("Failed to fetch contests. Please try again.");
       console.error(err);
+      setContests([]);
     } finally {
       setLoading(false);
       searchInputRef.current?.focus();
@@ -70,9 +76,21 @@ const AdminContestsPage: React.FC = () => {
   }, [currentPage, debouncedSearchQuery]);
 
   const handleContestCreated = (newContest: Contest) => {
-    setContests((prev) => [...prev, newContest]);
+    if (!newContest || !newContest._id) {
+      console.error("Invalid contest data:", newContest);
+      return;
+    }
+    // Optimistically update the state
+    setContests((prev) => {
+      const updatedContests = [...prev, newContest];
+      // Prevent duplicates based on _id
+      return updatedContests.filter(
+        (contest, index, self) => index === self.findIndex((c) => c._id === contest._id)
+      );
+    });
     setIsModalOpen(false);
-    fetchContests(); // Refresh to update stats
+    // Background sync with server
+    setTimeout(fetchContests, 1000); // Delay to allow server to update
   };
 
   const handleStatusChange = async (contestId: string, isBlocked: boolean) => {
@@ -84,10 +102,9 @@ const AdminContestsPage: React.FC = () => {
       );
       if (response.success) {
         setContests((prev) =>
-          prev.map((c) => (c.id === contestId ? { ...c, isBlocked } : c))
+          prev.map((c) => (c._id === contestId ? { ...c, isBlocked } : c))
         );
-        setSelectedContest((prev) => (prev && prev.id === contestId ? { ...prev, isBlocked } : prev));
-        fetchContests(); // Refresh to ensure stats are updated
+        setSelectedContest((prev) => (prev && prev._id === contestId ? { ...prev, isBlocked } : prev));
       } else {
         setError(response.message || "Failed to update contest status");
       }
@@ -193,12 +210,7 @@ const AdminContestsPage: React.FC = () => {
 
   if (loading && !contests.length) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-          <p className="text-lg">Loading contests...</p>
-        </div>
-      </div>
+      <TableSkeleton/>
     );
   }
 
@@ -301,27 +313,67 @@ const AdminContestsPage: React.FC = () => {
 
       {isDetailsModalOpen && selectedContest && (
         <div className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-6 w-full max-w-lg relative animate-fade-in-up shadow-2xl">
-            <button
-              onClick={() => setIsDetailsModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-800"
-            >
-              ✕
-            </button>
-            <h2 className="text-xl font-bold text-white mb-4">Contest Details</h2>
-            <div className="space-y-4 text-gray-300">
-              <p><strong>Title:</strong> {selectedContest.title}</p>
-              <p><strong>Description:</strong> {selectedContest.description}</p>
-              <p><strong>Start Time:</strong> {new Date(selectedContest.startTime).toLocaleString()}</p>
-              <p><strong>End Time:</strong> {new Date(selectedContest.endTime).toLocaleString()}</p>
-              <p><strong>Participants:</strong> {selectedContest.participants.length}</p>
-              <p><strong>Problems:</strong> {selectedContest.problems.length}</p>
+          <div className="bg-gray-900 rounded-xl border border-gray-800 w-full max-w-md max-h-[90vh] flex flex-col shadow-2xl">
+            <div className="p-6 border-b border-gray-800 flex-shrink-0">
+              <h2 className="text-xl font-bold text-white">Contest Details</h2>
+              <button
+                onClick={() => setIsDetailsModalOpen(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-800"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6 flex-1 overflow-y-auto text-gray-300 space-y-4">
               <div>
-                <strong>Status:</strong>
+                <strong className="block text-gray-100">Title:</strong>
+                <p>{selectedContest.title}</p>
+              </div>
+              <div>
+                <strong className="block text-gray-100">Description:</strong>
+                <p className="whitespace-pre-wrap break-words">{selectedContest.description}</p>
+              </div>
+              <div>
+                <strong className="block text-gray-100">Start Time:</strong>
+                <p>
+                  {new Date(selectedContest.startTime).toLocaleString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })}
+                </p>
+              </div>
+              <div>
+                <strong className="block text-gray-100">End Time:</strong>
+                <p>
+                  {new Date(selectedContest.endTime).toLocaleString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })}
+                </p>
+              </div>
+              <div>
+                <strong className="block text-gray-100">Participants:</strong>
+                <p>{selectedContest.participants.length}</p>
+              </div>
+              <div>
+                <strong className="block text-gray-100">Problems:</strong>
+                <p>{selectedContest.problems.length}</p>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-800 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <strong className="text-gray-100">Status:</strong>
                 <select
                   value={selectedContest.isBlocked ? "inactive" : "active"}
-                  onChange={(e) => handleStatusChange(selectedContest.id, e.target.value === "inactive")}
-                  className="ml-2 bg-gray-800 text-white border border-gray-700 rounded-md p-1"
+                  onChange={(e) => handleStatusChange(selectedContest._id, e.target.value === "inactive")}
+                  className="bg-gray-800 text-white border border-gray-700 rounded-md p-1"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>

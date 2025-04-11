@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Code2, Users, Calendar, AlertCircle, Activity } from "lucide-react";
 import { ApiResponse } from "@/types/ProblemTypes";
 import Pagination from "@/components/layout/Pagination";
+import { ContestsPageSkeleton } from "@/utils/SkeletonLoader";
 
 interface Contest {
   _id: string;
@@ -14,6 +15,7 @@ interface Contest {
   problems: string[];
   participants: string[];
   isActive: boolean;
+  isBlocked: boolean;
 }
 
 const ContestsPage: React.FC = () => {
@@ -27,7 +29,7 @@ const ContestsPage: React.FC = () => {
   const [activeContests, setActiveContests] = useState(0);
   const [upcomingContests, setUpcomingContests] = useState(0);
   const [endedContests, setEndedContests] = useState(0);
-  const itemsPerPage = 9; // 9 cards per page (3 rows of 3)
+  const itemsPerPage = 9;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,7 +48,8 @@ const ContestsPage: React.FC = () => {
           }>
         >("get", `/contests?page=${currentPage}&limit=${itemsPerPage}`);
         if (response.success) {
-          setContests(response.data.contests);
+          const unblockedContests = response.data.contests.filter((contest) => !contest.isBlocked);
+          setContests(unblockedContests);
           setTotalPages(response.data.totalPages);
           setTotalContests(response.data.totalContests);
           setActiveContests(response.data.activeContests);
@@ -97,6 +100,15 @@ const ContestsPage: React.FC = () => {
     return "ended";
   };
 
+  const calculateDuration = (startTime: string, endTime: string): string => {
+    const startDate = new Date(startTime);
+    const endDate = new Date(endTime);
+    const durationMs = endDate.getTime() - startDate.getTime();
+    const durationHours = Math.floor(durationMs / (1000 * 60 * 60));
+    const durationMins = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+    return `${durationHours}h ${durationMins}m`;
+  };
+
   const filteredContests = contests.filter((contest) => {
     if (filter === "all") return true;
     const status = getContestStatus(contest.startTime, contest.endTime);
@@ -104,14 +116,7 @@ const ContestsPage: React.FC = () => {
   });
 
   if (loading) {
-    return (
-      <div className="container mx-auto px-4 flex items-center justify-center h-screen">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-          <p className="text-lg">Loading contests...</p>
-        </div>
-      </div>
-    );
+    return <ContestsPageSkeleton />;
   }
 
   if (error) {
@@ -130,17 +135,13 @@ const ContestsPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 flex flex-col">
-      {/* Navbar */}
       <nav className="flex items-center justify-between py-4">
         <h1 className="text-xl sm:text-2xl font-semibold text-primary">Contests</h1>
       </nav>
 
-      {/* Main Content */}
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Sidebar (Filters + Statistics) */}
         <div className="w-full lg:w-72 flex-shrink-0 mb-6 lg:mb-0">
           <div className="flex flex-col gap-6">
-            {/* Filters */}
             <div className="bg-card rounded-lg shadow-md p-4 border border-border">
               <h2 className="text-lg font-semibold text-primary mb-4">Filters</h2>
               <div className="space-y-2">
@@ -193,7 +194,6 @@ const ContestsPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Statistics */}
             <div className="bg-card rounded-lg shadow-md p-4 border border-border">
               <h2 className="text-lg font-bold mb-3 flex items-center">
                 <Activity className="w-5 h-5 mr-2 text-blue-500" />
@@ -207,20 +207,20 @@ const ContestsPage: React.FC = () => {
                   </span>
                 </div>
                 <div className="flex flex-col items-center p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                  <span className="text-xs text-green-800 dark:text-green-300">Active</span>
-                  <span className="text-sm font-semibold text-green-800 dark:text-green-300">
+                  <span className="text-xs text-blue-800 dark:text-blue-300">Active</span>
+                  <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">
                     {activeContests}
                   </span>
                 </div>
                 <div className="flex flex-col items-center p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                  <span className="text-xs text-purple-800 dark:text-purple-300">Upcoming</span>
-                  <span className="text-sm font-semibold text-purple-800 dark:text-purple-300">
+                  <span className="text-xs text-blue-800 dark:text-blue-300">Upcoming</span>
+                  <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">
                     {upcomingContests}
                   </span>
                 </div>
                 <div className="flex flex-col items-center p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                  <span className="text-xs text-orange-800 dark:text-orange-300">Ended</span>
-                  <span className="text-sm font-semibold text-orange-800 dark:text-orange-300">
+                  <span className="text-xs text-blue-800 dark:text-blue-300">Ended</span>
+                  <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">
                     {endedContests}
                   </span>
                 </div>
@@ -229,7 +229,6 @@ const ContestsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Contest Cards */}
         <div className="flex-1">
           {filteredContests.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -250,68 +249,111 @@ const ContestsPage: React.FC = () => {
                   let statusBg = "";
                   let buttonColor = "";
                   let buttonText = "";
+                  let statusIcon = null;
 
                   switch (status) {
                     case "active":
-                      statusColor = "text-foreground";
+                      statusColor = "text-green-400";
                       statusBg = "bg-green-900/20";
-                      buttonColor = "bg-gray-600 hover:bg-gray-700";
+                      buttonColor = "bg-green-600 hover:bg-green-700";
                       buttonText = "Join Now";
+                      statusIcon = <Activity className="w-3 h-3 mr-1" />;
                       break;
                     case "upcoming":
-                      statusColor = "text-foreground";
+                      statusColor = "text-purple-400";
                       statusBg = "bg-purple-900/20";
-                      buttonColor = "bg-gray-600 hover:bg-gray-700";
+                      buttonColor = "bg-purple-600 hover:bg-purple-700";
                       buttonText = "Register";
+                      statusIcon = <Calendar className="w-3 h-3 mr-1" />;
                       break;
                     case "ended":
-                      statusColor = "text-foreground";
+                      statusColor = "text-orange-400";
                       statusBg = "bg-orange-900/20";
                       buttonColor = "bg-gray-600 cursor-not-allowed";
                       buttonText = "Ended";
+                      statusIcon = <AlertCircle className="w-3 h-3 mr-1" />;
                       break;
                   }
+
+                  const durationText = calculateDuration(contest.startTime, contest.endTime);
 
                   return (
                     <div
                       key={contest._id}
-                      className="bg-card backdrop-blur rounded-lg shadow-md border overflow-hidden transition-all hover:shadow-blue-900/10 group"
+                      className="bg-card backdrop-blur rounded-lg shadow-md border border-gray-700 overflow-hidden transition-all hover:shadow-lg hover:shadow-blue-900/20 hover:border-blue-900/50 group"
                     >
-                      <div className="p-3">
-                        <div className="flex justify-between items-start mb-2">
-                          <h2 className="text-sm font-semibold text-foreground group-hover:text-blue-400 transition-colors line-clamp-1">
+                      <div className="p-4">
+                        {/* Title and Status Badge */}
+                        <div className="flex justify-between items-start mb-3">
+                          <h2 className="text-base font-semibold text-foreground group-hover:text-blue-400 transition-colors line-clamp-1 flex-1 pr-2">
                             {contest.title}
                           </h2>
                           <div
-                            className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${statusColor} ${statusBg}`}
+                            className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${statusColor} ${statusBg}`}
                           >
+                            {statusIcon}
                             {status.charAt(0).toUpperCase() + status.slice(1)}
                           </div>
                         </div>
 
-                        <p className="text-xs text-gray-400 mb-2 line-clamp-2 h-8">
+                        {/* Description */}
+                        <p className="text-sm font-normal text-gray-400 mb-3 line-clamp-2 min-h-12">
                           {contest.description}
                         </p>
 
-                        <div className="space-y-2 mb-3">
-                          <div className="flex items-center text-[10px] text-forground">
+                        {/* Divider */}
+                        <div className="border-t border-gray-700 my-3"></div>
+
+                        {/* Contest Info */}
+                        <div className="space-y-3 mb-4">
+                          {/* Times */}
+                          <div className="grid grid-cols-2 gap-2 text-xs">
                             <div className="flex flex-col">
-                              <span>Start: {new Date(contest.startTime).toLocaleDateString()}</span>
-                              <span>End: {new Date(contest.endTime).toLocaleDateString()}</span>
+                              <span className="text-gray-400 mb-1">Start</span>
+                              <span className="text-foreground font-medium">
+                                {new Date(contest.startTime).toLocaleString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                })}
+                              </span>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-gray-400 mb-1">End</span>
+                              <span className="text-foreground font-medium">
+                                {new Date(contest.endTime).toLocaleString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                })}
+                              </span>
                             </div>
                           </div>
-                          <div className="flex justify-between text-[10px] text-gray-300">
+
+                          {/* Stats Row */}
+                          <div className="flex justify-between text-xs font-medium p-2 bg-gray-800/50 rounded-lg">
                             <div className="flex items-center">
-                              <Users className="w-3 h-3 mr-1 text-purple-400" />
-                              <span>{contest.participants.length}</span>
+                              <div className="flex items-center mr-3">
+                                <Users className="w-4 h-4 mr-1 text-purple-400" />
+                                <span>{contest.participants.length}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <Code2 className="w-4 h-4 mr-1 text-yellow-400" />
+                                <span>{contest.problems.length}</span>
+                              </div>
                             </div>
-                            <div className="flex items-center text-primary">
-                              <Code2 className="w-3 h-3 mr-1 text-yellow-400" />
-                              <span>{contest.problems.length}</span>
+                            <div className="flex items-center text-blue-300">
+                              <Calendar className="w-4 h-4 mr-1" />
+                              <span>{durationText}</span>
                             </div>
                           </div>
                         </div>
 
+                        {/* Action Button */}
                         <button
                           onClick={() => {
                             if (status === "active") {
@@ -322,9 +364,11 @@ const ContestsPage: React.FC = () => {
                               alert("Contest has ended");
                             }
                           }}
-                          className={`w-full py-1.5 text-xs rounded-md text-white font-medium ${buttonColor} transition-colors`}
+                          className={`w-full py-2 text-sm font-medium rounded-lg text-white ${buttonColor} transition-colors flex items-center justify-center`}
                           disabled={status === "ended"}
                         >
+                          {status === "active" && <Activity className="w-4 h-4 mr-2" />}
+                          {status === "upcoming" && <Calendar className="w-4 h-4 mr-2" />}
                           {buttonText}
                         </button>
                       </div>

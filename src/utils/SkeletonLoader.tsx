@@ -25,6 +25,80 @@ export const DashboardSkeleton = () => (
   </div>
 );
 
+export const ContestsPageSkeleton = () => (
+  <div className="container mx-auto px-4 flex flex-col">
+    {/* Header */}
+    <div className="flex items-center justify-between py-4">
+      <Skeleton className="h-8 w-[150px]" />
+    </div>
+
+    <div className="flex flex-col lg:flex-row gap-6">
+      {/* Sidebar (Filters and Statistics) */}
+      <div className="w-full lg:w-72 flex-shrink-0 mb-6 lg:mb-0">
+        <div className="flex flex-col gap-6">
+          {/* Filters Section */}
+          <div className="bg-card rounded-lg shadow-md p-4 border border-border">
+            <Skeleton className="h-6 w-[100px] mb-4" />
+            <div className="space-y-2">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
+            </div>
+            <Skeleton className="h-10 w-full mt-4" />
+          </div>
+
+          {/* Statistics Section */}
+          <div className="bg-card rounded-lg shadow-md p-4 border border-border">
+            <Skeleton className="h-6 w-[150px] mb-3" />
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex flex-col items-center p-2 rounded-lg">
+                  <Skeleton className="h-4 w-[60px] mb-2" />
+                  <Skeleton className="h-6 w-[40px]" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content (Contest Cards Grid) */}
+      <div className="flex-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div
+              key={i}
+              className="bg-card rounded-lg shadow-md border overflow-hidden"
+            >
+              <div className="p-3">
+                <div className="flex justify-between items-start mb-2">
+                  <Skeleton className="h-6 w-[150px]" />
+                  <Skeleton className="h-5 w-[60px] rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-3/4 mb-3" />
+                <div className="space-y-2 mb-3">
+                  <Skeleton className="h-4 w-[120px]" />
+                  <Skeleton className="h-4 w-[120px]" />
+                  <div className="flex justify-between">
+                    <Skeleton className="h-4 w-[40px]" />
+                    <Skeleton className="h-4 w-[40px]" />
+                  </div>
+                </div>
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Pagination */}
+        <div className="mt-4 mb-6 flex justify-center">
+          <Skeleton className="h-10 w-[200px]" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 export const TableSkeleton = () => (
   <div className="p-6 space-y-6 w-full max-w-7xl mx-auto">
     {/* Header and Search */}
