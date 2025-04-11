@@ -3,8 +3,20 @@ import { apiRequest } from "@/utils/axios/ApiRequest";
 import { ApiResponse, IProblem } from "@/types/ProblemTypes";
 import { Calendar, Clock, ListChecks, AlertCircle, Loader2, CheckCircle } from "lucide-react";
 
+interface Contest {
+  _id: string;
+  title: string;
+  description: string;
+  startTime: string;
+  endTime: string;
+  problems: string[];
+  participants: string[];
+  isActive: boolean;
+  isBlocked: boolean;
+}
+
 interface AddContestFormProps {
-  onContestCreated: (contest: any) => void;
+  onContestCreated: (contest: Contest) => void;
   onClose: () => void;
 }
 
@@ -26,10 +38,7 @@ const AddContestForm: React.FC<AddContestFormProps> = ({ onContestCreated, onClo
     const fetchProblems = async () => {
       setFetchingProblems(true);
       try {
-        const response = await apiRequest<ApiResponse<{ problems: IProblem[] }>>(
-          "get",
-          "/admin/problems"
-        );
+        const response = await apiRequest<ApiResponse<{ problems: IProblem[] }>>("get", "/admin/problems");
         if (response.success) {
           setAvailableProblems(response.data.problems);
         }
@@ -60,13 +69,17 @@ const AddContestForm: React.FC<AddContestFormProps> = ({ onContestCreated, onClo
 
     setLoading(true);
     try {
-      const response = await apiRequest<ApiResponse<{ contest: any }>>(
-        "post",
-        "/admin/contests",
-        { title, description, startTime, endTime, problems }
-      );
+      const contestData = { title, description, startTime, endTime, problems };
+      const response = await apiRequest<ApiResponse<{ contest: Contest }>>("post", "/admin/contests", contestData);
+      console.log("API Response:", response); // Debug log to inspect the response
+
       if (response.success) {
-        onContestCreated(response.data.contest);
+        const newContest = response.data.contest || response.data; // Fallback for API response inconsistency
+        console.log("New Contest Data:", newContest); // Debug log to verify contest data
+        if (!newContest || !newContest._id) {
+          throw new Error("Invalid contest data returned from API");
+        }
+        onContestCreated(newContest as Contest); // Pass the new contest to the parent
         setTitle("");
         setDescription("");
         setStartTime("");
@@ -81,7 +94,7 @@ const AddContestForm: React.FC<AddContestFormProps> = ({ onContestCreated, onClo
       }
     } catch (err) {
       setError("Failed to create contest. Please try again.");
-      console.error(err);
+      console.error("Error creating contest:", err);
       setActiveStep(1);
     } finally {
       setLoading(false);
