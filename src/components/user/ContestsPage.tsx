@@ -5,6 +5,7 @@ import { Code2, Users, Calendar, AlertCircle, Activity } from "lucide-react";
 import { ApiResponse } from "@/types/ProblemTypes";
 import Pagination from "@/components/layout/Pagination";
 import { ContestsPageSkeleton } from "@/utils/SkeletonLoader";
+import toast from "react-hot-toast";
 
 interface Contest {
   _id: string;
@@ -29,6 +30,9 @@ const ContestsPage: React.FC = () => {
   const [activeContests, setActiveContests] = useState(0);
   const [upcomingContests, setUpcomingContests] = useState(0);
   const [endedContests, setEndedContests] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedContestId, setSelectedContestId] = useState<string | null>(null);
+  const [registeredContests, setRegisteredContests] = useState<Set<string>>(new Set());
   const itemsPerPage = 9;
   const navigate = useNavigate();
 
@@ -47,6 +51,8 @@ const ContestsPage: React.FC = () => {
             endedContests: number;
           }>
         >("get", `/contests?page=${currentPage}&limit=${itemsPerPage}`);
+        console.log("rrrrrrrrrrrrr",response);
+        
         if (response.success) {
           const unblockedContests = response.data.contests.filter((contest) => !contest.isBlocked);
           setContests(unblockedContests);
@@ -68,19 +74,48 @@ const ContestsPage: React.FC = () => {
     fetchContests();
   }, [currentPage]);
 
-  const handleRegister = async (contestId: string) => {
+  // Optionally fetch user's registered contests on mount
+  useEffect(() => {
+    const fetchRegisteredContests = async () => {
+      try {
+        // Assuming you have an endpoint to get the user's registered contests
+        const response = await apiRequest<ApiResponse<{ contestIds: string[] }>>(
+          "get",
+          "/user/registered-contests"
+        );
+        if (response.success) {
+          setRegisteredContests(new Set(response.data.contestIds));
+        }
+      } catch (err) {
+        console.error("Failed to fetch registered contests:", err);
+      }
+    };
+    fetchRegisteredContests();
+  }, []);
+
+  const handleRegisterClick = (contestId: string) => {
+    setSelectedContestId(contestId);
+    setIsModalOpen(true);
+  };
+
+  const handleRegisterConfirm = async () => {
+    if (!selectedContestId) return;
     try {
       const response = await apiRequest<ApiResponse<{ message: string }>>(
         "post",
-        `/contests/${contestId}/register`
+        `/contests/${selectedContestId}/register`
       );
       if (response.success) {
-        alert(response.data.message);
+        toast(response.message);
+        setRegisteredContests((prev) => new Set(prev).add(selectedContestId));
         setContests((prev) =>
           prev.map((c) =>
-            c._id === contestId ? { ...c, participants: [...c.participants, "userId"] } : c
+            c._id === selectedContestId
+              ? { ...c, participants: [...c.participants, "userId"] }
+              : c
           )
         );
+        setIsModalOpen(false);
       } else {
         setError(response.message || "Failed to register");
       }
@@ -195,10 +230,7 @@ const ContestsPage: React.FC = () => {
             </div>
 
             <div className="bg-card rounded-lg shadow-md p-4 border border-border">
-              <h2 className="text-lg font-bold mb-3 flex items-center">
-                <Activity className="w-5 h-5 mr-2 text-blue-500" />
-                Contest Statistics
-              </h2>
+              <h2 className="text-lg font-bold mb-3 flex items-center">Contest Statistics</h2>
               <div className="grid grid-cols-2 gap-2 sm:gap-4">
                 <div className="flex flex-col items-center p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                   <span className="text-xs text-blue-800 dark:text-blue-300">Total</span>
@@ -245,6 +277,7 @@ const ContestsPage: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredContests.map((contest) => {
                   const status = getContestStatus(contest.startTime, contest.endTime);
+                  const isRegistered = registeredContests.has(contest._id);
                   let statusColor = "";
                   let statusBg = "";
                   let buttonColor = "";
@@ -262,8 +295,10 @@ const ContestsPage: React.FC = () => {
                     case "upcoming":
                       statusColor = "text-purple-400";
                       statusBg = "bg-purple-900/20";
-                      buttonColor = "bg-purple-600 hover:bg-purple-700";
-                      buttonText = "Register";
+                      buttonColor = isRegistered
+                        ? "bg-gray-600 cursor-not-allowed"
+                        : "bg-purple-600 hover:bg-purple-700";
+                      buttonText = isRegistered ? "Registered" : "Register";
                       statusIcon = <Calendar className="w-3 h-3 mr-1" />;
                       break;
                     case "ended":
@@ -283,7 +318,6 @@ const ContestsPage: React.FC = () => {
                       className="bg-card backdrop-blur rounded-lg shadow-md border border-gray-700 overflow-hidden transition-all hover:shadow-lg hover:shadow-blue-900/20 hover:border-blue-900/50 group"
                     >
                       <div className="p-4">
-                        {/* Title and Status Badge */}
                         <div className="flex justify-between items-start mb-3">
                           <h2 className="text-base font-semibold text-foreground group-hover:text-blue-400 transition-colors line-clamp-1 flex-1 pr-2">
                             {contest.title}
@@ -296,17 +330,13 @@ const ContestsPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Description */}
                         <p className="text-sm font-normal text-gray-400 mb-3 line-clamp-2 min-h-12">
                           {contest.description}
                         </p>
 
-                        {/* Divider */}
                         <div className="border-t border-gray-700 my-3"></div>
 
-                        {/* Contest Info */}
                         <div className="space-y-3 mb-4">
-                          {/* Times */}
                           <div className="grid grid-cols-2 gap-2 text-xs">
                             <div className="flex flex-col">
                               <span className="text-gray-400 mb-1">Start</span>
@@ -334,7 +364,6 @@ const ContestsPage: React.FC = () => {
                             </div>
                           </div>
 
-                          {/* Stats Row */}
                           <div className="flex justify-between text-xs font-medium p-2 bg-gray-800/50 rounded-lg">
                             <div className="flex items-center">
                               <div className="flex items-center mr-3">
@@ -353,19 +382,18 @@ const ContestsPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Action Button */}
                         <button
                           onClick={() => {
                             if (status === "active") {
                               navigate(`/user/contests/${contest._id}`);
-                            } else if (status === "upcoming") {
-                              handleRegister(contest._id);
-                            } else {
-                              alert("Contest has ended");
+                            } else if (status === "upcoming" && !isRegistered) {
+                              handleRegisterClick(contest._id);
+                            } else if (status === "ended") {
+                              toast("Contest has ended");
                             }
                           }}
                           className={`w-full py-2 text-sm font-medium rounded-lg text-white ${buttonColor} transition-colors flex items-center justify-center`}
-                          disabled={status === "ended"}
+                          disabled={status === "ended" || (status === "upcoming" && isRegistered)}
                         >
                           {status === "active" && <Activity className="w-4 h-4 mr-2" />}
                           {status === "upcoming" && <Calendar className="w-4 h-4 mr-2" />}
@@ -389,6 +417,37 @@ const ContestsPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Modal for Rules and Registration */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-card rounded-lg shadow-lg p-6 max-w-lg w-full mx-4">
+            <h2 className="text-xl font-semibold text-primary mb-4">Contest Registration</h2>
+            <h3 className="text-lg font-medium text-foreground mb-2">Rules and Regulations</h3>
+            <ul className="list-disc pl-5 text-sm text-gray-400 mb-6">
+              <li>Participants must submit solutions independently.</li>
+              <li>Plagiarism or cheating will result in disqualification.</li>
+              <li>Submissions must be made before the contest ends.</li>
+              <li>Follow the problem constraints and input/output formats.</li>
+              <li>Respect the contest schedule and deadlines.</li>
+            </ul>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="py-2 px-4 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRegisterConfirm}
+                className="py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              >
+                Register
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
