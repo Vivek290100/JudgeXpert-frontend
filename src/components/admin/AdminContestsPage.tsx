@@ -7,18 +7,9 @@ import Table from "../layout/Table";
 import Pagination from "../layout/Pagination";
 import { useDebounce } from "@/hooks/useDebounce";
 import { TableSkeleton } from "@/utils/SkeletonLoader";
+import { Contest } from "@/types/ContestType";
 
-interface Contest {
-  _id: string;
-  title: string;
-  description: string;
-  startTime: string;
-  endTime: string;
-  problems: string[];
-  participants: string[];
-  isActive: boolean;
-  isBlocked: boolean;
-}
+
 
 const AdminContestsPage: React.FC = () => {
   const [contests, setContests] = useState<Contest[]>([]);
@@ -80,17 +71,14 @@ const AdminContestsPage: React.FC = () => {
       console.error("Invalid contest data:", newContest);
       return;
     }
-    // Optimistically update the state
     setContests((prev) => {
       const updatedContests = [...prev, newContest];
-      // Prevent duplicates based on _id
       return updatedContests.filter(
         (contest, index, self) => index === self.findIndex((c) => c._id === contest._id)
       );
     });
     setIsModalOpen(false);
-    // Background sync with server
-    setTimeout(fetchContests, 1000); // Delay to allow server to update
+    setTimeout(fetchContests, 1000);
   };
 
   const handleStatusChange = async (contestId: string, isBlocked: boolean) => {
@@ -132,6 +120,19 @@ const AdminContestsPage: React.FC = () => {
         return "bg-purple-100 text-purple-800";
       case "ended":
         return "bg-orange-100 text-orange-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty.toUpperCase()) {
+      case "EASY":
+        return "bg-green-100 text-green-800";
+      case "MEDIUM":
+        return "bg-yellow-100 text-yellow-800";
+      case "HARD":
+        return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -209,9 +210,7 @@ const AdminContestsPage: React.FC = () => {
   };
 
   if (loading && !contests.length) {
-    return (
-      <TableSkeleton/>
-    );
+    return <TableSkeleton />;
   }
 
   if (error) {
@@ -229,7 +228,7 @@ const AdminContestsPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-9 min-h-screen flex flex-col">
+    <div className="container mx-auto px-4 py-9 min-h-screen flex flex-col bg-background">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-semibold text-primary">Contest Management</h1>
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -313,71 +312,184 @@ const AdminContestsPage: React.FC = () => {
 
       {isDetailsModalOpen && selectedContest && (
         <div className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-xl border border-gray-800 w-full max-w-md max-h-[90vh] flex flex-col shadow-2xl">
-            <div className="p-6 border-b border-gray-800 flex-shrink-0">
-              <h2 className="text-xl font-bold text-white">Contest Details</h2>
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 w-full max-w-3xl max-h-[90vh] flex flex-col">
+            {/* Header Section */}
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0 flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-primary tracking-tight truncate max-w-[80%]">
+                {selectedContest.title}
+              </h2>
               <button
                 onClick={() => setIsDetailsModalOpen(false)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-800"
+                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors duration-200"
+                aria-label="Close modal"
               >
-                ✕
+                <X className="w-6 h-6 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200" />
               </button>
             </div>
-            <div className="p-6 flex-1 overflow-y-auto text-gray-300 space-y-4">
+
+            {/* Content Section */}
+            <div className="p-6 flex-1 overflow-y-auto space-y-8">
+              {/* Contest Info Card */}
               <div>
-                <strong className="block text-gray-100">Title:</strong>
-                <p>{selectedContest.title}</p>
+                <h3 className="text-xl font-semibold text-primary mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                  Contest Details
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <strong className="font-semibold text-primary w-24 shrink-0">ID:</strong>
+                      <span className="font-mono bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded text-sm text-gray-600 dark:text-gray-400 truncate w-full">
+                        {selectedContest._id}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <strong className="font-semibold text-primary w-24 shrink-0">Start Time:</strong>
+                      <span className="font-mono bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded text-sm text-gray-600 dark:text-gray-400 truncate w-full">
+                        {new Date(selectedContest.startTime).toLocaleString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <strong className="font-semibold text-primary w-24 shrink-0">End Time:</strong>
+                      <span className="font-mono bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded text-sm text-gray-600 dark:text-gray-400 truncate w-full">
+                        {new Date(selectedContest.endTime).toLocaleString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <strong className="font-semibold text-primary w-24 shrink-0">Status:</strong>
+                      <span
+                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          getContestStatus(selectedContest.startTime, selectedContest.endTime)
+                        )}`}
+                      >
+                        {getContestStatus(selectedContest.startTime, selectedContest.endTime).charAt(0).toUpperCase() +
+                          getContestStatus(selectedContest.startTime, selectedContest.endTime).slice(1)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <strong className="font-semibold text-primary w-24 shrink-0">Access:</strong>
+                      <select
+                        value={selectedContest.isBlocked ? "inactive" : "active"}
+                        onChange={(e) => handleStatusChange(selectedContest._id, e.target.value === "inactive")}
+                        className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded p-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors w-full max-w-xs"
+                      >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              {/* Description Section */}
               <div>
-                <strong className="block text-gray-100">Description:</strong>
-                <p className="whitespace-pre-wrap break-words">{selectedContest.description}</p>
+                <h3 className="text-xl font-semibold text-primary mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                  Description
+                </h3>
+                <div className="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg shadow-inner text-sm text-foreground whitespace-pre-wrap">
+                  {selectedContest.description}
+                </div>
               </div>
+
+              {/* Problems Section */}
               <div>
-                <strong className="block text-gray-100">Start Time:</strong>
-                <p>
-                  {new Date(selectedContest.startTime).toLocaleString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
-                </p>
+                <h3 className="text-xl font-semibold text-primary mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                  Problems
+                </h3>
+                {selectedContest.problems.length > 0 ? (
+                  <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                    <table className="w-full text-sm text-foreground">
+                      <thead>
+                        <tr className="bg-gray-100 dark:bg-gray-900">
+                          <th className="px-4 py-3 text-left font-medium text-primary">Problem ID</th>
+                          <th className="px-4 py-3 text-left font-medium text-primary">Title</th>
+                          <th className="px-4 py-3 text-left font-medium text-primary">Difficulty</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedContest.problems.map((problem) => (
+                          <tr
+                            key={problem._id}
+                            className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <td className="px-4 py-3">
+                              <span className="font-mono bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded text-sm text-gray-600 dark:text-gray-400 truncate w-full">
+                                {problem._id}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-sm text-foreground">{problem.title}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span
+                                className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getDifficultyColor(
+                                  problem.difficulty
+                                )}`}
+                              >
+                                {problem.difficulty}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">No problems assigned to this contest</p>
+                )}
               </div>
+
+              {/* Participants Section */}
               <div>
-                <strong className="block text-gray-100">End Time:</strong>
-                <p>
-                  {new Date(selectedContest.endTime).toLocaleString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
-                </p>
-              </div>
-              <div>
-                <strong className="block text-gray-100">Participants:</strong>
-                <p>{selectedContest.participants.length}</p>
-              </div>
-              <div>
-                <strong className="block text-gray-100">Problems:</strong>
-                <p>{selectedContest.problems.length}</p>
-              </div>
-            </div>
-            <div className="p-6 border-t border-gray-800 flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <strong className="text-gray-100">Status:</strong>
-                <select
-                  value={selectedContest.isBlocked ? "inactive" : "active"}
-                  onChange={(e) => handleStatusChange(selectedContest._id, e.target.value === "inactive")}
-                  className="bg-gray-800 text-white border border-gray-700 rounded-md p-1"
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+                <h3 className="text-xl font-semibold text-primary mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                  Participants
+                </h3>
+                {selectedContest.participants.length > 0 ? (
+                  <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                    <table className="w-full text-sm text-foreground">
+                      <thead>
+                        <tr className="bg-gray-100 dark:bg-gray-900">
+                          <th className="px-4 py-3 text-left font-medium text-primary">User ID</th>
+                          <th className="px-4 py-3 text-left font-medium text-primary">Username</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedContest.participants.map((user) => (
+                          <tr
+                            key={user._id}
+                            className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <td className="px-4 py-3">
+                              <span className="font-mono bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded text-sm text-gray-600 dark:text-gray-400 truncate w-full">
+                                {user._id}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-sm text-foreground">{user.userName}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">No participants registered for this contest</p>
+                )}
               </div>
             </div>
           </div>

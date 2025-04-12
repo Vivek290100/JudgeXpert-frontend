@@ -2,18 +2,7 @@ import React, { useState, useEffect } from "react";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import { ApiResponse, IProblem } from "@/types/ProblemTypes";
 import { Calendar, Clock, ListChecks, AlertCircle, Loader2, CheckCircle } from "lucide-react";
-
-interface Contest {
-  _id: string;
-  title: string;
-  description: string;
-  startTime: string;
-  endTime: string;
-  problems: string[];
-  participants: string[];
-  isActive: boolean;
-  isBlocked: boolean;
-}
+import { Contest } from "@/types/ContestType";
 
 interface AddContestFormProps {
   onContestCreated: (contest: Contest) => void;
@@ -70,16 +59,42 @@ const AddContestForm: React.FC<AddContestFormProps> = ({ onContestCreated, onClo
     setLoading(true);
     try {
       const contestData = { title, description, startTime, endTime, problems };
-      const response = await apiRequest<ApiResponse<{ contest: Contest }>>("post", "/admin/contests", contestData);
-      console.log("API Response:", response); // Debug log to inspect the response
+      const response = await apiRequest<ApiResponse<{ contest: any }>>("post", "/admin/contests", contestData);
+      console.log("API Response:", response);
 
       if (response.success) {
-        const newContest = response.data.contest || response.data; // Fallback for API response inconsistency
-        console.log("New Contest Data:", newContest); // Debug log to verify contest data
-        if (!newContest || !newContest._id) {
+        const apiContest = response.data.contest || response.data;
+        console.log("New Contest Data:", apiContest);
+
+        if (!apiContest || !apiContest._id) {
           throw new Error("Invalid contest data returned from API");
         }
-        onContestCreated(newContest as Contest); // Pass the new contest to the parent
+
+        // Transform the contest to match the Contest interface
+        const newContest: Contest = {
+          _id: apiContest._id,
+          title: apiContest.title,
+          description: apiContest.description,
+          startTime: apiContest.startTime,
+          endTime: apiContest.endTime,
+          problems: problems.map((problemId) => {
+            const problem = availableProblems.find((p) => p._id === problemId);
+            return {
+              _id: problemId,
+              title: problem?.title || "Unknown",
+              difficulty: problem?.difficulty || "Unknown",
+              slug: problem?.slug || "Unknown",
+            };
+          }),
+          participants: apiContest.participants?.map((userId: string) => ({
+            _id: userId,
+            userName: "Unknown", // Placeholder, as participants may be empty initially
+          })) || [],
+          isActive: apiContest.isActive ?? true,
+          isBlocked: apiContest.isBlocked ?? false,
+        };
+
+        onContestCreated(newContest);
         setTitle("");
         setDescription("");
         setStartTime("");
@@ -87,7 +102,7 @@ const AddContestForm: React.FC<AddContestFormProps> = ({ onContestCreated, onClo
         setProblems([]);
         setActiveStep(1);
         setError(null);
-        onClose(); // Close the modal after success
+        onClose();
       } else {
         setError(response.message || "Failed to create contest");
         setActiveStep(1);
