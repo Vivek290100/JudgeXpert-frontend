@@ -1,3 +1,4 @@
+// Frontend\src\components\user\ContestsPage.tsx
 import React, { useState, useEffect } from "react";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +15,7 @@ interface Contest {
   startTime: string;
   endTime: string;
   problems: string[];
-  participants: string[];
+  participants: { _id: string; userName: string }[];
   isActive: boolean;
   isBlocked: boolean;
 }
@@ -51,22 +52,24 @@ const ContestsPage: React.FC = () => {
             endedContests: number;
           }>
         >("get", `/contests?page=${currentPage}&limit=${itemsPerPage}`);
-        console.log("rrrrrrrrrrrrr",response);
-        
-        if (response.success) {
+        console.log("Fetch contests response:", response);
+
+        if (response.success && response.data) {
           const unblockedContests = response.data.contests.filter((contest) => !contest.isBlocked);
           setContests(unblockedContests);
-          setTotalPages(response.data.totalPages);
-          setTotalContests(response.data.totalContests);
-          setActiveContests(response.data.activeContests);
-          setUpcomingContests(response.data.upcomingContests);
-          setEndedContests(response.data.endedContests);
+          setTotalPages(response.data.totalPages || 1);
+          setTotalContests(response.data.totalContests || 0);
+          setActiveContests(response.data.activeContests || 0);
+          setUpcomingContests(response.data.upcomingContests || 0);
+          setEndedContests(response.data.endedContests || 0);
         } else {
           setError(response.message || "Failed to load contests");
+          setContests([]);
         }
       } catch (err) {
         setError("Failed to fetch contests. Please try again.");
-        console.error(err);
+        console.error("Fetch contests error:", err);
+        setContests([]);
       } finally {
         setLoading(false);
       }
@@ -74,16 +77,15 @@ const ContestsPage: React.FC = () => {
     fetchContests();
   }, [currentPage]);
 
-  // Optionally fetch user's registered contests on mount
   useEffect(() => {
     const fetchRegisteredContests = async () => {
       try {
-        // Assuming you have an endpoint to get the user's registered contests
         const response = await apiRequest<ApiResponse<{ contestIds: string[] }>>(
           "get",
           "/user/registered-contests"
         );
-        if (response.success) {
+        console.log("Registered contests response:", response);
+        if (response.success && response.data) {
           setRegisteredContests(new Set(response.data.contestIds));
         }
       } catch (err) {
@@ -100,28 +102,43 @@ const ContestsPage: React.FC = () => {
 
   const handleRegisterConfirm = async () => {
     if (!selectedContestId) return;
+
     try {
-      const response = await apiRequest<ApiResponse<{ message: string }>>(
-        "post",
-        `/contests/${selectedContestId}/register`
-      );
+      const response = await apiRequest<
+        ApiResponse<{ message: string; user?: { _id: string; userName: string } }>
+      >("post", `/contests/${selectedContestId}/register`);
+      console.log("Register response:", response);
+
       if (response.success) {
-        toast(response.message);
-        setRegisteredContests((prev) => new Set(prev).add(selectedContestId));
+        toast.success(response.data?.message || "Successfully registered for the contest!");
+        setRegisteredContests((prev) => {
+          const newSet = new Set(prev);
+          newSet.add(selectedContestId);
+          return newSet;
+        });
         setContests((prev) =>
           prev.map((c) =>
-            c._id === selectedContestId
-              ? { ...c, participants: [...c.participants, "userId"] }
+            c._id === selectedContestId && response.data?.user
+              ? {
+                  ...c,
+                  participants: [
+                    ...c.participants,
+                    { _id: response.data.user._id, userName: response.data.user.userName || "Unknown" },
+                  ],
+                }
               : c
           )
         );
         setIsModalOpen(false);
+        setSelectedContestId(null);
       } else {
+        toast.error(response.message || "Failed to register for the contest");
         setError(response.message || "Failed to register");
       }
-    } catch (err) {
-      setError("Registration failed. Please try again.");
-      console.error(err);
+    } catch (err: any) {
+      toast.error(err.message || "Registration failed. Please try again.");
+      console.error("Registration error:", err);
+      setError(err.message || "Registration failed. Please try again.");
     }
   };
 
@@ -283,14 +300,27 @@ const ContestsPage: React.FC = () => {
                   let buttonColor = "";
                   let buttonText = "";
                   let statusIcon = null;
+                  let isButtonDisabled = false;
+                  let tooltipMessage = "";
 
                   switch (status) {
                     case "active":
-                      statusColor = "text-green-400";
-                      statusBg = "bg-green-900/20";
-                      buttonColor = "bg-green-600 hover:bg-green-700";
-                      buttonText = "Join Now";
-                      statusIcon = <Activity className="w-3 h-3 mr-1" />;
+                      if (isRegistered) {
+                        statusColor = "text-green-400";
+                        statusBg = "bg-green-900/20";
+                        buttonColor = "bg-green-600 hover:bg-green-700";
+                        buttonText = "Join Now";
+                        statusIcon = <Activity className="w-3 h-3 mr-1" />;
+                        isButtonDisabled = false;
+                      } else {
+                        statusColor = "text-green-400";
+                        statusBg = "bg-green-900/20";
+                        buttonColor = "bg-gray-600 cursor-not-allowed";
+                        buttonText = "Join Now";
+                        statusIcon = <Activity className="w-3 h-3 mr-1" />;
+                        isButtonDisabled = true;
+                        tooltipMessage = "You must register before the contest starts to join.";
+                      }
                       break;
                     case "upcoming":
                       statusColor = "text-purple-400";
@@ -300,6 +330,7 @@ const ContestsPage: React.FC = () => {
                         : "bg-purple-600 hover:bg-purple-700";
                       buttonText = isRegistered ? "Registered" : "Register";
                       statusIcon = <Calendar className="w-3 h-3 mr-1" />;
+                      isButtonDisabled = isRegistered;
                       break;
                     case "ended":
                       statusColor = "text-orange-400";
@@ -307,6 +338,7 @@ const ContestsPage: React.FC = () => {
                       buttonColor = "bg-gray-600 cursor-not-allowed";
                       buttonText = "Ended";
                       statusIcon = <AlertCircle className="w-3 h-3 mr-1" />;
+                      isButtonDisabled = true;
                       break;
                   }
 
@@ -382,23 +414,30 @@ const ContestsPage: React.FC = () => {
                           </div>
                         </div>
 
-                        <button
-                          onClick={() => {
-                            if (status === "active") {
-                              navigate(`/user/contests/${contest._id}`);
-                            } else if (status === "upcoming" && !isRegistered) {
-                              handleRegisterClick(contest._id);
-                            } else if (status === "ended") {
-                              toast("Contest has ended");
-                            }
-                          }}
-                          className={`w-full py-2 text-sm font-medium rounded-lg text-white ${buttonColor} transition-colors flex items-center justify-center`}
-                          disabled={status === "ended" || (status === "upcoming" && isRegistered)}
-                        >
-                          {status === "active" && <Activity className="w-4 h-4 mr-2" />}
-                          {status === "upcoming" && <Calendar className="w-4 h-4 mr-2" />}
-                          {buttonText}
-                        </button>
+                        <div className="relative group/tooltip">
+                          <button
+                            onClick={() => {
+                              if (status === "active" && isRegistered) {
+                                navigate(`/user/contests/${contest._id}`);
+                              } else if (status === "upcoming" && !isRegistered) {
+                                handleRegisterClick(contest._id);
+                              } else if (status === "ended") {
+                                toast("Contest has ended");
+                              }
+                            }}
+                            className={`w-full py-2 text-sm font-medium rounded-lg text-white ${buttonColor} transition-colors flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50`}
+                            disabled={isButtonDisabled}
+                          >
+                            {status === "active" && <Activity className="w-4 h-4 mr-2" />}
+                            {status === "upcoming" && <Calendar className="w-4 h-4 mr-2" />}
+                            {buttonText}
+                          </button>
+                          {isButtonDisabled && tooltipMessage && (
+                            <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover/tooltip:block text-xs text-white bg-gray-800 px-2 py-1 rounded shadow-lg whitespace-nowrap">
+                              {tooltipMessage}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
