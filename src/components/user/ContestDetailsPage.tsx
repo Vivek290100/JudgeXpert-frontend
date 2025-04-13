@@ -3,10 +3,28 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import { ApiResponse } from "@/types/ProblemTypes";
-import { Contest } from "@/types/ContestType";
-import { Clock, ListChecks, AlertCircle, Code2 } from "lucide-react";
+import { Calendar, Clock, Code2, AlertCircle, ListChecks } from "lucide-react";
 import toast from "react-hot-toast";
-import { ContestsPageSkeleton } from "@/utils/SkeletonLoader";
+import { ContestDetailsSkeleton } from "@/utils/SkeletonLoader";
+
+interface Problem {
+  _id: string;
+  title: string;
+  difficulty: string;
+  slug: string;
+}
+
+interface Contest {
+  _id: string;
+  title: string;
+  description: string;
+  startTime: string;
+  endTime: string;
+  problems: Problem[];
+  participants: { _id: string; userName: string }[];
+  isActive: boolean;
+  isBlocked: boolean;
+}
 
 const ContestDetailsPage: React.FC = () => {
   const { contestId } = useParams<{ contestId: string }>();
@@ -37,8 +55,8 @@ const ContestDetailsPage: React.FC = () => {
           setError(response.message || "Failed to load contest details");
         }
       } catch (err) {
-        setError("Failed to fetch contest details. Please try again.");
-        console.error("Fetch contest error:", err);
+        setError("Failed to fetch contest. Please try again.");
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -50,16 +68,28 @@ const ContestDetailsPage: React.FC = () => {
   useEffect(() => {
     if (!contest) return;
 
-    const updateCountdown = () => {
+    const updateTimer = () => {
       const now = new Date();
-      const end = new Date(contest.endTime);
       const start = new Date(contest.startTime);
-      let targetTime = now < start ? start : end;
-      let prefix = now < start ? "Starts in" : "Ends in";
+      const end = new Date(contest.endTime);
+
+      let targetTime: Date;
+      let prefix: string;
+
+      if (now < start) {
+        targetTime = start;
+        prefix = "Starts in: ";
+      } else if (now <= end) {
+        targetTime = end;
+        prefix = "Ends in: ";
+      } else {
+        setTimeLeft("Contest has ended");
+        return;
+      }
 
       const diff = targetTime.getTime() - now.getTime();
       if (diff <= 0) {
-        setTimeLeft(now < start ? "Contest starting..." : "Contest ended");
+        setTimeLeft("Contest has ended");
         return;
       }
 
@@ -69,25 +99,21 @@ const ContestDetailsPage: React.FC = () => {
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
       setTimeLeft(
-        `${prefix}: ${days > 0 ? `${days}d ` : ""}${hours}h ${minutes}m ${seconds}s`
+        `${prefix}${days}d ${hours}h ${minutes}m ${seconds}s`
       );
     };
 
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
+    return () => clearInterval(timer);
   }, [contest]);
 
-  const handleProblemClick = (slug: string | undefined) => {
-    if (!slug) {
-      toast.error("Problem not available");
-      return;
-    }
+  const handleProblemClick = (slug: string) => {
     navigate(`/user/problems/${slug}`);
   };
 
   if (loading) {
-    return <ContestsPageSkeleton />;
+    return <ContestDetailsSkeleton />;
   }
 
   if (error || !contest) {
@@ -106,13 +132,44 @@ const ContestDetailsPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <h1 className="text-2xl font-semibold text-primary mb-6">{contest.title}</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-6">{contest.title}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Rules and Countdown */}
         <div className="lg:col-span-1 space-y-6">
+          {/* Countdown Timer */}
+          <div className="bg-card rounded-lg shadow-md p-4 border border-border">
+            <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
+              <Clock className="w-5 h-5 mr-2" />
+              Contest Timer
+            </h2>
+            <p className="text-xl font-mono text-foreground">{timeLeft}</p>
+            <div className="mt-4 text-sm text-gray-400">
+              <p>
+                <span className="font-medium">Start:</span>{" "}
+                {new Date(contest.startTime).toLocaleString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })}
+              </p>
+              <p>
+                <span className="font-medium">End:</span>{" "}
+                {new Date(contest.endTime).toLocaleString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })}
+              </p>
+            </div>
+          </div>
+
           {/* Rules */}
-          <div className="bg-card rounded-lg shadow-md p-6 border border-border">
+          <div className="bg-card rounded-lg shadow-md p-4 border border-border">
             <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
               <ListChecks className="w-5 h-5 mr-2" />
               Rules and Regulations
@@ -125,20 +182,18 @@ const ContestDetailsPage: React.FC = () => {
               <li>Respect the contest schedule and deadlines.</li>
             </ul>
           </div>
-
-          {/* Countdown */}
-          <div className="bg-card rounded-lg shadow-md p-6 border border-border">
-            <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
-              <Clock className="w-5 h-5 mr-2" />
-              Countdown
-            </h2>
-            <p className="text-xl font-mono text-foreground">{timeLeft}</p>
-          </div>
         </div>
 
-        {/* Right Column: Problems */}
+        {/* Right Column: Problems and Details */}
         <div className="lg:col-span-2">
-          <div className="bg-card rounded-lg shadow-md p-6 border border-border">
+          {/* Contest Description */}
+          <div className="bg-card rounded-lg shadow-md p-4 border border-border mb-6">
+            <h2 className="text-lg font-semibold text-primary mb-2">Description</h2>
+            <p className="text-sm text-gray-400">{contest.description}</p>
+          </div>
+
+          {/* Problems List */}
+          <div className="bg-card rounded-lg shadow-md p-4 border border-border">
             <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
               <Code2 className="w-5 h-5 mr-2" />
               Problems
@@ -146,32 +201,21 @@ const ContestDetailsPage: React.FC = () => {
             {contest.problems.length === 0 ? (
               <p className="text-sm text-gray-400 italic">No problems available for this contest.</p>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {contest.problems.map((problem) => (
                   <div
                     key={problem._id}
-                    className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
+                    className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 cursor-pointer transition-colors"
                     onClick={() => handleProblemClick(problem.slug)}
                   >
-                    <div>
+                    <div className="flex-1">
                       <h3 className="text-sm font-medium text-foreground">{problem.title}</h3>
-                      <p className="text-xs text-gray-400">
-                        Difficulty:{" "}
-                        <span
-                          className={`${
-                            problem.difficulty.toLowerCase() === "easy"
-                              ? "text-green-400"
-                              : problem.difficulty.toLowerCase() === "medium"
-                              ? "text-yellow-400"
-                              : "text-red-400"
-                          }`}
-                        >
-                          {problem.difficulty}
-                        </span>
+                      <p className="text-xs text-gray-400 capitalize">
+                        Difficulty: {problem.difficulty}
                       </p>
                     </div>
-                    <button className="text-sm text-blue-400 hover:text-blue-300">
-                      Solve
+                    <button className="text-xs text-blue-400 hover:text-blue-300">
+                      Solve Now
                     </button>
                   </div>
                 ))}
