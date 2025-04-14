@@ -1,4 +1,4 @@
-// Frontend\src\components\SubmissionsPage.tsx
+// Frontend\src\components\user\SubmissionsPage.tsx
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { apiRequest } from "@/utils/axios/ApiRequest";
@@ -13,6 +13,7 @@ const SubmissionsPage: React.FC = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const slug = queryParams.get("problemSlug");
+  const contestId = queryParams.get("contestId");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,9 +24,15 @@ const SubmissionsPage: React.FC = () => {
     const fetchSubmissions = async () => {
       setLoading(true);
       try {
-        const response = await apiRequest<SubmissionsApiResponse>("get", `/submissions${slug ? `?problemSlug=${slug}` : ""}`);
-        console.log("rrrrrrrrrrrr",response);
-        
+        const query = new URLSearchParams();
+        if (slug) query.append("problemSlug", slug);
+        if (contestId) query.append("contestId", contestId);
+        const response = await apiRequest<SubmissionsApiResponse>(
+          "get",
+          `/submissions${query.toString() ? `?${query.toString()}` : ""}`
+        );
+        console.log("Submissions response:", response);
+
         if (response.success) {
           setSubmissions(response.data.submissions);
         } else {
@@ -39,7 +46,7 @@ const SubmissionsPage: React.FC = () => {
       }
     };
     fetchSubmissions();
-  }, [slug]);
+  }, [slug, contestId]);
 
   const getLanguageExtension = (language: string) => {
     switch (language.toLowerCase()) {
@@ -85,8 +92,9 @@ const SubmissionsPage: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <p
-                    className={`font-semibold ${submission.passed ? "text-green-500" : "text-red-500"
-                      }`}
+                    className={`font-semibold ${
+                      submission.passed ? "text-green-500" : "text-red-500"
+                    }`}
                   >
                     {submission.passed ? "Passed" : "Failed"}
                   </p>
@@ -104,8 +112,9 @@ const SubmissionsPage: React.FC = () => {
       {selectedSubmission && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div
-            className={`rounded-lg p-6 w-full max-w-3xl ${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-              }`}
+            className={`rounded-lg p-6 w-full max-w-3xl ${
+              theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+            }`}
           >
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">
@@ -125,7 +134,8 @@ const SubmissionsPage: React.FC = () => {
             />
             <div className="mt-4 flex justify-between flex-wrap gap-4">
               <p>
-                Status: <span className={selectedSubmission.passed ? "text-green-500" : "text-red-500"}>
+                Status:{" "}
+                <span className={selectedSubmission.passed ? "text-green-500" : "text-red-500"}>
                   {selectedSubmission.passed ? "Passed" : "Failed"}
                 </span>
               </p>
@@ -133,7 +143,8 @@ const SubmissionsPage: React.FC = () => {
                 Test Cases: {selectedSubmission.testCasesPassed}/{selectedSubmission.totalTestCases}
               </p>
               <p>
-                Execution Time: <span className="text-blue-500">
+                Execution Time:{" "}
+                <span className="text-blue-500">
                   {selectedSubmission.executionTime} <span className="text-sm">ms</span>
                 </span>
               </p>

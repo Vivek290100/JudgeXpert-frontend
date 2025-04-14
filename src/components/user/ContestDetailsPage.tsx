@@ -17,6 +17,7 @@ interface Problem {
 interface Contest {
   _id: string;
   title: string;
+  slug: string;
   description: string;
   startTime: string;
   endTime: string;
@@ -51,12 +52,13 @@ const ContestDetailsPage: React.FC = () => {
 
         if (response.success && response.data.contest) {
           setContest(response.data.contest);
+          console.log("Loaded contest:", response.data.contest);
         } else {
           setError(response.message || "Failed to load contest details");
         }
-      } catch (err) {
-        setError("Failed to fetch contest. Please try again.");
-        console.error(err);
+      } catch (err: any) {
+        setError(err.response?.data?.message || "Failed to fetch contest. Please try again.");
+        console.error("Fetch contest error:", err);
       } finally {
         setLoading(false);
       }
@@ -108,8 +110,13 @@ const ContestDetailsPage: React.FC = () => {
     return () => clearInterval(timer);
   }, [contest]);
 
-  const handleProblemClick = (slug: string) => {
-    navigate(`/user/problems/${slug}`);
+  const handleProblemClick = (problem: Problem) => {
+    if (!problem.slug || problem.slug === "undefined") {
+      console.error("Invalid problem slug:", problem.slug, "for problem:", problem);
+      toast.error("Cannot navigate to problem: Invalid problem identifier");
+      return;
+    }
+    navigate(`/user/problems/${problem.slug}`, { state: { contestId: contest?._id } });
   };
 
   if (loading) {
@@ -206,7 +213,7 @@ const ContestDetailsPage: React.FC = () => {
                   <div
                     key={problem._id}
                     className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 cursor-pointer transition-colors"
-                    onClick={() => handleProblemClick(problem.slug)}
+                    onClick={() => handleProblemClick(problem)}
                   >
                     <div className="flex-1">
                       <h3 className="text-sm font-medium text-foreground">{problem.title}</h3>
