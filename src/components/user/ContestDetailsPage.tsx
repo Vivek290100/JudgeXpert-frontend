@@ -1,9 +1,8 @@
-// Frontend\src\components\user\ContestDetailsPage.tsx
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import { ApiResponse } from "@/types/ProblemTypes";
-import { Calendar, Clock, Code2, AlertCircle, ListChecks } from "lucide-react";
+import { Calendar, Clock, Code2, AlertCircle, ListChecks, Trophy } from "lucide-react";
 import toast from "react-hot-toast";
 import { ContestDetailsSkeleton } from "@/utils/SkeletonLoader";
 
@@ -34,6 +33,8 @@ const ContestDetailsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<string>("");
+  const [contestEnded, setContestEnded] = useState(false);
+  const [isRegistered, setIsRegistered] = useState<boolean>(false); // New state for registration status
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -64,7 +65,25 @@ const ContestDetailsPage: React.FC = () => {
       }
     };
 
+    const fetchRegistrationStatus = async () => {
+      if (!contestId) return;
+      try {
+        const response = await apiRequest<ApiResponse<{ contestIds: string[] }>>(
+          "get",
+          "/user/registered-contests"
+        );
+        console.log("Registered contests response:", response);
+        if (response.success && response.data) {
+          const registeredContests = new Set(response.data.contestIds);
+          setIsRegistered(registeredContests.has(contestId));
+        }
+      } catch (err) {
+        console.error("Failed to fetch registration status:", err);
+      }
+    };
+
     fetchContest();
+    fetchRegistrationStatus();
   }, [contestId]);
 
   useEffect(() => {
@@ -86,12 +105,14 @@ const ContestDetailsPage: React.FC = () => {
         prefix = "Ends in: ";
       } else {
         setTimeLeft("Contest has ended");
+        setContestEnded(true);
         return;
       }
 
       const diff = targetTime.getTime() - now.getTime();
       if (diff <= 0) {
         setTimeLeft("Contest has ended");
+        setContestEnded(true);
         return;
       }
 
@@ -119,6 +140,13 @@ const ContestDetailsPage: React.FC = () => {
     navigate(`/user/problems/${problem.slug}`, { state: { contestId: contest?._id } });
   };
 
+  const isProblemAccessRestricted = () => {
+    // If contest has ended, no restrictions (everyone can view problems)
+    if (contestEnded) return false;
+    // If user is not registered, restrict access during active or upcoming contests
+    return !isRegistered;
+  };
+
   if (loading) {
     return <ContestDetailsSkeleton />;
   }
@@ -137,9 +165,22 @@ const ContestDetailsPage: React.FC = () => {
     );
   }
 
+  const restricted = isProblemAccessRestricted();
+
   return (
     <div className="container mx-auto px-4 py-6">
-      <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-6">{contest.title}</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary">{contest.title}</h1>
+        {contestEnded && (
+          <Link
+            to={`/user/contests/${contest._id}/results`}
+            className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-blue-500 hover:bg-blue-600"
+          >
+            <Trophy className="w-4 h-4" />
+            Contest Results
+          </Link>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Rules and Countdown */}
@@ -212,8 +253,14 @@ const ContestDetailsPage: React.FC = () => {
                 {contest.problems.map((problem) => (
                   <div
                     key={problem._id}
-                    className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 cursor-pointer transition-colors"
-                    onClick={() => handleProblemClick(problem)}
+                    className={`flex items-center justify-between p-3 rounded-lg ${
+                      contestEnded || restricted
+                        ? "bg-gray-700/30 cursor-not-allowed"
+                        : "bg-gray-800/30 hover:bg-gray-800/50 cursor-pointer"
+                    } transition-colors`}
+                    onClick={
+                      contestEnded || restricted ? undefined : () => handleProblemClick(problem)
+                    }
                   >
                     <div className="flex-1">
                       <h3 className="text-sm font-medium text-foreground">{problem.title}</h3>
@@ -221,12 +268,28 @@ const ContestDetailsPage: React.FC = () => {
                         Difficulty: {problem.difficulty}
                       </p>
                     </div>
-                    <button className="text-xs text-blue-400 hover:text-blue-300">
-                      Solve Now
+                    <button
+                      className={`text-xs ${
+                        contestEnded || restricted
+                          ? "text-gray-500"
+                          : "text-blue-400 hover:text-blue-300"
+                      }`}
+                      disabled={contestEnded || restricted}
+                    >
+                      {contestEnded
+                        ? "Contest Ended"
+                        : restricted
+                        ? "Register to Solve"
+                        : "Solve Now"}
                     </button>
                   </div>
                 ))}
               </div>
+            )}
+            {restricted && !contestEnded && (
+              <p className="text-sm text-yellow-400 mt-4">
+                You must register for this contest to solve problems. Go back to the contests page to register.
+              </p>
             )}
           </div>
         </div>

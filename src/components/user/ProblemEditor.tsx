@@ -1,32 +1,51 @@
 import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import CodeMirror from "@uiw/react-codemirror";
 import { cpp } from "@codemirror/lang-cpp";
 import { javascript } from "@codemirror/lang-javascript";
 import { useTheme } from "@/contexts/ThemeContext";
 import { SUPPORTED_LANGUAGES } from "@/utils/Languages";
-import { Play, Send, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Play, Send, ChevronDown, ChevronUp, Loader2, Trophy, Award } from "lucide-react";
 import toast from "react-hot-toast";
 import { IProblem, ProblemApiResponse, SubmissionApiResponse } from "@/types/ProblemTypes";
 import { Difficulty } from "@/utils/Enums";
 import { ProblemEditorSkeleton } from "@/utils/SkeletonLoader";
 import Discussion from "./Discussion";
 
+interface TopParticipant {
+  userId: string;
+  userName: string;
+  executionTime: number;
+  submittedAt: string;
+}
+
+interface Contest {
+  _id: string;
+  title: string;
+  endTime: string;
+}
+
 const ProblemEditor: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const contestId = new URLSearchParams(location.search).get("contestId") || location.state?.contestId;
   const [problem, setProblem] = useState<IProblem | null>(null);
+  const [contest, setContest] = useState<Contest | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState(SUPPORTED_LANGUAGES[0].name);
   const [code, setCode] = useState("");
   const [initialLoading, setInitialLoading] = useState(true);
   const [isRunning, setIsRunning] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [contestEnded, setContestEnded] = useState(false);
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
   const [isDiscussionOpen, setIsDiscussionOpen] = useState(false);
   const [testResults, setTestResults] = useState<SubmissionApiResponse["data"]["results"]>([]);
   const { theme } = useTheme();
   const [executionStats, setExecutionStats] = useState<{ executionTime: number } | null>(null);
+  const [topParticipants, setTopParticipants] = useState<TopParticipant[]>([]);
 
   useEffect(() => {
     const fetchProblem = async () => {
@@ -55,8 +74,49 @@ const ProblemEditor: React.FC = () => {
         setInitialLoading(false);
       }
     };
+
+    const fetchContest = async () => {
+      if (!contestId) return;
+      try {
+        const response = await apiRequest<{ success: boolean; data: { contest: Contest } }>(
+          "get",
+          `/contests/${contestId}`
+        );
+        if (response.success && response.data.contest) {
+          setContest(response.data.contest);
+          const now = new Date();
+          const endTime = new Date(response.data.contest.endTime);
+          if (now > endTime) {
+            setContestEnded(true);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch contest:", err);
+      }
+    };
+
+    const fetchTopParticipants = async () => {
+      if (!problem?._id) return;
+      try {
+        const query = new URLSearchParams();
+        query.append("problemId", problem._id);
+        if (contestId) query.append("contestId", contestId);
+        const response = await apiRequest<{ success: boolean; data: { topParticipants: TopParticipant[] } }>(
+          "get",
+          `/problems/top-participants${query.toString() ? `?${query.toString()}` : ""}`
+        );
+        if (response.success) {
+          setTopParticipants(response.data.topParticipants);
+        }
+      } catch (err) {
+        console.error("Failed to fetch top participants:", err);
+      }
+    };
+
     fetchProblem();
-  }, [slug]);
+    fetchContest();
+    fetchTopParticipants();
+  }, [slug, problem?._id, contestId]);
 
   useEffect(() => {
     if (!problem) return;
@@ -94,6 +154,7 @@ const ProblemEditor: React.FC = () => {
         version: langConfig.version,
         code,
         isRunOnly: true,
+        contestId,
       });
 
       if (response.success) {
@@ -110,10 +171,18 @@ const ProblemEditor: React.FC = () => {
           { duration: 5000 }
         );
       } else {
-        toast.error(response.message || "Run failed.");
+        setError(response.message || "Run failed.");
+        if (response.message?.includes("Contest has ended")) {
+          setContestEnded(true);
+        }
       }
-    } catch (err) {
-      toast.error("Error during run.");
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || "Error during run.";
+      setError(errorMessage);
+      if (errorMessage.includes("Contest has ended")) {
+        setContestEnded(true);
+      }
+      toast.error(errorMessage);
       console.error("Run error:", err);
     } finally {
       setIsRunning(false);
@@ -136,6 +205,7 @@ const ProblemEditor: React.FC = () => {
         version: langConfig.version,
         code,
         isRunOnly: false,
+        contestId,
       });
 
       if (response.success) {
@@ -152,16 +222,31 @@ const ProblemEditor: React.FC = () => {
           { duration: 5000 }
         );
       } else {
-        toast.error(response.message || "Submission failed.");
+        setError(response.message || "Submission failed.");
+        if (response.message?.includes("Contest has ended")) {
+          setContestEnded(true);
+        }
       }
-    } catch (err) {
-      toast.error("Error during submission.");
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || "Error during submission.";
+      setError(errorMessage);
+      if (errorMessage.includes("Contest has ended")) {
+        setContestEnded(true);
+      }
+      toast.error(errorMessage);
       console.error("Submission error:", err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleBackToContest = () => {
+    if (contestId) {
+      navigate(`/user/contests/${contestId}`);
+    } else {
+      toast.error("Contest ID not available.");
+    }
+  };
 
   const extractRelevantError = (stderr: string) => {
     if (!stderr) return "Unknown error occurred.";
@@ -205,6 +290,16 @@ const ProblemEditor: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Contest Info (if applicable) */}
+      {contest && (
+        <div className="bg-gray-100 dark:bg-gray-800 p-3 border-b border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-foreground flex items-center">
+            <Award className="w-4 h-4 mr-2 text-blue-500" />
+            This problem is part of the contest: <span className="font-medium ml-1">{contest.title}</span>
+          </p>
+        </div>
+      )}
+
       {/* Mobile Description Toggle */}
       <div className="lg:hidden bg-background border-b border-gray-200 dark:border-gray-700">
         <button
@@ -274,7 +369,7 @@ const ProblemEditor: React.FC = () => {
 
       {/* Main Layout */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        {/* Left Panel: Problem Description and Discussion (Desktop Only) */}
+        {/* Left Panel: Problem Description, Discussion, and Leaderboard (Desktop Only) */}
         <div className="hidden lg:block lg:w-1/3 bg-background border-r border-gray-200 dark:border-gray-700 overflow-y-auto h-screen">
           <div className="p-6 space-y-6">
             <div className="space-y-4">
@@ -313,6 +408,35 @@ const ProblemEditor: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Top Participants Leaderboard */}
+            {topParticipants.length > 0 && (
+              <div className="mt-6">
+                <h2 className="text-lg font-semibold mb-4 flex items-center">
+                  <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
+                  Top 5 Fastest Solvers
+                </h2>
+                <ul className="space-y-2">
+                  {topParticipants.map((participant, index) => (
+                    <li
+                      key={participant.userId}
+                      className="flex justify-between items-center p-2 bg-gray-100 dark:bg-gray-800 rounded-lg"
+                    >
+                      <div>
+                        <span className="font-medium">{index + 1}. {participant.userName}</span>
+                        <p className="text-xs text-gray-400">
+                          Submitted: {new Date(participant.submittedAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <p className="text-sm text-blue-500">
+                        {participant.executionTime} ms
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {problem && <Discussion problemId={problem._id} problemTitle={problem.title} />}
           </div>
         </div>
@@ -326,7 +450,7 @@ const ProblemEditor: React.FC = () => {
                 value={selectedLanguage}
                 onChange={(e) => setSelectedLanguage(e.target.value)}
                 className="w-full sm:w-32 p-1.5 border rounded bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-700"
-                disabled={isRunning || isSubmitting}
+                disabled={isRunning || isSubmitting || contestEnded}
               >
                 {SUPPORTED_LANGUAGES.map((lang, index) => (
                   <option key={index} value={lang.name}>
@@ -335,28 +459,39 @@ const ProblemEditor: React.FC = () => {
                 ))}
               </select>
               <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
-                <Link
-                  to={`/user/submissions?problemSlug=${slug}`}
-                  className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-gray-500 hover:bg-gray-600"
-                >
-                  Submissions
-                </Link>
-                <button
-                  onClick={handleRun}
-                  className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-green-500 hover:bg-green-600 disabled:opacity-50"
-                  disabled={isRunning || isSubmitting}
-                >
-                  {isRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-                  Run
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-blue-500 hover:bg-blue-600 disabled:opacity-50"
-                  disabled={isRunning || isSubmitting}
-                >
-                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  Submit
-                </button>
+                {contestEnded ? (
+                  <button
+                    onClick={handleBackToContest}
+                    className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-blue-500 hover:bg-blue-600"
+                  >
+                    Back to Contest
+                  </button>
+                ) : (
+                  <>
+                    <Link
+                      to={`/user/submissions?problemSlug=${slug}${contestId ? `&contestId=${contestId}` : ""}`}
+                      className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-gray-500 hover:bg-gray-600"
+                    >
+                      Submissions
+                    </Link>
+                    <button
+                      onClick={handleRun}
+                      className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-green-500 hover:bg-green-600 disabled:opacity-50"
+                      disabled={isRunning || isSubmitting}
+                    >
+                      {isRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                      Run
+                    </button>
+                    <button
+                      onClick={handleSubmit}
+                      className="flex items-center gap-1 py-1.5 px-3 rounded text-sm text-white bg-blue-500 hover:bg-blue-600 disabled:opacity-50"
+                      disabled={isRunning || isSubmitting}
+                    >
+                      {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                      Submit
+                    </button>
+                  </>
+                )}
               </div>
             </div>
             <CodeMirror
@@ -366,6 +501,7 @@ const ProblemEditor: React.FC = () => {
               extensions={[getLanguageExtension()]}
               onChange={(value) => setCode(value)}
               className="border-t border-gray-200 dark:border-gray-700 overflow-y-auto"
+              readOnly={contestEnded}
             />
           </div>
 
@@ -377,8 +513,10 @@ const ProblemEditor: React.FC = () => {
             {executionStats && (
               <div className="mb-3 text-xs">
                 <p>Execution Time: {executionStats.executionTime === 0 ? "N/A" : `${executionStats.executionTime} ms`}</p>
-                {/* <p>Memory Used: {executionStats.memoryUsed === 0 ? "N/A" : `${executionStats.memoryUsed} KB`}</p> */}
               </div>
+            )}
+            {error && (
+              <div className="mb-3 text-red-500 text-sm">{error}</div>
             )}
             {testResults.length > 0 ? (
               <div className="space-y-4">

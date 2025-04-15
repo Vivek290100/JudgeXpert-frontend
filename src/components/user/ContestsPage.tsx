@@ -1,8 +1,7 @@
-// Frontend\src\components\user\ContestsPage.tsx
 import React, { useState, useEffect } from "react";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import { useNavigate } from "react-router-dom";
-import { Code2, Users, Calendar, AlertCircle, Activity } from "lucide-react";
+import { Code2, Users, Calendar, AlertCircle, Activity, Info } from "lucide-react";
 import { ApiResponse } from "@/types/ProblemTypes";
 import Pagination from "@/components/layout/Pagination";
 import { ContestsPageSkeleton } from "@/utils/SkeletonLoader";
@@ -167,6 +166,10 @@ const ContestsPage: React.FC = () => {
     return status === filter;
   });
 
+  const handleDetailsClick = (contestId: string) => {
+    navigate(`/user/contests/${contestId}`);
+  };
+
   if (loading) {
     return <ContestsPageSkeleton />;
   }
@@ -186,104 +189,77 @@ const ContestsPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 flex flex-col">
-      <nav className="flex items-center justify-between py-4">
-        <h1 className="text-xl sm:text-2xl font-semibold text-primary">Contests</h1>
+    <div className="container mx-auto px-4 py-6 flex flex-col min-h-screen">
+      <nav className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-primary">Contests</h1>
       </nav>
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="w-full lg:w-72 flex-shrink-0 mb-6 lg:mb-0">
-          <div className="flex flex-col gap-6">
-            <div className="bg-card rounded-lg shadow-md p-4 border border-border">
-              <h2 className="text-lg font-semibold text-primary mb-4">Filters</h2>
-              <div className="space-y-2">
-                <button
-                  onClick={() => setFilter("all")}
-                  className={`w-full text-left px-4 py-2 font-medium text-sm rounded-lg ${
-                    filter === "all"
-                      ? "text-blue-400 bg-blue-900/20"
-                      : "text-gray-400 hover:text-gray-300"
-                  }`}
-                >
-                  All Contests
-                </button>
-                <button
-                  onClick={() => setFilter("active")}
-                  className={`w-full text-left px-4 py-2 font-medium text-sm rounded-lg ${
-                    filter === "active"
-                      ? "text-green-400 bg-green-900/20"
-                      : "text-gray-400 hover:text-gray-300"
-                  }`}
-                >
-                  Active
-                </button>
-                <button
-                  onClick={() => setFilter("upcoming")}
-                  className={`w-full text-left px-4 py-2 font-medium text-sm rounded-lg ${
-                    filter === "upcoming"
-                      ? "text-purple-400 bg-purple-900/20"
-                      : "text-gray-400 hover:text-gray-300"
-                  }`}
-                >
-                  Upcoming
-                </button>
-                <button
-                  onClick={() => setFilter("ended")}
-                  className={`w-full text-left px-4 py-2 font-medium text-sm rounded-lg ${
-                    filter === "ended"
-                      ? "text-orange-400 bg-orange-900/20"
-                      : "text-gray-400 hover:text-gray-300"
-                  }`}
-                >
-                  Ended
-                </button>
+      <div className="flex flex-col lg:flex-row gap-6 flex-1">
+        {/* Sidebar: Filters and Statistics */}
+        <div className="w-full lg:w-64 flex-shrink-0">
+          <div className="flex flex-col gap-4">
+            {/* Filters */}
+            <div className="bg-card rounded-xl shadow-sm p-4 border border-border">
+              <h2 className="text-lg font-semibold text-primary mb-3">Filters</h2>
+              <div className="space-y-1">
+                {["all", "active", "upcoming", "ended"].map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f as "all" | "active" | "upcoming" | "ended")}
+                    className={`w-full text-left px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      filter === f
+                        ? f === "all"
+                          ? "text-blue-400 bg-blue-900/20"
+                          : f === "active"
+                          ? "text-green-400 bg-green-900/20"
+                          : f === "upcoming"
+                          ? "text-purple-400 bg-purple-900/20"
+                          : "text-orange-400 bg-orange-900/20"
+                        : "text-gray-400 hover:bg-gray-700/50"
+                    }`}
+                  >
+                    {f.charAt(0).toUpperCase() + f.slice(1)} Contests
+                  </button>
+                ))}
               </div>
               <button
                 onClick={() => setFilter("all")}
-                className="w-full mt-4 py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                className="w-full mt-3 py-2 px-3 bg-gray-700 text-gray-200 text-sm rounded-lg hover:bg-gray-600 transition-colors"
               >
                 Clear Filters
               </button>
             </div>
 
-            <div className="bg-card rounded-lg shadow-md p-4 border border-border">
-              <h2 className="text-lg font-bold mb-3 flex items-center">Contest Statistics</h2>
-              <div className="grid grid-cols-2 gap-2 sm:gap-4">
-                <div className="flex flex-col items-center p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                  <span className="text-xs text-blue-800 dark:text-blue-300">Total</span>
-                  <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">
-                    {totalContests}
-                  </span>
-                </div>
-                <div className="flex flex-col items-center p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                  <span className="text-xs text-blue-800 dark:text-blue-300">Active</span>
-                  <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">
-                    {activeContests}
-                  </span>
-                </div>
-                <div className="flex flex-col items-center p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                  <span className="text-xs text-blue-800 dark:text-blue-300">Upcoming</span>
-                  <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">
-                    {upcomingContests}
-                  </span>
-                </div>
-                <div className="flex flex-col items-center p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                  <span className="text-xs text-blue-800 dark:text-blue-300">Ended</span>
-                  <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">
-                    {endedContests}
-                  </span>
-                </div>
+            {/* Statistics */}
+            <div className="bg-card rounded-xl shadow-sm p-4 border border-border">
+              <h2 className="text-lg font-semibold text-primary mb-3">Statistics</h2>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: "Total", value: totalContests, color: "bg-blue-900/30 text-blue-300" },
+                  { label: "Active", value: activeContests, color: "bg-green-900/30 text-green-300" },
+                  { label: "Upcoming", value: upcomingContests, color: "bg-purple-900/30 text-purple-300" },
+                  { label: "Ended", value: endedContests, color: "bg-orange-900/30 text-orange-300" },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className={`flex flex-col items-center p-2 rounded-lg ${stat.color}`}
+                  >
+                    <span className="text-xs">{stat.label}</span>
+                    <span className="text-sm font-semibold">{stat.value}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
 
+        {/* Main Content: Contest Cards */}
         <div className="flex-1">
           {filteredContests.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Calendar className="w-16 h-16 text-gray-600 mb-4" />
-              <h3 className="text-xl font-medium text-gray-300 mb-2">No contests found</h3>
-              <p className="text-gray-500 max-w-md">
+              <Calendar className="w-12 h-12 text-gray-500 mb-3" />
+              <h3 className="text-lg font-medium text-gray-300 mb-1">No contests found</h3>
+              <p className="text-sm text-gray-500">
                 {filter !== "all"
                   ? `There are no ${filter} contests at the moment.`
                   : "No contests available yet."}
@@ -347,11 +323,12 @@ const ContestsPage: React.FC = () => {
                   return (
                     <div
                       key={contest._id}
-                      className="bg-card backdrop-blur rounded-lg shadow-md border border-gray-700 overflow-hidden transition-all hover:shadow-lg hover:shadow-blue-900/20 hover:border-blue-900/50 group"
+                      className="bg-card rounded-xl shadow-sm border border-gray-700 hover:shadow-md hover:border-blue-900/50 transition-all"
                     >
                       <div className="p-4">
-                        <div className="flex justify-between items-start mb-3">
-                          <h2 className="text-base font-semibold text-foreground group-hover:text-blue-400 transition-colors line-clamp-1 flex-1 pr-2">
+                        {/* Title and Status */}
+                        <div className="flex justify-between items-center mb-3">
+                          <h2 className="text-base font-semibold text-foreground hover:text-blue-400 transition-colors truncate">
                             {contest.title}
                           </h2>
                           <div
@@ -362,17 +339,12 @@ const ContestsPage: React.FC = () => {
                           </div>
                         </div>
 
-                        <p className="text-sm font-normal text-gray-400 mb-3 line-clamp-2 min-h-12">
-                          {contest.description}
-                        </p>
-
-                        <div className="border-t border-gray-700 my-3"></div>
-
-                        <div className="space-y-3 mb-4">
-                          <div className="grid grid-cols-2 gap-2 text-xs">
+                        {/* Details */}
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-2 gap-2 text-xs text-gray-300">
                             <div className="flex flex-col">
-                              <span className="text-gray-400 mb-1">Start</span>
-                              <span className="text-foreground font-medium">
+                              <span className="text-gray-400">Start</span>
+                              <span className="font-medium">
                                 {new Date(contest.startTime).toLocaleString("en-US", {
                                   month: "short",
                                   day: "numeric",
@@ -383,8 +355,8 @@ const ContestsPage: React.FC = () => {
                               </span>
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-gray-400 mb-1">End</span>
-                              <span className="text-foreground font-medium">
+                              <span className="text-gray-400">End</span>
+                              <span className="font-medium">
                                 {new Date(contest.endTime).toLocaleString("en-US", {
                                   month: "short",
                                   day: "numeric",
@@ -396,9 +368,9 @@ const ContestsPage: React.FC = () => {
                             </div>
                           </div>
 
-                          <div className="flex justify-between text-xs font-medium p-2 bg-gray-800/50 rounded-lg">
-                            <div className="flex items-center">
-                              <div className="flex items-center mr-3">
+                          <div className="flex justify-between items-center text-xs text-gray-300 p-2 bg-gray-800/50 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <div className="flex items-center">
                                 <Users className="w-4 h-4 mr-1 text-purple-400" />
                                 <span>{contest.participants.length}</span>
                               </div>
@@ -414,7 +386,8 @@ const ContestsPage: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="relative group/tooltip">
+                        {/* Buttons */}
+                        <div className="flex gap-2 mt-3">
                           <button
                             onClick={() => {
                               if (status === "active" && isRegistered) {
@@ -425,18 +398,20 @@ const ContestsPage: React.FC = () => {
                                 toast("Contest has ended");
                               }
                             }}
-                            className={`w-full py-2 text-sm font-medium rounded-lg text-white ${buttonColor} transition-colors flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50`}
+                            className={`flex-1 py-2 text-sm font-medium rounded-lg text-white ${buttonColor} transition-colors flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50`}
                             disabled={isButtonDisabled}
                           >
-                            {status === "active" && <Activity className="w-4 h-4 mr-2" />}
-                            {status === "upcoming" && <Calendar className="w-4 h-4 mr-2" />}
+                            {status === "active" && <Activity className="w-4 h-4 mr-1" />}
+                            {status === "upcoming" && <Calendar className="w-4 h-4 mr-1" />}
                             {buttonText}
                           </button>
-                          {isButtonDisabled && tooltipMessage && (
-                            <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover/tooltip:block text-xs text-white bg-gray-800 px-2 py-1 rounded shadow-lg whitespace-nowrap">
-                              {tooltipMessage}
-                            </span>
-                          )}
+                          <button
+                            onClick={() => handleDetailsClick(contest._id)}
+                            className="flex-1 py-2 text-sm font-medium rounded-lg text-white  transition-colors flex items-center justify-center"
+                          >
+                            <Info className="w-4 h-4 mr-1" />
+                            Details
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -444,7 +419,7 @@ const ContestsPage: React.FC = () => {
                 })}
               </div>
               {totalPages > 1 && (
-                <div className="mt-4 mb-6">
+                <div className="mt-6 mb-4 flex justify-center">
                   <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
@@ -460,26 +435,26 @@ const ContestsPage: React.FC = () => {
       {/* Modal for Rules and Registration */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-card rounded-lg shadow-lg p-6 max-w-lg w-full mx-4">
-            <h2 className="text-xl font-semibold text-primary mb-4">Contest Registration</h2>
-            <h3 className="text-lg font-medium text-foreground mb-2">Rules and Regulations</h3>
-            <ul className="list-disc pl-5 text-sm text-gray-400 mb-6">
+          <div className="bg-card rounded-xl shadow-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-semibold text-primary mb-3">Contest Registration</h2>
+            <h3 className="text-base font-medium text-foreground mb-2">Rules and Regulations</h3>
+            <ul className="list-disc pl-5 text-sm text-gray-400 mb-4">
               <li>Participants must submit solutions independently.</li>
               <li>Plagiarism or cheating will result in disqualification.</li>
               <li>Submissions must be made before the contest ends.</li>
               <li>Follow the problem constraints and input/output formats.</li>
               <li>Respect the contest schedule and deadlines.</li>
             </ul>
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end gap-3">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="py-2 px-4 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                className="py-2 px-4 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleRegisterConfirm}
-                className="py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                className="py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               >
                 Register
               </button>
