@@ -144,7 +144,7 @@ const AddContestForm: React.FC<AddContestFormProps> = ({ onContestCreated, onClo
   return (
     <div className="w-full max-w-4xl mx-auto">
       <div className="mb-6">
-        <div className="flex items-center">
+        {/* <div className="flex items-center">
           <div
             className={`flex items-center justify-center w-8 h-8 rounded-full ${
               activeStep === 1 ? "bg-blue-500 text-white" : "bg-blue-500 text-white"
@@ -162,7 +162,7 @@ const AddContestForm: React.FC<AddContestFormProps> = ({ onContestCreated, onClo
           >
             <span>2</span>
           </div>
-        </div>
+        </div> */}
         <div className="flex justify-between mt-2 text-xs text-gray-400">
           <span>Contest Details</span>
           <span>Select Problems</span>

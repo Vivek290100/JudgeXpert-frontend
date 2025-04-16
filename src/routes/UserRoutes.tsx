@@ -26,8 +26,8 @@ const UserRoutes = () => {
         <Route path="leaderboard" element={<LeaderboardPage/>}></Route>
         <Route path="contests" element={<ContestsPage />} />
         <Route path="contests/:contestId" element={<ContestDetailsPage />} />
-        <Route path="/user/contests/:contestId/results" element={<ContestResultsPage />} />
-        <Route path="/server-down" element={<ServerDown />} />
+        <Route path="contests/:contestId/results" element={<ContestResultsPage />} />
+        <Route path="server-down" element={<ServerDown />} />
 
       </Route>
       <Route path="*" element={<NotFound />} />
