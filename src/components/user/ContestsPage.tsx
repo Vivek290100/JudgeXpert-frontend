@@ -81,7 +81,7 @@ const ContestsPage: React.FC = () => {
       try {
         const response = await apiRequest<ApiResponse<{ contestIds: string[] }>>(
           "get",
-          "/user/registered-contests"
+          "/registered-contests"
         );
         console.log("Registered contests response:", response);
         if (response.success && response.data) {

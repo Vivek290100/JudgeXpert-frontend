@@ -26,6 +26,7 @@ interface ProblemResults {
   problemId: string;
   problemTitle: string;
   topParticipants: TopParticipant[];
+  error?: string;
 }
 
 const ContestResultsPage: React.FC = () => {
@@ -44,34 +45,58 @@ const ContestResultsPage: React.FC = () => {
       }
 
       try {
-        // Fetch contest details
         const contestResponse = await apiRequest<{ success: boolean; data: { contest: Contest } }>(
           "get",
           `/contests/${contestId}`
         );
+        console.log("Contest Response:", contestResponse);
+
         if (contestResponse.success && contestResponse.data.contest) {
           setContest(contestResponse.data.contest);
 
-          // Fetch top participants for each problem
           const resultsPromises = contestResponse.data.contest.problems.map(async (problem) => {
             const query = new URLSearchParams();
             query.append("problemId", problem._id);
             query.append("contestId", contestId);
-            const response = await apiRequest<{ success: boolean; data: { topParticipants: TopParticipant[] } }>(
-              "get",
-              `/problems/top-participants${query.toString() ? `?${query.toString()}` : ""}`
-            );
-            return {
-              problemId: problem._id,
-              problemTitle: problem.title,
-              topParticipants: response.success ? response.data.topParticipants : [],
-            };
+            try {
+              const response = await apiRequest<{ success: boolean; data: { topParticipants: TopParticipant[] } }>(
+                "get",
+                `/problems/top-participants?${query.toString()}`
+              );
+              console.log("Top Participants Response:", response);
+              if (response.success) {
+                return {
+                  problemId: problem._id,
+                  problemTitle: problem.title,
+                  topParticipants: response.data.topParticipants,
+                } as ProblemResults;
+              } else {
+                console.warn(`Failed to fetch top participants for problem ${problem._id}: ${response.success}`);
+                return {
+                  problemId: problem._id,
+                  problemTitle: problem.title,
+                  topParticipants: [] as TopParticipant[],
+                  error: "Failed to fetch top participants",
+                } as ProblemResults;
+              }
+            } catch (err: any) {
+              console.warn(`Top participants fetch error for problem ${problem._id}:`, err);
+              if (err.response?.data?.message === "Problem not found") {
+                return null;
+              }
+              return {
+                problemId: problem._id,
+                problemTitle: problem.title,
+                topParticipants: [] as TopParticipant[],
+                error: err.response?.data?.message || "Failed to fetch top participants",
+              } as ProblemResults;
+            }
           });
 
-          const resultsData = await Promise.all(resultsPromises);
+          const resultsData = (await Promise.all(resultsPromises)).filter((result): result is ProblemResults => result !== null);
           setResults(resultsData);
         } else {
-          setError( "Failed to load contest details");
+          setError("Failed to load contest details");
         }
       } catch (err: any) {
         setError(err.response?.data?.message || "Failed to fetch contest results. Please try again.");
@@ -126,7 +151,9 @@ const ContestResultsPage: React.FC = () => {
             {results.map((problemResult) => (
               <div key={problemResult.problemId}>
                 <h3 className="text-md font-medium text-foreground mb-3">{problemResult.problemTitle}</h3>
-                {problemResult.topParticipants.length === 0 ? (
+                {problemResult.error ? (
+                  <p className="text-sm text-red-400 italic">{problemResult.error}</p>
+                ) : problemResult.topParticipants.length === 0 ? (
                   <p className="text-sm text-gray-400 italic">No submissions for this problem.</p>
                 ) : (
                   <ul className="space-y-2">
