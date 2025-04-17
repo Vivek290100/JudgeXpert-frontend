@@ -169,7 +169,6 @@ const ContestDetailsPage: React.FC = () => {
   }
 
   const restricted = isProblemAccessRestricted();
-  const problem = contest.problems[0];
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -242,41 +241,47 @@ const ContestDetailsPage: React.FC = () => {
           <div className="bg-card rounded-lg shadow-md p-4 border border-border mb-6">
             <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
               <Code2 className="w-5 h-5 mr-2" />
-              Problem
+              Problems
             </h2>
-            {problem ? (
-              <div
-                className={`flex items-center justify-between p-3 rounded-lg ${restricted
-                  ? "bg-gray-700/30 cursor-not-allowed"
-                  : "bg-gray-800/30 hover:bg-gray-800/50 cursor-pointer"
-                  } transition-colors`}
-                onClick={restricted ? undefined : () => handleProblemClick(problem)}
-              >
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium text-foreground">{problem.title}</h3>
-                  <p className="text-xs text-gray-400 capitalize">
-                    Difficulty: {problem.difficulty}
-                  </p>
-                </div>
-                <button
-                  className={`text-xs ${restricted
-                    ? "text-gray-500"
-                    : "text-blue-400 hover:text-blue-300"
-                    }`}
-                  disabled={restricted}
-                >
-                  {contestEnded
-                    ? "Contest Ended"
-                    : !isRegistered
-                      ? "Register to Solve"
-                      : !contestStarted
-                        ? "Starts Soon"
-                        : "Solve Now"}
-                </button>
-              </div>
+
+            {contest.problems.length > 0 ? (
+              contest.problems.map((problem) => {
+                const disabled = restricted || !problem.slug || problem.slug === "undefined";
+                return (
+                  <div
+                    key={problem._id}
+                    className={`flex items-center justify-between p-3 mb-2 rounded-lg ${disabled
+                        ? "bg-gray-700/30 cursor-not-allowed"
+                        : "bg-gray-800/30 hover:bg-gray-800/50 cursor-pointer"
+                      } transition-colors`}
+                    onClick={disabled ? undefined : () => handleProblemClick(problem)}
+                  >
+                    <div className="flex-1">
+                      <h3 className="text-sm font-medium text-foreground">{problem.title}</h3>
+                      <p className="text-xs text-gray-400 capitalize">
+                        Difficulty: {problem.difficulty}
+                      </p>
+                    </div>
+                    <button
+                      className={`text-xs ${disabled ? "text-gray-500" : "text-blue-400 hover:text-blue-300"
+                        }`}
+                      disabled={disabled}
+                    >
+                      {contestEnded
+                        ? "Contest Ended"
+                        : !isRegistered
+                          ? "Register to Solve"
+                          : !contestStarted
+                            ? "Starts Soon"
+                            : "Solve Now"}
+                    </button>
+                  </div>
+                );
+              })
             ) : (
-              <p className="text-sm text-gray-400 italic">No problem available for this contest.</p>
+              <p className="text-sm text-gray-400 italic">No problems available for this contest.</p>
             )}
+
             {restricted && (
               <p className="text-sm text-yellow-400 mt-4">
                 {!isRegistered

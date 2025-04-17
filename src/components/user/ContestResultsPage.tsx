@@ -15,6 +15,13 @@ interface Participant {
   userName: string;
 }
 
+interface Submission {
+  userId: string;
+  userName: string;
+  executionTime: number;
+  submittedAt: string;
+}
+
 interface Contest {
   _id: string;
   title: string;
@@ -22,6 +29,7 @@ interface Contest {
   endTime: string;
   problems: Problem[];
   participants: Participant[];
+  latestSubmissions: { [problemId: string]: Submission[] };
 }
 
 const ContestResultsPage: React.FC = () => {
@@ -39,7 +47,6 @@ const ContestResultsPage: React.FC = () => {
       }
 
       try {
-        // Fetch contest details with problems and participants
         const contestResponse = await apiRequest<{ success: boolean; data: { contest: Contest } }>(
           "get",
           `/contests/${contestId}`
@@ -89,10 +96,17 @@ const ContestResultsPage: React.FC = () => {
     });
   };
 
+  // Helper to get the latest submission's execution time for a participant and problem
+  const getExecutionTime = (userId: string, problemId: string): string => {
+    const submissions = contest.latestSubmissions[problemId] || [];
+    const submission = submissions.find((sub) => sub.userId === userId);
+    return submission ? `${submission.executionTime} ms` : "N/A";
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-primary">{contest.title} - Details</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary">{contest.title} - Results</h1>
         <Link
           to={`/user/contests/${contest._id}`}
           className="text-blue-500 hover:underline text-sm"
@@ -121,7 +135,7 @@ const ContestResultsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {/* Problems Section */}
         <div className="bg-card rounded-lg shadow-md p-4 border border-border">
           <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
@@ -138,7 +152,7 @@ const ContestResultsPage: React.FC = () => {
                   className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg"
                 >
                   <Link
-                    to={`/problems/${problem.slug}`}
+                    to={`/user/problems/${problem.slug}`}
                     className="text-blue-500 hover:underline"
                   >
                     {problem.title}
@@ -149,25 +163,51 @@ const ContestResultsPage: React.FC = () => {
           )}
         </div>
 
-        {/* Participants Section */}
+        {/* Participants and Submissions Section */}
         <div className="bg-card rounded-lg shadow-md p-4 border border-border">
           <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
             <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
-            Participants
+            Participants & Latest Submissions
           </h2>
           {contest.participants.length === 0 ? (
             <p className="text-sm text-gray-400 italic">No participants registered for this contest.</p>
           ) : (
-            <ul className="space-y-2">
-              {contest.participants.map((participant) => (
-                <li
-                  key={participant._id}
-                  className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg"
-                >
-                  <span className="font-medium">{participant.userName}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                  <tr>
+                    <th scope="col" className="px-6 py-3">Participant</th>
+                    {contest.problems.map((problem) => (
+                      <th key={problem._id} scope="col" className="px-6 py-3">
+                        <Link
+                          to={`/problems/${problem.slug}`}
+                          className="text-blue-500 hover:underline"
+                        >
+                          {problem.title}
+                        </Link>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {contest.participants.map((participant) => (
+                    <tr
+                      key={participant._id}
+                      className="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
+                    >
+                      <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                        {participant.userName}
+                      </td>
+                      {contest.problems.map((problem) => (
+                        <td key={problem._id} className="px-6 py-4">
+                          {getExecutionTime(participant._id, problem._id)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
