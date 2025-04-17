@@ -1,43 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { apiRequest } from "@/utils/axios/ApiRequest";
-import { Trophy, AlertCircle } from "lucide-react";
+import { Trophy, AlertCircle, Clock } from "lucide-react";
 import { ContestDetailsSkeleton } from "@/utils/SkeletonLoader";
 
 interface Problem {
   _id: string;
   title: string;
+  slug: string;
+}
+
+interface Participant {
+  _id: string;
+  userName: string;
 }
 
 interface Contest {
   _id: string;
   title: string;
+  startTime: string;
+  endTime: string;
   problems: Problem[];
-}
-
-interface TopParticipant {
-  userId: string;
-  userName: string;
-  executionTime: number;
-  submittedAt: string;
-}
-
-interface ProblemResults {
-  problemId: string;
-  problemTitle: string;
-  topParticipants: TopParticipant[];
-  error?: string;
+  participants: Participant[];
 }
 
 const ContestResultsPage: React.FC = () => {
   const { contestId } = useParams<{ contestId: string }>();
   const [contest, setContest] = useState<Contest | null>(null);
-  const [results, setResults] = useState<ProblemResults[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchContestAndResults = async () => {
+    const fetchContestDetails = async () => {
       if (!contestId) {
         setError("Invalid contest ID");
         setLoading(false);
@@ -45,68 +39,26 @@ const ContestResultsPage: React.FC = () => {
       }
 
       try {
+        // Fetch contest details with problems and participants
         const contestResponse = await apiRequest<{ success: boolean; data: { contest: Contest } }>(
           "get",
           `/contests/${contestId}`
         );
-        console.log("Contest Response:", contestResponse);
 
         if (contestResponse.success && contestResponse.data.contest) {
           setContest(contestResponse.data.contest);
-
-          const resultsPromises = contestResponse.data.contest.problems.map(async (problem) => {
-            const query = new URLSearchParams();
-            query.append("problemId", problem._id);
-            query.append("contestId", contestId);
-            try {
-              const response = await apiRequest<{ success: boolean; data: { topParticipants: TopParticipant[] } }>(
-                "get",
-                `/problems/top-participants?${query.toString()}`
-              );
-              console.log("Top Participants Response:", response);
-              if (response.success) {
-                return {
-                  problemId: problem._id,
-                  problemTitle: problem.title,
-                  topParticipants: response.data.topParticipants,
-                } as ProblemResults;
-              } else {
-                console.warn(`Failed to fetch top participants for problem ${problem._id}: ${response.success}`);
-                return {
-                  problemId: problem._id,
-                  problemTitle: problem.title,
-                  topParticipants: [] as TopParticipant[],
-                  error: "Failed to fetch top participants",
-                } as ProblemResults;
-              }
-            } catch (err: any) {
-              console.warn(`Top participants fetch error for problem ${problem._id}:`, err);
-              if (err.response?.data?.message === "Problem not found") {
-                return null;
-              }
-              return {
-                problemId: problem._id,
-                problemTitle: problem.title,
-                topParticipants: [] as TopParticipant[],
-                error: err.response?.data?.message || "Failed to fetch top participants",
-              } as ProblemResults;
-            }
-          });
-
-          const resultsData = (await Promise.all(resultsPromises)).filter((result): result is ProblemResults => result !== null);
-          setResults(resultsData);
         } else {
           setError("Failed to load contest details");
         }
       } catch (err: any) {
-        setError(err.response?.data?.message || "Failed to fetch contest results. Please try again.");
-        console.error("Fetch contest results error:", err);
+        setError(err.response?.data?.message || "Failed to fetch contest details. Please try again.");
+        console.error("Fetch contest error:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchContestAndResults();
+    fetchContestDetails();
   }, [contestId]);
 
   if (loading) {
@@ -127,10 +79,20 @@ const ContestResultsPage: React.FC = () => {
     );
   }
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-primary">{contest.title} - Results</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary">{contest.title} - Details</h1>
         <Link
           to={`/user/contests/${contest._id}`}
           className="text-blue-500 hover:underline text-sm"
@@ -139,46 +101,75 @@ const ContestResultsPage: React.FC = () => {
         </Link>
       </div>
 
-      <div className="bg-card rounded-lg shadow-md p-4 border border-border">
-        <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
-          <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
-          Leaderboard
-        </h2>
-        {results.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">No results available for this contest.</p>
-        ) : (
-          <div className="space-y-6">
-            {results.map((problemResult) => (
-              <div key={problemResult.problemId}>
-                <h3 className="text-md font-medium text-foreground mb-3">{problemResult.problemTitle}</h3>
-                {problemResult.error ? (
-                  <p className="text-sm text-red-400 italic">{problemResult.error}</p>
-                ) : problemResult.topParticipants.length === 0 ? (
-                  <p className="text-sm text-gray-400 italic">No submissions for this problem.</p>
-                ) : (
-                  <ul className="space-y-2">
-                    {problemResult.topParticipants.map((participant, index) => (
-                      <li
-                        key={participant.userId}
-                        className="flex justify-between items-center p-2 bg-gray-100 dark:bg-gray-800 rounded-lg"
-                      >
-                        <div>
-                          <span className="font-medium">{index + 1}. {participant.userName}</span>
-                          <p className="text-xs text-gray-400">
-                            Submitted: {new Date(participant.submittedAt).toLocaleString()}
-                          </p>
-                        </div>
-                        <p className="text-sm text-blue-500">
-                          {participant.executionTime} ms
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
+      <div className="bg-card rounded-lg shadow-md p-4 border border-border mb-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-primary mb-2">Contest Information</h2>
+            <div className="text-sm text-gray-400 space-y-1">
+              <p className="flex items-center">
+                <Clock className="w-4 h-4 mr-2" />
+                <span>Start: {formatDate(contest.startTime)}</span>
+              </p>
+              <p className="flex items-center">
+                <Clock className="w-4 h-4 mr-2" />
+                <span>End: {formatDate(contest.endTime)}</span>
+              </p>
+              <p>Problems: {contest.problems.length}</p>
+              <p>Participants: {contest.participants.length}</p>
+            </div>
           </div>
-        )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Problems Section */}
+        <div className="bg-card rounded-lg shadow-md p-4 border border-border">
+          <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
+            <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
+            Problems
+          </h2>
+          {contest.problems.length === 0 ? (
+            <p className="text-sm text-gray-400 italic">No problems available for this contest.</p>
+          ) : (
+            <ul className="space-y-2">
+              {contest.problems.map((problem) => (
+                <li
+                  key={problem._id}
+                  className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg"
+                >
+                  <Link
+                    to={`/problems/${problem.slug}`}
+                    className="text-blue-500 hover:underline"
+                  >
+                    {problem.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Participants Section */}
+        <div className="bg-card rounded-lg shadow-md p-4 border border-border">
+          <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
+            <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
+            Participants
+          </h2>
+          {contest.participants.length === 0 ? (
+            <p className="text-sm text-gray-400 italic">No participants registered for this contest.</p>
+          ) : (
+            <ul className="space-y-2">
+              {contest.participants.map((participant) => (
+                <li
+                  key={participant._id}
+                  className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg"
+                >
+                  <span className="font-medium">{participant.userName}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   );

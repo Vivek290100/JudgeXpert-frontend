@@ -6,19 +6,13 @@ import { cpp } from "@codemirror/lang-cpp";
 import { javascript } from "@codemirror/lang-javascript";
 import { useTheme } from "@/contexts/ThemeContext";
 import { SUPPORTED_LANGUAGES } from "@/utils/Languages";
-import { Play, Send, ChevronDown, ChevronUp, Loader2, Trophy, Award } from "lucide-react";
+import { Play, Send, ChevronDown, ChevronUp, Loader2, Award } from "lucide-react";
 import toast from "react-hot-toast";
 import { IProblem, ProblemApiResponse, SubmissionApiResponse } from "@/types/ProblemTypes";
 import { Difficulty } from "@/utils/Enums";
 import { ProblemEditorSkeleton } from "@/utils/SkeletonLoader";
 import Discussion from "./Discussion";
 
-interface TopParticipant {
-  userId: string;
-  userName: string;
-  executionTime: number;
-  submittedAt: string;
-}
 
 interface Contest {
   _id: string;
@@ -45,7 +39,6 @@ const ProblemEditor: React.FC = () => {
   const [testResults, setTestResults] = useState<SubmissionApiResponse["data"]["results"]>([]);
   const { theme } = useTheme();
   const [executionStats, setExecutionStats] = useState<{ executionTime: number } | null>(null);
-  const [topParticipants, setTopParticipants] = useState<TopParticipant[]>([]);
 
   useEffect(() => {
     const fetchProblem = async () => {
@@ -95,27 +88,9 @@ const ProblemEditor: React.FC = () => {
       }
     };
 
-    const fetchTopParticipants = async () => {
-      if (!problem?._id) return;
-      try {
-        const query = new URLSearchParams();
-        query.append("problemId", problem._id);
-        if (contestId) query.append("contestId", contestId);
-        const response = await apiRequest<{ success: boolean; data: { topParticipants: TopParticipant[] } }>(
-          "get",
-          `/problems/top-participants${query.toString() ? `?${query.toString()}` : ""}`
-        );
-        if (response.success) {
-          setTopParticipants(response.data.topParticipants);
-        }
-      } catch (err) {
-        console.error("Failed to fetch top participants:", err);
-      }
-    };
 
     fetchProblem();
     fetchContest();
-    fetchTopParticipants();
   }, [slug, problem?._id, contestId]);
 
   useEffect(() => {
@@ -409,33 +384,6 @@ const ProblemEditor: React.FC = () => {
               )}
             </div>
 
-            {/* Top Participants Leaderboard */}
-            {topParticipants.length > 0 && (
-              <div className="mt-6">
-                <h2 className="text-lg font-semibold mb-4 flex items-center">
-                  <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
-                  Top 5 Fastest Solvers
-                </h2>
-                <ul className="space-y-2">
-                  {topParticipants.map((participant, index) => (
-                    <li
-                      key={participant.userId}
-                      className="flex justify-between items-center p-2 bg-gray-100 dark:bg-gray-800 rounded-lg"
-                    >
-                      <div>
-                        <span className="font-medium">{index + 1}. {participant.userName}</span>
-                        <p className="text-xs text-gray-400">
-                          Submitted: {new Date(participant.submittedAt).toLocaleString()}
-                        </p>
-                      </div>
-                      <p className="text-sm text-blue-500">
-                        {participant.executionTime} ms
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
 
             {problem && <Discussion problemId={problem._id} problemTitle={problem.title} />}
           </div>

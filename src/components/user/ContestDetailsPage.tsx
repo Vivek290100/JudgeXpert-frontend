@@ -13,13 +13,6 @@ interface Problem {
   slug: string;
 }
 
-interface TopParticipant {
-  userId: string;
-  userName: string;
-  executionTime: number;
-  submittedAt: string;
-}
-
 interface Contest {
   _id: string;
   title: string;
@@ -41,9 +34,8 @@ const ContestDetailsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [contestEnded, setContestEnded] = useState(false);
+  const [contestStarted, setContestStarted] = useState(false);
   const [isRegistered, setIsRegistered] = useState<boolean>(false);
-  const [topParticipants, setTopParticipants] = useState<TopParticipant[]>([]);
-  const [topParticipantsError, setTopParticipantsError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -63,30 +55,6 @@ const ContestDetailsPage: React.FC = () => {
         if (response.success && response.data.contest) {
           setContest(response.data.contest);
           console.log("Loaded contest:", response.data.contest);
-
-          if (response.data.contest.problems.length > 0) {
-            const problem = response.data.contest.problems[0];
-            const query = new URLSearchParams();
-            query.append("problemId", problem._id);
-            query.append("contestId", contestId);
-            try {
-              const topResponse = await apiRequest<{ success: boolean; data: { topParticipants: TopParticipant[] } }>(
-                "get",
-                `/problems/top-participants?${query.toString()}`
-              );
-              console.log("toparticipants response", topResponse);
-
-              
-              if (topResponse.success) {
-                setTopParticipants(topResponse.data.topParticipants.slice(0, 5));
-              } else {
-                setTopParticipantsError("Failed to fetch top participants");
-              }
-            } catch (err: any) {
-              setTopParticipantsError(err.response?.data?.message || "Failed to fetch top participants");
-              console.error("Top participants fetch error:", err);
-            }
-          }
         } else {
           setError(response.message || "Failed to load contest details");
         }
@@ -103,7 +71,7 @@ const ContestDetailsPage: React.FC = () => {
       try {
         const response = await apiRequest<ApiResponse<{ contestIds: string[] }>>(
           "get",
-          "/user/registered-contests"
+          "/registered-contests"
         );
         console.log("Registered contests response:", response);
         if (response.success && response.data) {
@@ -133,12 +101,15 @@ const ContestDetailsPage: React.FC = () => {
       if (now < start) {
         targetTime = start;
         prefix = "Starts in: ";
+        setContestStarted(false);
       } else if (now <= end) {
         targetTime = end;
         prefix = "Ends in: ";
+        setContestStarted(true);
       } else {
         setTimeLeft("Contest has ended");
         setContestEnded(true);
+        setContestStarted(true); // Contest was started in the past
         return;
       }
 
@@ -146,6 +117,7 @@ const ContestDetailsPage: React.FC = () => {
       if (diff <= 0) {
         setTimeLeft("Contest has ended");
         setContestEnded(true);
+        setContestStarted(true);
         return;
       }
 
@@ -174,8 +146,8 @@ const ContestDetailsPage: React.FC = () => {
   };
 
   const isProblemAccessRestricted = () => {
-    if (contestEnded) return false;
-    return !isRegistered;
+    if (contestEnded) return true;
+    return !isRegistered || !contestStarted;
   };
 
   if (loading) {
@@ -274,13 +246,11 @@ const ContestDetailsPage: React.FC = () => {
             </h2>
             {problem ? (
               <div
-                className={`flex items-center justify-between p-3 rounded-lg ${contestEnded || restricted
-                    ? "bg-gray-700/30 cursor-not-allowed"
-                    : "bg-gray-800/30 hover:bg-gray-800/50 cursor-pointer"
+                className={`flex items-center justify-between p-3 rounded-lg ${restricted
+                  ? "bg-gray-700/30 cursor-not-allowed"
+                  : "bg-gray-800/30 hover:bg-gray-800/50 cursor-pointer"
                   } transition-colors`}
-                onClick={
-                  contestEnded || restricted ? undefined : () => handleProblemClick(problem)
-                }
+                onClick={restricted ? undefined : () => handleProblemClick(problem)}
               >
                 <div className="flex-1">
                   <h3 className="text-sm font-medium text-foreground">{problem.title}</h3>
@@ -289,59 +259,32 @@ const ContestDetailsPage: React.FC = () => {
                   </p>
                 </div>
                 <button
-                  className={`text-xs ${contestEnded || restricted
-                      ? "text-gray-500"
-                      : "text-blue-400 hover:text-blue-300"
+                  className={`text-xs ${restricted
+                    ? "text-gray-500"
+                    : "text-blue-400 hover:text-blue-300"
                     }`}
-                  disabled={contestEnded || restricted}
+                  disabled={restricted}
                 >
                   {contestEnded
                     ? "Contest Ended"
-                    : restricted
+                    : !isRegistered
                       ? "Register to Solve"
-                      : "Solve Now"}
+                      : !contestStarted
+                        ? "Starts Soon"
+                        : "Solve Now"}
                 </button>
               </div>
             ) : (
               <p className="text-sm text-gray-400 italic">No problem available for this contest.</p>
             )}
-            {restricted && !contestEnded && (
+            {restricted && (
               <p className="text-sm text-yellow-400 mt-4">
-                You must register for this contest to solve the problem. Go back to the contests page to register.
+                {!isRegistered
+                  ? "You must register for this contest to solve the problem. Go back to the contests page to register."
+                  : "The contest has not started yet. Please wait for the contest to begin."}
               </p>
             )}
           </div>
-
-          {problem && (
-            <div className="bg-card rounded-lg shadow-md p-4 border border-border">
-              <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
-                <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
-                Top Participants (Based on Latest Submissions)
-              </h2>
-              {topParticipantsError ? (
-                <p className="text-sm text-red-400 italic">{topParticipantsError}</p>
-              ) : topParticipants.length === 0 ? (
-                <p className="text-sm text-gray-400 italic">No submissions yet for this problem.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {topParticipants.map((participant, index) => (
-                    <li
-                      key={participant.userId}
-                      className="flex justify-between items-center p-2 bg-gray-100 dark:bg-gray-800 rounded-lg"
-                    >
-                      <div>
-                        <span className="font-medium">{index + 1}. {participant.userName}</span>
-                        <p className="text-xs text-gray-400">
-                          Submitted: {new Date(participant.submittedAt).toLocaleString()}
-                        </p>
-                      </div>
-                      <p className="text-sm text-blue-500">{participant.executionTime} ms</p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </div>
