@@ -323,7 +323,7 @@ const ContestsPage: React.FC = () => {
                   return (
                     <div
                       key={contest._id}
-                      className="bg-card rounded-xl shadow-sm border border-gray-700 hover:shadow-md hover:border-blue-900/50 transition-all"
+                      className="bg-card rounded-xl shadow-sm border hover:shadow-md hover:border-blue-900/50 transition-all"
                     >
                       <div className="p-4">
                         {/* Title and Status */}

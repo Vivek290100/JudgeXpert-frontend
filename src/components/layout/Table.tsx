@@ -44,7 +44,7 @@ const Table = <T,>({
               <tr
                 key={index}
                 onClick={() => onRowClick?.(item)}
-                className={`transition-colors ${onRowClick ? "cursor-pointer" : ""} ${
+                className={`transition-colors ${onRowClick ? "" : ""} ${
                   theme === "dark" ? "hover:bg-gray-800" : "hover:bg-gray-100"
                 } ${rowClassName}`}
               >

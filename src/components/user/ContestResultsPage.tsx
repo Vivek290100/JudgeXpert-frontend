@@ -1,43 +1,58 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { apiRequest } from "@/utils/axios/ApiRequest";
-import { Trophy, AlertCircle } from "lucide-react";
+import { Trophy, AlertCircle, Clock, X } from "lucide-react";
 import { ContestDetailsSkeleton } from "@/utils/SkeletonLoader";
+import { Tooltip } from "react-tooltip";
+import { FaMedal } from "react-icons/fa";
 
 interface Problem {
   _id: string;
   title: string;
+  slug: string;
+  difficulty: "EASY" | "MEDIUM" | "HARD";
 }
 
-interface Contest {
+interface Participant {
   _id: string;
-  title: string;
-  problems: Problem[];
+  userName: string;
 }
 
-interface TopParticipant {
+interface Submission {
   userId: string;
   userName: string;
   executionTime: number;
   submittedAt: string;
 }
 
-interface ProblemResults {
-  problemId: string;
-  problemTitle: string;
-  topParticipants: TopParticipant[];
-  error?: string;
+interface Contest {
+  _id: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  problems: Problem[];
+  participants: Participant[];
+  latestSubmissions: { [problemId: string]: Submission[] };
+}
+
+interface LeaderboardEntry extends Participant {
+  problemsSolved: number;
+  score: number;
+  totalExecutionTime: number;
+  solvedProblems: { [problemId: string]: number };
 }
 
 const ContestResultsPage: React.FC = () => {
   const { contestId } = useParams<{ contestId: string }>();
   const [contest, setContest] = useState<Contest | null>(null);
-  const [results, setResults] = useState<ProblemResults[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showProblems, setShowProblems] = useState(false);
+  const [selectedParticipant, setSelectedParticipant] = useState<LeaderboardEntry | null>(null);
 
   useEffect(() => {
-    const fetchContestAndResults = async () => {
+    const fetchContestDetails = async () => {
       if (!contestId) {
         setError("Invalid contest ID");
         setLoading(false);
@@ -49,65 +64,90 @@ const ContestResultsPage: React.FC = () => {
           "get",
           `/contests/${contestId}`
         );
-        console.log("Contest Response:", contestResponse);
 
         if (contestResponse.success && contestResponse.data.contest) {
           setContest(contestResponse.data.contest);
-
-          const resultsPromises = contestResponse.data.contest.problems.map(async (problem) => {
-            const query = new URLSearchParams();
-            query.append("problemId", problem._id);
-            query.append("contestId", contestId);
-            try {
-              const response = await apiRequest<{ success: boolean; data: { topParticipants: TopParticipant[] } }>(
-                "get",
-                `/problems/top-participants?${query.toString()}`
-              );
-              console.log("Top Participants Response:", response);
-              if (response.success) {
-                return {
-                  problemId: problem._id,
-                  problemTitle: problem.title,
-                  topParticipants: response.data.topParticipants,
-                } as ProblemResults;
-              } else {
-                console.warn(`Failed to fetch top participants for problem ${problem._id}: ${response.success}`);
-                return {
-                  problemId: problem._id,
-                  problemTitle: problem.title,
-                  topParticipants: [] as TopParticipant[],
-                  error: "Failed to fetch top participants",
-                } as ProblemResults;
-              }
-            } catch (err: any) {
-              console.warn(`Top participants fetch error for problem ${problem._id}:`, err);
-              if (err.response?.data?.message === "Problem not found") {
-                return null;
-              }
-              return {
-                problemId: problem._id,
-                problemTitle: problem.title,
-                topParticipants: [] as TopParticipant[],
-                error: err.response?.data?.message || "Failed to fetch top participants",
-              } as ProblemResults;
-            }
-          });
-
-          const resultsData = (await Promise.all(resultsPromises)).filter((result): result is ProblemResults => result !== null);
-          setResults(resultsData);
         } else {
           setError("Failed to load contest details");
         }
       } catch (err: any) {
-        setError(err.response?.data?.message || "Failed to fetch contest results. Please try again.");
-        console.error("Fetch contest results error:", err);
+        setError(err.response?.data?.message || "Failed to fetch contest details.");
+        console.error("Fetch contest error:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchContestAndResults();
+    fetchContestDetails();
   }, [contestId]);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  const getDifficultyMultiplier = (difficulty: string): number => {
+    switch (difficulty.toUpperCase()) {
+      case "EASY": return 1;
+      case "MEDIUM": return 2;
+      case "HARD": return 3;
+      default: return 1;
+    }
+  };
+
+  const leaderboard: LeaderboardEntry[] = useMemo(() => {
+    if (!contest) return [];
+    return contest.participants
+      .map((participant) => {
+        let problemsSolved = 0;
+        let score = 0;
+        let totalExecutionTime = 0;
+        const solvedProblems: { [problemId: string]: number } = {};
+
+        contest.problems.forEach((problem) => {
+          const submissions = contest.latestSubmissions[problem._id] || [];
+          const submission = submissions.find((sub) => sub.userId === participant._id);
+
+          if (submission) {
+            problemsSolved++;
+            const difficultyMultiplier = getDifficultyMultiplier(problem.difficulty);
+            score += 100 * difficultyMultiplier;
+            totalExecutionTime += submission.executionTime;
+            solvedProblems[problem._id] = submission.executionTime;
+          }
+        });
+
+        return {
+          ...participant,
+          problemsSolved,
+          score,
+          totalExecutionTime,
+          solvedProblems,
+        };
+      })
+      .filter((participant) => participant.problemsSolved > 0) // Only include participants with at least one problem solved
+      .sort((a, b) => {
+        if (b.problemsSolved !== a.problemsSolved) return b.problemsSolved - a.problemsSolved;
+        if (b.score !== a.score) return b.score - a.score;
+        return a.totalExecutionTime - b.totalExecutionTime;
+      })
+      .slice(0, 5); // Top 5
+  }, [contest]);
+
+  const handleRowClick = (participant: LeaderboardEntry) => {
+    if (showDetails) {
+      setSelectedParticipant(participant);
+    }
+  };
+
+  const closeModal = () => {
+    setSelectedParticipant(null);
+  };
 
   if (loading) {
     return <ContestDetailsSkeleton />;
@@ -128,58 +168,223 @@ const ContestResultsPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-primary">{contest.title} - Results</h1>
+    <div className="container mx-auto px-4 py-8 bg-background min-h-screen">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white flex items-center">
+          {contest.title} - Results
+        </h1>
         <Link
           to={`/user/contests/${contest._id}`}
-          className="text-blue-500 hover:underline text-sm"
+          className="text-blue-500 hover:text-blue-600 font-medium flex items-center"
         >
-          ← Back to Contest
+          <span className="mr-1">←</span> Back to Contest
         </Link>
       </div>
 
-      <div className="bg-card rounded-lg shadow-md p-4 border border-border">
-        <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
-          <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
-          Leaderboard
-        </h2>
-        {results.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">No results available for this contest.</p>
-        ) : (
-          <div className="space-y-6">
-            {results.map((problemResult) => (
-              <div key={problemResult.problemId}>
-                <h3 className="text-md font-medium text-foreground mb-3">{problemResult.problemTitle}</h3>
-                {problemResult.error ? (
-                  <p className="text-sm text-red-400 italic">{problemResult.error}</p>
-                ) : problemResult.topParticipants.length === 0 ? (
-                  <p className="text-sm text-gray-400 italic">No submissions for this problem.</p>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Sidebar: Contest Details */}
+        <div className="lg:col-span-1">
+          <div className="bg-card rounded-xl shadow-lg p-6 sticky top-6 border">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Contest Details</h2>
+            <div className="text-sm text-gray-600 dark:text-gray-300 space-y-3">
+              <p className="flex items-center">
+                <Clock className="w-5 h-5 mr-2 text-blue-500" />
+                <span><strong>Start:</strong> {formatDate(contest.startTime)}</span>
+              </p>
+              <p className="flex items-center">
+                <Clock className="w-5 h-5 mr-2 text-blue-500" />
+                <span><strong>End:</strong> {formatDate(contest.endTime)}</span>
+              </p>
+              <p><strong>Problems:</strong> {contest.problems.length}</p>
+              <p><strong>Participants:</strong> {contest.participants.length}</p>
+            </div>
+            <hr className="my-4 border" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Scoring Rules</h3>
+            <ul className="text-sm text-gray-600 dark:text-gray-300 list-disc pl-5 space-y-1">
+              <li>EASY: 100 points</li>
+              <li>MEDIUM: 200 points</li>
+              <li>HARD: 300 points</li>
+              <li>Tiebreaker: Total execution time</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="lg:col-span-3 space-y-6">
+          {/* Problems Section */}
+          <div className="bg-card rounded-xl shadow-lg p-6 border">
+            <button
+              onClick={() => setShowProblems(!showProblems)}
+              className="w-full flex justify-between items-center text-lg font-semibold text-gray-900 dark:text-white mb-4"
+            >
+              <span className="flex items-center">
+                Problems ({contest.problems.length})
+              </span>
+              <span>{showProblems ? "▲" : "▼"}</span>
+            </button>
+            {showProblems && (
+              <div className="max-h-96 overflow-y-auto">
+                {contest.problems.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">No problems available.</p>
                 ) : (
-                  <ul className="space-y-2">
-                    {problemResult.topParticipants.map((participant, index) => (
+                  <ul className="space-y-3">
+                    {contest.problems.map((problem) => (
                       <li
-                        key={participant.userId}
-                        className="flex justify-between items-center p-2 bg-gray-100 dark:bg-gray-800 rounded-lg"
+                        key={problem._id}
+                        className="p-3 bg-gray-700/30 rounded-lg flex justify-between items-center hover:bg-gray-800/20 dark:hover:bg-gray-800/20 transition"
+                        data-tooltip-id="difficulty-tooltip"
+                        data-tooltip-content={`Difficulty: ${problem.difficulty}`}
                       >
-                        <div>
-                          <span className="font-medium">{index + 1}. {participant.userName}</span>
-                          <p className="text-xs text-gray-400">
-                            Submitted: {new Date(participant.submittedAt).toLocaleString()}
-                          </p>
-                        </div>
-                        <p className="text-sm text-blue-500">
-                          {participant.executionTime} ms
-                        </p>
+                        <Link
+                          to={`/user/problems/${problem.slug}`}
+                          className="text-blue-500 hover:text-blue-600 font-medium"
+                        >
+                          {problem.title}
+                        </Link>
                       </li>
                     ))}
                   </ul>
                 )}
               </div>
-            ))}
+            )}
+            <Tooltip id="difficulty-tooltip" />
           </div>
-        )}
+
+          {/* Leaderboard Section */}
+          <div className="bg-card rounded-xl shadow-lg p-6 border">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
+                Top 5 Leaderboard
+              </h2>
+              {contest.problems.length > 0 && (
+                <button
+                  onClick={() => setShowDetails(!showDetails)}
+                  className="text-sm text-blue-500 hover:text-blue-600"
+                >
+                  {showDetails ? "Hide Details" : "Show Details"}
+                </button>
+              )}
+            </div>
+
+            {leaderboard.length === 0 ? (
+              <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                No participants have solved any problems.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                  <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                    <tr>
+                      <th className="px-6 py-3">Rank</th>
+                      <th className="px-6 py-3">Participant</th>
+                      <th className="px-6 py-3">Solved</th>
+                      <th className="px-6 py-3">Score</th>
+                      {showDetails && <th className="px-6 py-3">Total Time</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {leaderboard.map((participant, index) => (
+                      <tr
+                        key={participant._id}
+                        className={`border-b dark:border-gray-700 ${
+                          index < 3 ? "bg-card" : "bg-white dark:bg-gray-800"
+                        } hover:bg-gray-50 dark:hover:bg-gray-700/20 transition ${
+                          showDetails ? "cursor-pointer" : ""
+                        }`}
+                        onClick={() => handleRowClick(participant)}
+                      >
+                        <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                          <div className="flex items-center">
+                            {index === 0 && <FaMedal className="w-4 h-4 mr-1 text-yellow-500" />}
+                            {index === 1 && <FaMedal className="w-4 h-4 mr-1 text-gray-400" />}
+                            {index === 2 && <FaMedal className="w-4 h-4 mr-1 text-orange-400" />}
+                            {index + 1}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                          {participant.userName}
+                        </td>
+                        <td className="px-6 py-4">{participant.problemsSolved}</td>
+                        <td className="px-6 py-4">{participant.score}</td>
+                        {showDetails && (
+                          <td className="px-6 py-4">
+                            {participant.totalExecutionTime > 0
+                              ? `${participant.totalExecutionTime} ms`
+                              : "N/A"}
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Modal for Participant Problem Details */}
+      {selectedParticipant && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                {selectedParticipant.userName}'s Problem Details
+              </h3>
+              <button
+                onClick={closeModal}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              {contest.problems.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400 italic">No problems available.</p>
+              ) : (
+                <ul className="space-y-3">
+                  {contest.problems.map((problem) => (
+                    <li
+                      key={problem._id}
+                      className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg flex justify-between items-center"
+                      data-tooltip-id="difficulty-tooltip-modal"
+                      data-tooltip-content={`Difficulty: ${problem.difficulty}`}
+                    >
+                      <Link
+                        to={`/user/problems/${problem.slug}`}
+                        className="text-blue-500 hover:text-blue-600 font-medium"
+                      >
+                        {problem.title}
+                      </Link>
+                      <div className="flex items-center space-x-3">
+                        <span
+                          className={`text-xs font-medium px-2 py-1 rounded ${
+                            problem.difficulty === "EASY"
+                              ? "bg-green-100 text-green-800"
+                              : problem.difficulty === "MEDIUM"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {problem.difficulty}
+                        </span>
+                        <span className="text-sm text-gray-600 dark:text-gray-300">
+                          {selectedParticipant.solvedProblems[problem._id] !== undefined
+                            ? `${selectedParticipant.solvedProblems[problem._id]} ms`
+                            : "N/A"}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <Tooltip id="difficulty-tooltip-modal" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

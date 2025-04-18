@@ -95,6 +95,9 @@ const Navbar = () => {
                     <Link to="/user/leaderboard">Leaderboard</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link to="/user/contests/winners">Contest Winners</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link to="/user/contests">Contests</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

@@ -2,12 +2,12 @@
 import { Difficulty, ProblemStatus, Status } from "@/utils/Enums";
 import { ReactNode } from "react";
 
-  export interface TestCase {
-    _id: string;
-    input: string;
-    output: string;
-    index: number;
-  }
+  // export interface TestCase {
+  //   _id: string;
+  //   input: string;
+  //   output: string;
+  //   index: number;
+  // }
   
   export interface IProblem {
   id: string;

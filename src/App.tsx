@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
 import PublicRoutes from "./routes/PublicRoutes";
 import UserRoutes from "./routes/UserRoutes";
@@ -11,6 +11,19 @@ import NotFound from "@/components/layout/NotFound";
 import { Toaster } from "react-hot-toast";
 
 const App = () => {
+  // useEffect(() => {
+  //   document.addEventListener("contextmenu", (event) => event.preventDefault());
+  //   const keydownHandler = (event: { key: string; ctrlKey: any; shiftKey: any; preventDefault: () => void; }) => {
+  //     if (event.key === "F12" || (event.ctrlKey && event.shiftKey && event.key === "I")) {
+  //       event.preventDefault();
+  //     }
+  //   };
+  //   window.addEventListener("keydown", keydownHandler);
+  //   return () => {
+  //     document.removeEventListener("contextmenu", (event) => event.preventDefault());
+  //     window.removeEventListener("keydown", keydownHandler);
+  //   };
+  // }, []);
   return (
     <>
       <Routes>
