@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { apiRequest } from "@/utils/axios/ApiRequest";
 import Table from "@/components/layout/Table";
 import Pagination from "@/components/layout/Pagination";
 import { useTheme } from "@/contexts/ThemeContext";
 import { ApiResponse } from "@/types/ProblemTypes";
 import { Column } from "@/types/ComponentsTypes";
-import { AlertCircle, Activity, Users } from "lucide-react";
+import { AlertCircle, Users } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/Store";
 import { TableSkeleton } from "@/utils/SkeletonLoader";
 import { FaMedal } from "react-icons/fa";
+
+interface AuthUser {
+  _id: string;
+  userName: string;
+  profileImage: string;
+}
 
 interface Problem {
   _id: string;
@@ -73,7 +79,8 @@ interface UserContestStats {
 
 const ContestsWinners: React.FC = () => {
   const { theme } = useTheme();
-  const user = useSelector((state: RootState) => state.auth.user);
+  const user = useSelector((state: RootState) => state.auth.user) as AuthUser | null;
+  const navigate = useNavigate();
   const [contests, setContests] = useState<Contest[]>([]);
   const [winners, setWinners] = useState<{ [contestId: string]: LeaderboardEntry | null }>({});
   const [loading, setLoading] = useState(false);
@@ -110,7 +117,6 @@ const ContestsWinners: React.FC = () => {
             endedContests: response.data.endedContests,
           }));
 
-          // Fetch winners for ended contests
           const endedContests = unblockedContests.filter(
             (contest) => new Date(contest.endTime) < new Date()
           );
@@ -132,6 +138,7 @@ const ContestsWinners: React.FC = () => {
           });
 
           const winnerResults = await Promise.all(winnerPromises);
+          console.log("Winner Results:", winnerResults);
           const winnersMap = winnerResults.reduce(
             (acc, { contestId, winner }) => ({
               ...acc,
@@ -161,7 +168,6 @@ const ContestsWinners: React.FC = () => {
         return;
       }
       try {
-        // Fetch user's participated contests
         const registeredResponse = await apiRequest<ApiResponse<{ contestIds: string[] }>>(
           "get",
           "/registered-contests"
@@ -174,7 +180,6 @@ const ContestsWinners: React.FC = () => {
           }));
         }
 
-        // Fetch contests won by the user
         const contestsResponse = await apiRequest<ApiResponse<ContestsResponse>>(
           "get",
           `/contests?page=1&limit=1000`
@@ -192,7 +197,7 @@ const ContestsWinners: React.FC = () => {
               }>("get", `/contests/${contest._id}`);
               if (contestResponse.success && contestResponse.data.contest) {
                 const leaderboard = computeLeaderboard(contestResponse.data.contest);
-                if (leaderboard[0]?.userName === user.userName) {
+                if (leaderboard[0]?.userName && user.userName && leaderboard[0].userName === user.userName) {
                   contestsWon++;
                 }
               }
@@ -253,7 +258,7 @@ const ContestsWinners: React.FC = () => {
         if (b.score !== a.score) return b.score - a.score;
         return a.totalExecutionTime - b.totalExecutionTime;
       })
-      .slice(0, 1); // Only need the winner
+      .slice(0, 1);
   };
 
   const getDifficultyMultiplier = (difficulty: string): number => {
@@ -271,7 +276,7 @@ const ContestsWinners: React.FC = () => {
     const end = new Date(contest.endTime);
     if (now < start) return "Upcoming";
     if (now <= end) return "Active";
-    return "Ended";
+    return "Completed";
   };
 
   const formatDate = (dateString: string): string => {
@@ -295,12 +300,7 @@ const ContestsWinners: React.FC = () => {
     return (
       <div className="flex items-center">
         <FaMedal className="w-4 h-4 mr-1 text-yellow-500" />
-        <Link
-          to={`/user/contests/${contestId}/results`}
-          className="text-blue-500 hover:text-blue-600"
-        >
-          {winner.userName}
-        </Link>
+        <span className="text-gray-900 dark:text-white">{winner.userName}</span>
       </div>
     );
   };
@@ -310,13 +310,9 @@ const ContestsWinners: React.FC = () => {
       key: "title",
       header: "Contest",
       render: (item: Contest) => (
-        <Link
-          to={`/user/contests/${item._id}`}
-          className="text-blue-500 hover:text-blue-600 font-medium"
-          title={item.title}
-        >
+        <span title={item.title} className="text-gray-900 dark:text-white font-medium">
           {truncateContestName(item.title)}
-        </Link>
+        </span>
       ),
     },
     {
@@ -329,7 +325,7 @@ const ContestsWinners: React.FC = () => {
             className={`text-xs font-medium px-2 py-1 rounded ${
               status === "Active"
                 ? "bg-green-100 text-green-800"
-                : status === "Ended"
+                : status === "Completed"
                 ? "bg-gray-100 text-gray-800"
                 : "bg-yellow-100 text-yellow-800"
             }`}
@@ -362,13 +358,17 @@ const ContestsWinners: React.FC = () => {
     {
       key: "winner",
       header: "Winner",
+      // FIXED: Changed "Ended" to "Completed" to match getContestStatus
       render: (item: Contest) =>
-        getContestStatus(item) === "Ended" ? renderWinnerBadge(item._id) : <span className="text-gray-500">N/A</span>,
+        getContestStatus(item) === "Completed" ? renderWinnerBadge(item._id) : <span className="text-gray-500">N/A</span>,
     },
   ];
 
   const handleRowClick = (item: Contest) => {
-    console.log("Clicked on contest:", item);
+    // FIXED: Changed "Ended" to "Completed" to match getContestStatus
+    if (getContestStatus(item) === "Completed") {
+      navigate(`/user/contests/${item._id}`);
+    }
   };
 
   const handlePageChange = (page: number) => {
@@ -399,10 +399,17 @@ const ContestsWinners: React.FC = () => {
         <div className="flex flex-col md:flex-row gap-4">
           {/* Sidebar */}
           <div className="w-full md:w-64 flex flex-col gap-4">
-            {/* Contest Participation */}
             <div className="bg-card rounded-lg shadow-md p-4 border border-border">
-              <h2 className="text-lg font-bold mb-3 flex items-center">
-                <Activity className="w-5 h-5 mr-2 text-blue-500" />
+              <h2 className="text-lg font-bold mb-3 flex items-center gap-3">
+                {user ? (
+                  <img
+                    src={user.profileImage}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full border-2 object-cover"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full border-2 bg-gray-200 dark:bg-gray-700" />
+                )}
                 Contest Participation
               </h2>
               <div className="flex items-center justify-between mb-2">
@@ -449,7 +456,12 @@ const ContestsWinners: React.FC = () => {
                   columns={columns}
                   onRowClick={handleRowClick}
                   emptyMessage="No contests available"
-                  rowClassName={theme === "dark" ? "text-white" : "text-gray-900"}
+                  // CHANGED: Added cursor-pointer for completed contests
+                  rowClassName={
+                    theme === "dark"
+                      ? "text-white cursor-pointer hover:bg-gray-800"
+                      : "text-gray-900 cursor-pointer hover:bg-gray-100"
+                  }
                 />
                 {totalPages > 1 && (
                   <div className="mt-6">
