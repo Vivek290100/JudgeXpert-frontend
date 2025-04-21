@@ -14,7 +14,7 @@ const Table = <T,>({
   const { theme } = useTheme();
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm ">
+    <div className="overflow-x-auto rounded-lg dark:border-gray-700 shadow-sm ">
       <table className="w-full">
         <thead className="bg-gray-50 dark:bg-gray-800">
           <tr>

@@ -18,9 +18,7 @@ import toast from "react-hot-toast";
 
 const Navbar = () => {
   const user = useSelector((state: RootState) => state.auth.user);
-
   const navigate = useNavigate();
-
   const dispatch = useDispatch<AppDispatch>();
   const { isMenuOpen, setIsMenuOpen } = useNavigation();
 
@@ -39,7 +37,6 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/">
-
             <div className="flex items-center gap-2">
               <Code2 className="w-7 h-7 text-primary" />
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-blue-800 bg-clip-text text-transparent">
@@ -51,19 +48,24 @@ const Navbar = () => {
               </span>
             </div>
           </Link>
-          <div className="hidden md:flex items-center gap-8">
-            <Link
-              to="/user/problems"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Problems
-            </Link>
-            <Link
-              to="/pricing"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Pricing
-            </Link>
+
+          <div className="hidden md:flex items-center gap-6">
+            {user && (
+              <>
+                <Link to="/user/problems" className="text-muted-foreground hover:text-foreground">
+                  Problems
+                </Link>
+                <Link to="/user/leaderboard" className="text-muted-foreground hover:text-foreground">
+                  Leaderboard
+                </Link>
+                <Link to="/user/contests" className="text-muted-foreground hover:text-foreground">
+                  Contests
+                </Link>
+                <Link to="/user/dashboard" className="text-muted-foreground hover:text-foreground">
+                  Profile
+                </Link>
+              </>
+            )}
 
             {user ? (
               <DropdownMenu>
@@ -80,30 +82,10 @@ const Navbar = () => {
                 <DropdownMenuContent align="end" className="w-48">
                   <div className="px-2 py-1.5">
                     <p className="text-sm font-medium">{user.fullName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {user.email}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/user/Dashboard">Your Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/user/problems">problems</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/user/leaderboard">Leaderboard</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/user/contests/winners">Contest Winners</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/user/contests">Contests</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    Sign out
-                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>Sign out</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
@@ -116,11 +98,11 @@ const Navbar = () => {
                 </Button>
               </div>
             )}
-
             <ThemeToggle />
           </div>
 
-          <div className="md:hidden flex items-center gap-4 ">
+          {/* Mobile menu toggle */}
+          <div className="md:hidden flex items-center gap-4">
             <ThemeToggle />
             <Button
               variant="ghost"
@@ -128,33 +110,44 @@ const Navbar = () => {
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-foreground border border-gray-200 dark:border-gray-700"
             >
-              {isMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </Button>
           </div>
         </div>
       </div>
 
+      {/* Mobile dropdown */}
       {isMenuOpen && (
         <div className="md:hidden bg-background/95 backdrop-blur-md border-b">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            <Link
-              to="/user/problems"
-              className="block px-3 py-2 text-muted-foreground hover:text-foreground"
-            >
-              Problems
-            </Link>
-            <Link
-              to="/pricing"
-              className="block px-3 py-2 text-muted-foreground hover:text-foreground"
-            >
-              Pricing
-            </Link>
+            {user ? (
+              <>
+                <Link to="/user/problems" className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                  Problems
+                </Link>
+                <Link to="/user/leaderboard" className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                  Leaderboard
+                </Link>
+                <Link to="/user/contests" className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                  Contests
+                </Link>
+                <Link to="/user/dashboard" className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                  Profile
+                </Link>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" asChild className="w-full justify-start">
+                  <Link to="/login">Sign in</Link>
+                </Button>
+                <Button variant="ghost" asChild className="w-full justify-start">
+                  <Link to="/signup">Sign up</Link>
+                </Button>
+              </>
+            )}
           </div>
-          {user ? (
+
+          {user && (
             <div className="px-5 py-3 border-t">
               <div className="flex items-center">
                 <img
@@ -164,58 +157,14 @@ const Navbar = () => {
                 />
                 <div className="ml-3">
                   <div className="text-sm font-medium">{user.fullName}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {user.email}
-                  </div>
+                  <div className="text-xs text-muted-foreground">{user.email}</div>
                 </div>
               </div>
               <div className="mt-3 space-y-1">
-                <Button
-                  variant="ghost"
-                  asChild
-                  className="w-full justify-start text-sm"
-                >
-                  <Link to="/user/Dashboard" onClick={() => setIsMenuOpen(false)}>Your Profile</Link>
-                </Button>
-                <Button
-                  variant="ghost"
-                  asChild
-                  className="w-full justify-start text-sm"
-                >
-                  <Link to="/user/problems" onClick={() => setIsMenuOpen(false)}>Problems</Link>
-                </Button>
-                <Button
-                  variant="ghost"
-                  asChild
-                  className="w-full justify-start text-sm"
-                >
-                  <Link to="/user/leaderboard" onClick={() => setIsMenuOpen(false)}>Leaderboard</Link>
-                </Button>
-                <Button
-                  variant="ghost"
-                  asChild
-                  className="w-full justify-start text-sm"
-                >
-                  <Link to="/user/contests" onClick={() => setIsMenuOpen(false)}>Contests</Link>
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-sm"
-                  onClick={handleLogout}
-                >
+                <Button variant="ghost" className="w-full justify-start text-sm" onClick={handleLogout}>
                   Sign out
                 </Button>
               </div>
-            </div>
-          ) : (
-            <div className="px-5 py-3 border-t space-y-2">
-              <Button variant="ghost" asChild className="w-full">
-                <Link to="/login">Sign in</Link>
-              </Button>
-              <Button asChild className="w-full">
-                <Link to="/signup">Sign up</Link>
-              </Button>
             </div>
           )}
         </div>

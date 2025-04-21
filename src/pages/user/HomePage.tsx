@@ -1,7 +1,6 @@
 // import Navbar from "@/components/layout/Navbar"
 import HeroSection from "@/components/home/HeroSection"
 import CodeEditorSection from "@/components/home/CodeEditorSection"
-import LeaderboardSection from "@/components/home/LeaderBoardSection"
 import FAQSection from "@/components/home/FaqSection"
 import PeopleOpenionSection from "@/components/home/PeopleOpenionSection"
 import ContactSection from "@/components/home/ContactUsSection"
@@ -14,7 +13,6 @@ const HomePage = () => {
       <HeroSection/>
       <Features/>
       <CodeEditorSection/>
-      <LeaderboardSection/>
       <PeopleOpenionSection/>
       <FAQSection/>
       <ContactSection/>

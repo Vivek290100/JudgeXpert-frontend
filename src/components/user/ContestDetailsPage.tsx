@@ -244,16 +244,21 @@ const ContestDetailsPage: React.FC = () => {
               Problems
             </h2>
 
-            {contest.problems.length > 0 ? (
+            {!contestStarted ? (
+              <p className="text-sm text-yellow-400 italic">
+                contest starts soon...
+              </p>
+            ) : contest.problems.length > 0 ? (
               contest.problems.map((problem) => {
                 const disabled = restricted || !problem.slug || problem.slug === "undefined";
                 return (
                   <div
                     key={problem._id}
-                    className={`flex items-center justify-between p-3 mb-2 rounded-lg ${disabled
+                    className={`flex items-center justify-between p-3 mb-2 rounded-lg ${
+                      disabled
                         ? "bg-gray-700/30 cursor-not-allowed"
                         : "bg-gray-800/30 hover:bg-gray-800/50 cursor-pointer"
-                      } transition-colors`}
+                    } transition-colors`}
                     onClick={disabled ? undefined : () => handleProblemClick(problem)}
                   >
                     <div className="flex-1">
@@ -263,17 +268,16 @@ const ContestDetailsPage: React.FC = () => {
                       </p>
                     </div>
                     <button
-                      className={`text-xs ${disabled ? "text-gray-500" : "text-blue-400 hover:text-blue-300"
-                        }`}
+                      className={`text-xs ${
+                        disabled ? "text-gray-500" : "text-blue-400 hover:text-blue-300"
+                      }`}
                       disabled={disabled}
                     >
                       {contestEnded
                         ? "Contest Ended"
                         : !isRegistered
-                          ? "Register to Solve"
-                          : !contestStarted
-                            ? "Starts Soon"
-                            : "Solve Now"}
+                        ? "Register to Solve"
+                        : "Solve Now"}
                     </button>
                   </div>
                 );
@@ -282,11 +286,11 @@ const ContestDetailsPage: React.FC = () => {
               <p className="text-sm text-gray-400 italic">No problems available for this contest.</p>
             )}
 
-            {restricted && (
+            {contestStarted && restricted && (
               <p className="text-sm text-yellow-400 mt-4">
                 {!isRegistered
-                  ? "You must register for this contest to solve the problem. Go back to the contests page to register."
-                  : "The contest has not started yet. Please wait for the contest to begin."}
+                  ? "You must register for this contest before contest begins to solve the problem. Go back to the contests page to register."
+                  : "."}
               </p>
             )}
           </div>
