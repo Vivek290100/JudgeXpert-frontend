@@ -1,4 +1,5 @@
-import { Code2, ChevronDown, Menu, X } from "lucide-react";
+// Frontend\src\components\navbar\Navbar.tsx
+import { Bell, Code2, ChevronDown, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -15,9 +16,11 @@ import { logout } from "@/redux/thunks/AuthThunks";
 import { useNavigation } from "@/contexts/Nvigation-context";
 import defaultProfileImage from "@/assets/navbar/defaultProfile.png";
 import toast from "react-hot-toast";
+import { clearNotifications } from "@/redux/slices/notificationSlice";
 
 const Navbar = () => {
   const user = useSelector((state: RootState) => state.auth.user);
+  const notifications = useSelector((state: RootState) => state.notifications.notifications);
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { isMenuOpen, setIsMenuOpen } = useNavigation();
@@ -64,6 +67,54 @@ const Navbar = () => {
                 <Link to="/user/dashboard" className="text-muted-foreground hover:text-foreground">
                   Profile
                 </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative flex items-center gap-2">
+                      <Bell className="w-5 h-5" />
+                      {notifications.length > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {notifications.length}
+                        </span>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64">
+                    {notifications.length === 0 ? (
+                      <DropdownMenuItem className="text-muted-foreground">
+                        No notifications
+                      </DropdownMenuItem>
+                    ) : (
+                      notifications.map((notification, index) => (
+                        <DropdownMenuItem
+                          key={index}
+                          asChild
+                          className="flex flex-col items-start"
+                        >
+                          <Link to={`/user/contests/${notification.contestId}`}>
+                            <span className="font-medium">{notification.title}</span>
+                            <span className="text-sm text-muted-foreground">
+                              {notification.message}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(notification.timestamp).toLocaleString()}
+                            </span>
+                          </Link>
+                        </DropdownMenuItem>
+                      ))
+                    )}
+                    {notifications.length > 0 && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => dispatch(clearNotifications())}
+                          className="text-sm text-red-500"
+                        >
+                          Clear all notifications
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             )}
 
@@ -101,7 +152,6 @@ const Navbar = () => {
             <ThemeToggle />
           </div>
 
-          {/* Mobile menu toggle */}
           <div className="md:hidden flex items-center gap-4">
             <ThemeToggle />
             <Button
@@ -116,32 +166,87 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile dropdown */}
       {isMenuOpen && (
         <div className="md:hidden bg-background/95 backdrop-blur-md border-b">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {user ? (
               <>
-                <Link to="/user/problems" className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                <Link
+                  to="/user/problems"
+                  className="block px-3 py-2 text-muted-foreground hover:text-foreground"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   Problems
                 </Link>
-                <Link to="/user/leaderboard" className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                <Link
+                  to="/user/leaderboard"
+                  className="block px-3 py-2 text-muted-foreground hover:text-foreground"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   Leaderboard
                 </Link>
-                <Link to="/user/contests" className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                <Link
+                  to="/user/contests"
+                  className="block px-3 py-2 text-muted-foreground hover:text-foreground"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   Contests
                 </Link>
-                <Link to="/user/dashboard" className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                <Link
+                  to="/user/dashboard"
+                  className="block px-3 py-2 text-muted-foreground hover:text-foreground"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   Profile
                 </Link>
+                <div className="px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <Bell className="w-5 h-5" />
+                    <span className="text-muted-foreground">Notifications</span>
+                    {notifications.length > 0 && (
+                      <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {notifications.length}
+                      </span>
+                    )}
+                  </div>
+                  {notifications.length > 0 && (
+                    <div className="mt-2 space-y-2">
+                      {notifications.map((notification, index) => (
+                        <Link
+                          key={index}
+                          to={`/user/contests/${notification.contestId}`}
+                          className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          <span className="font-medium">{notification.title}</span>
+                          <span className="block text-xs">{notification.message}</span>
+                          <span className="block text-xs">
+                            {new Date(notification.timestamp).toLocaleString()}
+                          </span>
+                        </Link>
+                      ))}
+                      <Button
+                        variant="ghost"
+                        className="w-full text-sm text-red-500"
+                        onClick={() => dispatch(clearNotifications())}
+                      >
+                        Clear all notifications
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <>
                 <Button variant="ghost" asChild className="w-full justify-start">
-                  <Link to="/login">Sign in</Link>
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                    Sign in
+                  </Link>
                 </Button>
                 <Button variant="ghost" asChild className="w-full justify-start">
-                  <Link to="/signup">Sign up</Link>
+                  <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
+                    Sign up
+                  </Link>
                 </Button>
               </>
             )}
@@ -161,7 +266,11 @@ const Navbar = () => {
                 </div>
               </div>
               <div className="mt-3 space-y-1">
-                <Button variant="ghost" className="w-full justify-start text-sm" onClick={handleLogout}>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-sm"
+                  onClick={handleLogout}
+                >
                   Sign out
                 </Button>
               </div>

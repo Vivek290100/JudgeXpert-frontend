@@ -5,6 +5,7 @@ import authReducer from "./slices/AuthSlice";
 import adminReducer from "./slices/AdminSlice";
 import userReducer from "./slices/UserSlice";
 import problemReducer from "./slices/ProblemSlice";
+import notificationReducer from "./slices/notificationSlice"
 
 const persistConfig = {
   key: "auth",
@@ -20,6 +21,7 @@ const store = configureStore({
     admin: adminReducer,
     user: userReducer,
     problems: problemReducer,
+    notifications: notificationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

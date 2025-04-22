@@ -9,11 +9,13 @@ import { Provider } from "react-redux";
 import store, { persistor } from "./redux/Store.ts";
 import { PersistGate } from "redux-persist/integration/react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { SocketProvider } from "./contexts/SocketContext.tsx";
 
 // Wrapping providers for cleaner structure
 const AppWrapper = () => (
   <Provider store={store}>
     <PersistGate loading={null} persistor={persistor}>
+      <SocketProvider>
       <BrowserRouter>
         <ThemeProvider>
           <NavigationProvider>
@@ -21,6 +23,7 @@ const AppWrapper = () => (
           </NavigationProvider>
         </ThemeProvider>
       </BrowserRouter>
+      </SocketProvider>
     </PersistGate>
   </Provider>
 );
