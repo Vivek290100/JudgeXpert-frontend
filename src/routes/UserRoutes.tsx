@@ -11,6 +11,7 @@ import ServerDown from "@/components/layout/ServerDown";
 import ContestDetailsPage from "@/components/user/ContestDetailsPage";
 import ContestResultsPage from "@/components/user/ContestResultsPage";
 import ContestWinners from "@/components/user/ContestWinners";
+import SubscriptionPage from "@/components/user/SubscriptionPage";
 
 
 const Dashboard = lazy(() => import("@/pages/user/UserDashboard"));
@@ -30,6 +31,7 @@ const UserRoutes = () => {
         <Route path="contests/:contestId/results" element={<ContestResultsPage />} />
         <Route path="contests/winners" element={<ContestWinners />} />
         <Route path="server-down" element={<ServerDown />} />
+        <Route path="subscription" element={<SubscriptionPage />} />
 
       </Route>
       <Route path="*" element={<NotFound />} />
