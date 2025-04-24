@@ -5,10 +5,10 @@ import { fadeInUp, staggerContainer } from "../../utils/Animations";
 
 export default function FAQSection() {
   const faqs = [
-    { question: "What is [JudgeXpert]?", answer: "A platform for developers to improve their coding skills through real-world challenges." },
+    { question: "What is JudgeXpert?", answer: "A platform for developers to improve their coding skills through real-world challenges." },
     { question: "Who is this platform for?", answer: "Developers of all skill levels looking to enhance their programming abilities." },
     { question: "How do I participate in contests?", answer: "Sign up for an account and join our scheduled coding competitions." },
-    { question: "What programming languages are supported?", answer: "We support multiple languages including JavaScript, Python, C++, and more." },
+    { question: "What programming languages are supported?", answer: "We support multiple languages including JavaScript, C++, and more." },
     { question: "Can I track my progress?", answer: "Yes, you can track your ranking and performance through our leaderboard system." },
   ];
 
