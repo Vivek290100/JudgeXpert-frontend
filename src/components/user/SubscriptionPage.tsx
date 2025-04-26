@@ -35,6 +35,7 @@ const SubscriptionPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [userSubscription, setUserSubscription] = useState<UserSubscription | null>(null);
+  const [isExpired, setIsExpired] = useState(false);
 
   const plans: Plan[] = [
     {
@@ -60,9 +61,16 @@ const SubscriptionPage: React.FC = () => {
         const response = await apiRequest<ApiResponse<UserSubscription>>("get", "/subscriptions/current");
         if (response.success && response.data) {
           setUserSubscription(response.data);
+          const currentPeriodEnd = new Date(response.data.currentPeriodEnd);
+          const now = new Date();
+          setIsExpired(response.data.status === "active" && currentPeriodEnd <= now);
+        } else {
+          setUserSubscription(null);
+          setIsExpired(false);
         }
       } catch (err) {
         console.error("Failed to fetch subscription:", err);
+        setError("Failed to fetch subscription status.");
       }
     };
 
@@ -71,8 +79,12 @@ const SubscriptionPage: React.FC = () => {
 
   useEffect(() => {
     const canceled = searchParams.get("canceled");
+    const success = searchParams.get("success");
     if (canceled) {
       toast.error("Subscription canceled.");
+      setSearchParams({});
+    } else if (success) {
+      toast.success("Subscription successful! Your plan is now active.");
       setSearchParams({});
     }
   }, [searchParams, setSearchParams]);
@@ -110,9 +122,15 @@ const SubscriptionPage: React.FC = () => {
         </p>
       </div>
 
+      {isExpired && (
+        <div className="text-red-500 text-center py-4 mb-6">
+          Your subscription has expired. Please upgrade your subscription to continue accessing premium features.
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row gap-6 justify-center">
         {plans.map((plan) => {
-          const isActive = userSubscription?.planId === plan.id && userSubscription?.status === "active";
+          const isActive = userSubscription?.planId === plan.id && userSubscription?.status === "active" && !isExpired;
           return (
             <div
               key={plan.id}

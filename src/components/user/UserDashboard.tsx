@@ -250,7 +250,7 @@ const UserDashboard = () => {
                 </div>
                 <button
                   className="w-full py-2 bg-gray-800 text-gray-300 rounded hover:bg-gray-700"
-                  onClick={() => navigate("/problems")}
+                  onClick={() => navigate("/user/problems")}
                 >
                   Solve Problems
                 </button>
