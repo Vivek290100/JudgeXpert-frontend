@@ -67,6 +67,9 @@ const Navbar = () => {
                 <Link to="/user/dashboard" className="text-muted-foreground hover:text-foreground">
                   Profile
                 </Link>
+                <Link to="/user/subscription" className="text-muted-foreground hover:text-foreground">
+                  Pricing
+                </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative flex items-center gap-2">

@@ -95,6 +95,10 @@ const PublicRoutes = () => {
           </AuthenticatedGuard>
         }
       />
+      <Route
+        path="subscription"
+        element={<Navigate to="/user/subscription" replace />}
+      />
 
       <Route path="*" element={<Suspense fallback={<AuthSkeleton />}><NotFound /></Suspense>} />
         <Route path="/server-down" element={<ServerDown />} />
