@@ -10,6 +10,7 @@ import { ReactNode } from "react";
   // }
   
   export interface IProblem {
+  isPremium: any;
   id: string;
   _id: string;
   title: string;
