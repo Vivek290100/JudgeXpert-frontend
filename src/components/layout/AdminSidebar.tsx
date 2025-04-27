@@ -1,7 +1,7 @@
 // src/components/Admin/AdminSidebar.tsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Users, LayoutDashboard, Code2, Trophy, CreditCard, LogOut, ChevronLeft, Menu, Sun, Moon,} from "lucide-react";
+import { Users, LayoutDashboard, Code2, Trophy, LogOut, ChevronLeft, Menu, Sun, Moon,} from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useDispatch } from "react-redux";
 import { logout } from "@/redux/thunks/AuthThunks";

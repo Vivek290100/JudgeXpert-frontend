@@ -21,6 +21,7 @@ const ProblemsList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<{ difficulty?: Difficulty; status?: Status }>({});
   const [totalProblemsInDb, setTotalProblemsInDb] = useState(0);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const itemsPerPage = 10;
   const navigate = useNavigate();
@@ -54,22 +55,44 @@ const ProblemsList: React.FC = () => {
       } else {
         setError(response.message || "Invalid response structure");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to fetch problems:", err);
-      setError("Failed to fetch problems. Please log in or try again.");
+      setError("Failed to fetch problems. Please try again.");
     } finally {
       setLoading(false);
       searchInputRef.current?.focus();
     }
   };
 
+  const handleRowClick = async (problem: IProblem) => {
+    if (problem.status === "premium") {
+      try {
+        await apiRequest("get", `/problems/${problem.slug}`);
+        navigate(`/user/problems/${problem.slug}`);
+      } catch (err: any) {
+        if (err.response?.data?.message === "Premium access required") {
+          setShowPremiumModal(true);
+        } else {
+          setError("Failed to access problem. Please try again.");
+        }
+      }
+    } else {
+      navigate(`/user/problems/${problem.slug}`);
+    }
+  };
+
+  const closeModal = () => {
+    setShowPremiumModal(false);
+  };
+
+  const handleSubscribe = () => {
+    closeModal();
+    navigate("/user/subscription");
+  };
+
   useEffect(() => {
     fetchProblems(currentPage, filters, debouncedSearchQuery);
   }, [currentPage, debouncedSearchQuery, filters]);
-
-  const handleRowClick = (problem: IProblem) => {
-    navigate(`/user/problems/${problem.slug}`);
-  };
 
   const getDifficultyColor = (difficulty: "EASY" | "MEDIUM" | "HARD") => {
     switch (difficulty) {
@@ -109,11 +132,10 @@ const ProblemsList: React.FC = () => {
       header: "Status",
       render: (problem: IProblem) => (
         <span
-          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-            isProblemSolved(problem._id)
+          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${isProblemSolved(problem._id)
               ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
               : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-          }`}
+            }`}
         >
           {isProblemSolved(problem._id) ? "Solved" : "Not Solved"}
         </span>
@@ -124,11 +146,10 @@ const ProblemsList: React.FC = () => {
       header: "Premium",
       render: (problem: IProblem) => (
         <span
-          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-            problem.status === "premium"
+          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${problem.status === "premium"
               ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
               : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-          }`}
+            }`}
         >
           {problem.status === "premium" ? "Premium" : "Free"}
         </span>
@@ -141,6 +162,36 @@ const ProblemsList: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 min-h-screen flex flex-col">
+      {/* Modal for Premium Access */}
+      {showPremiumModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-900 rounded-lg p-6 max-w-md w-full">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              Premium Subscription Required
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              This problem is exclusive to premium subscribers. Unlock access to all premium problems
+              by subscribing now!
+            </p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={closeModal}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubscribe}
+                className="px-4 py-2 bg-primary text-card rounded-lg hover:bg-primary-dark transition-colors"
+              >
+                Subscribe Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
       {/* Navbar */}
       <nav className="flex flex-col sm:flex-row items-center justify-between py-4 gap-4">
         <h1 className="text-xl sm:text-2xl font-semibold text-primary">Problems</h1>
