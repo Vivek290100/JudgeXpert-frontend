@@ -24,7 +24,7 @@ export default function AdminSidebar() {
     { title: "Users", icon: <Users className="w-5 h-5" />, path: "/admin/users" },
     { title: "Problems", icon: <Code2 className="w-5 h-5" />, path: "/admin/problems" }, 
     { title: "Contests", icon: <Trophy className="w-5 h-5" />, path: "/admin/contests" },
-    { title: "Subscription", icon: <CreditCard className="w-5 h-5" />, path: "" },
+    // { title: "Subscription", icon: <CreditCard className="w-5 h-5" />, path: "" },
   ];
 
   const getCurrentPath = () => {
