@@ -6,7 +6,7 @@ import FAQSection from "../home/FaqSection";
 interface Plan {
   id: string;
   name: string;
-  price: number;
+  price: number; // Price in rupees
   interval: "month" | "year";
   description: string;
   popular?: boolean;
@@ -24,6 +24,7 @@ interface ApiResponse<T> {
 
 interface UserSubscription {
   planId: string;
+  price: number; // Price in paise
   status: string;
   currentPeriodEnd: string;
 }
@@ -38,14 +39,14 @@ const SubscriptionPage: React.FC = () => {
     {
       id: "monthly",
       name: "Monthly",
-      price: 299,
+      price: 299, // Price in rupees
       interval: "month",
       description: "Access premium problems for 1 month",
     },
     {
       id: "yearly",
       name: "Annual",
-      price: 2499,
+      price: 2499, // Price in rupees
       interval: "year",
       description: "Access premium problems for 1 year",
       popular: true,
@@ -56,6 +57,7 @@ const SubscriptionPage: React.FC = () => {
     const fetchSubscription = async () => {
       try {
         const response = await apiRequest<ApiResponse<UserSubscription>>("get", "/subscriptions/current");
+        console.log("Subscription API response:", response);
         if (response.success && response.data) {
           setUserSubscription(response.data);
           const currentPeriodEnd = new Date(response.data.currentPeriodEnd);
@@ -100,6 +102,12 @@ const SubscriptionPage: React.FC = () => {
 
   const hasActiveSubscription = !!(userSubscription && userSubscription.status === "active" && !isExpired);
 
+  const formatPrice = (priceInPaise: number | undefined): string => {
+    if (priceInPaise === undefined) return "Unknown";
+    const priceInRupees = priceInPaise / 100;
+    return priceInRupees % 1 === 0 ? priceInRupees.toFixed(0) : priceInRupees.toFixed(2);
+  };
+
   return (
     <div className="container mx-auto px-4 min-h-screen flex flex-col justify-center items-center">
       <div className="text-center mb-10">
@@ -116,7 +124,8 @@ const SubscriptionPage: React.FC = () => {
 
       {hasActiveSubscription && (
         <div className="text-green-500 text-center py-4 mb-6">
-          You have an active {userSubscription.planId} subscription, valid until{" "}
+          You have an active {userSubscription.planId} subscription costing ₹{formatPrice(userSubscription.price*100)}/
+          {userSubscription.planId === "monthly" ? "month" : "year"}, valid until{" "}
           {new Date(userSubscription.currentPeriodEnd).toLocaleDateString()}. You can subscribe to another plan after this expires.
         </div>
       )}
