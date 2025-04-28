@@ -1,4 +1,3 @@
-// import Navbar from "@/components/layout/Navbar"
 import HeroSection from "@/components/home/HeroSection"
 import CodeEditorSection from "@/components/home/CodeEditorSection"
 import FAQSection from "@/components/home/FaqSection"

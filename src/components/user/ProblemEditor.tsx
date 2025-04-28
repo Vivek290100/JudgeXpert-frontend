@@ -326,7 +326,6 @@ const ProblemEditor: React.FC = () => {
         )}
       </div>
 
-      {/* Mobile Discussion Toggle */}
       <div className="lg:hidden bg-background border-b border-gray-200 dark:border-gray-700">
         <button
           onClick={() => setIsDiscussionOpen(!isDiscussionOpen)}
@@ -342,9 +341,7 @@ const ProblemEditor: React.FC = () => {
         )}
       </div>
 
-      {/* Main Layout */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        {/* Left Panel: Problem Description, Discussion, and Leaderboard (Desktop Only) */}
         <div className="hidden lg:block lg:w-1/3 bg-background border-r border-gray-200 dark:border-gray-700 overflow-y-auto h-screen">
           <div className="p-6 space-y-6">
             <div className="space-y-4">
@@ -389,9 +386,7 @@ const ProblemEditor: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Panel: Editor and Test Cases */}
         <div className="flex-1 flex flex-col overflow-hidden h-screen">
-          {/* Editor Section */}
           <div className="flex flex-col border-b border-gray-200 dark:border-gray-700 flex-1 overflow-hidden">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 gap-3 shrink-0">
               <select
@@ -453,7 +448,6 @@ const ProblemEditor: React.FC = () => {
             />
           </div>
 
-          {/* Test Cases Section */}
           <div
             className={`p-4 ${theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-900"} overflow-y-auto h-[40vh]`}
           >

@@ -1,4 +1,3 @@
-//Frontend\src\redux\slices\AdminSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { fetchUsers, blockUser } from '../thunks/AdminThunks';
 import { AdminState, AdminUser } from '../../types/AdminTypes';

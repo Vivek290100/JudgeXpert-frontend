@@ -50,7 +50,6 @@ const ListUsers: React.FC = () => {
     const originalUsers = [...users];
     const endpoint = isBlocked ? `/admin/users/${userId}/unblock` : `/admin/users/${userId}/block`;
     
-    // Optimistic update
     setUsers((prevUsers) =>
       prevUsers.map((user) =>
         user.id === userId ? { ...user, isBlocked: !isBlocked } : user
@@ -62,7 +61,7 @@ const ListUsers: React.FC = () => {
       if (!response.success) throw new Error("Failed to update user status");
     } catch (err) {
       console.error("Failed to update user status:", err);
-      setUsers(originalUsers); // Revert on failure
+      setUsers(originalUsers);
       setError("Failed to update user status");
     }
   };

@@ -1,14 +1,7 @@
-// Frontend\src\types\ProblemTypes.ts
 import { Difficulty, ProblemStatus, Status } from "@/utils/Enums";
 import { ReactNode } from "react";
 
-  // export interface TestCase {
-  //   _id: string;
-  //   input: string;
-  //   output: string;
-  //   index: number;
-  // }
-  
+
   export interface IProblem {
   isPremium: any;
   id: string;
@@ -31,7 +24,7 @@ import { ReactNode } from "react";
     userProblemStatus?: IUserProblemStatus[];
     total: number;
     totalPages: number;
-    totalProblemsInDb: number; // Add this
+    totalProblemsInDb: number;
     currentPage: number;
   }
   

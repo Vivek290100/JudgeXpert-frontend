@@ -313,7 +313,6 @@ const AdminContestsPage: React.FC = () => {
       {isDetailsModalOpen && selectedContest && (
         <div className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 w-full max-w-3xl max-h-[90vh] flex flex-col">
-            {/* Header Section */}
             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0 flex justify-between items-center">
               <h2 className="text-2xl font-bold text-primary tracking-tight truncate max-w-[80%]">
                 {selectedContest.title}
@@ -327,9 +326,7 @@ const AdminContestsPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Content Section */}
             <div className="p-6 flex-1 overflow-y-auto space-y-8">
-              {/* Contest Info Card */}
               <div>
                 <h3 className="text-xl font-semibold text-primary mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
                   Contest Details
@@ -396,7 +393,6 @@ const AdminContestsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Description Section */}
               <div>
                 <h3 className="text-xl font-semibold text-primary mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
                   Description
@@ -406,7 +402,6 @@ const AdminContestsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Problems Section */}
               <div>
                 <h3 className="text-xl font-semibold text-primary mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
                   Problems
@@ -454,7 +449,6 @@ const AdminContestsPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Participants Section */}
               <div>
                 <h3 className="text-xl font-semibold text-primary mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
                   Participants

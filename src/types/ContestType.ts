@@ -1,4 +1,3 @@
-// Frontend\src\types\ContestType.ts
 export interface Problem {
     _id: string;
     title: string;

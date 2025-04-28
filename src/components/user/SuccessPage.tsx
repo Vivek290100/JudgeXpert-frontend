@@ -1,24 +1,80 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { apiRequest } from "@/utils/axios/ApiRequest";
+import { useAppDispatch, useAppSelector } from "@/redux/Store";
+import { updateUserProfile } from "@/redux/thunks/UserThunks";
+
+interface UserSubscription {
+  planId: string;
+  price: number;
+  status: string;
+  currentPeriodEnd: string;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+}
 
 const SuccessPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const authUser = useAppSelector((state) => state.auth.user);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const sessionId = new URLSearchParams(location.search).get("session_id");
-    console.log(`Session ID: ${sessionId}`);
 
     if (!sessionId) {
       setError("Invalid session ID");
+      setLoading(false);
       return;
     }
 
-    // Display success message
-    toast.success("Subscription successful! Your plan is now active.");
-  }, [location]);
+    const verifySubscription = async () => {
+      try {
+        const response = await apiRequest<ApiResponse<UserSubscription>>("get", "/subscriptions/current");
+
+        if (response.success && response.data && response.data.status === "active") {
+          toast.success("Subscription successful! Your plan is now active.");
+
+          if (authUser) {
+            await dispatch(updateUserProfile({
+              fullName: authUser.fullName,
+              github: authUser.github || "",
+              linkedin: authUser.linkedin || "",
+              profileImage: authUser.profileImage || "",
+            }));
+          }
+        } else {
+          setError("No active subscription found. Please try again or contact support.");
+        }
+      } catch (err) {
+        console.error("Failed to verify subscription:", err);
+        setError("Failed to verify subscription. Please try again or contact support.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    verifySubscription();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 min-h-screen flex flex-col justify-center items-center">
+        <svg className="animate-spin h-8 w-8 text-primary" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z" />
+        </svg>
+        <p className="mt-4 text-lg">Verifying your subscription...</p>
+      </div>
+    );
+  }
 
   if (error) {
     return (
