@@ -6,7 +6,6 @@ import { fadeInUp, staggerContainer, cardHover } from "../../utils/Animations";
 import { RootState, useAppSelector } from "@/redux/Store";
 import { useNavigate } from "react-router-dom";
 
-// Consistent background color for all sections
 const SECTION_BG = "bg-background";
 
 function FeaturesSection() {

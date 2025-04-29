@@ -144,7 +144,6 @@ const UserDashboard = () => {
           </div>
         </div>
 
-        {/* Middle Section */}
         <div className="flex flex-col gap-6 w-full lg:w-2/4">
           <div className="bg-card p-6 rounded-xl shadow border">
             <h2 className="text-xl font-semibold mb-1">{user.fullName || "Vivek"}</h2>
@@ -193,7 +192,6 @@ const UserDashboard = () => {
           </div>
         </div>
 
-        {/* Right Section */}
         <div className="flex flex-col gap-6 w-full lg:w-1/4">
           <div className="bg-card p-6 rounded-xl shadow border">
             <h3 className="text-xl font-semibold mb-4">My Rank</h3>

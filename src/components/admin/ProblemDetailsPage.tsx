@@ -87,7 +87,7 @@ const ProblemDetailsPage: React.FC = () => {
   const handleActiveChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newStatus = e.target.value === "true";
     const previousStatus = isActive;
-    setIsActive(newStatus); // Optimistic update
+    setIsActive(newStatus);
     try {
       const endpoint = newStatus ? "unblock" : "block";
       const response = await apiRequest<ProblemApiResponse>("patch", `/admin/problems/${id}/${endpoint}`, {}); 
@@ -120,7 +120,6 @@ const ProblemDetailsPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-9 min-h-screen bg-background">
-      {/* Header Section */}
       <div className="flex justify-between items-center mb-8 bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <h1 className="text-3xl font-bold text-primary tracking-tight truncate max-w-[80%]">{problem.title}</h1>
         <button
@@ -132,9 +131,7 @@ const ProblemDetailsPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Main Content */}
       <div className="space-y-8">
-        {/* Problem Info Card */}
         <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold text-primary mb-6 border-b border-gray-200 dark:border-gray-700 pb-2">
             Problem Details
@@ -206,7 +203,6 @@ const ProblemDetailsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Description Section */}
         <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
           <h3 className="text-xl font-semibold text-primary mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
             Description
@@ -216,7 +212,6 @@ const ProblemDetailsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Default Codes Section */}
         <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
           <h3 className="text-xl font-semibold text-primary mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
             Default Codes
@@ -256,7 +251,6 @@ const ProblemDetailsPage: React.FC = () => {
           )}
         </div>
 
-        {/* Test Cases Section */}
         <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
           <h3 className="text-xl font-semibold text-primary mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
             Test Cases

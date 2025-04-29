@@ -11,7 +11,6 @@ const ServerDownPage = () => {
       const redirect = localStorage.getItem("server_down_redirect") || "/";
       localStorage.removeItem("server_down_redirect");
   
-      // Replace the server-down page so it won't show when clicking "back"
       window.location.replace(redirect);
     } catch {
       setError("Server is still unavailable. Please try again shortly.");

@@ -1,4 +1,3 @@
-// src/components/Admin/AdminDashboard.tsx
 import { ProblemRowProps, StatCardProps } from "@/types/AdminTypes";
 import { Download, Search } from "lucide-react";
 import { useState } from "react";

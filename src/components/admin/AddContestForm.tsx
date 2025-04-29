@@ -28,11 +28,16 @@ const AddContestForm: React.FC<AddContestFormProps> = ({ onContestCreated, onClo
       setFetchingProblems(true);
       try {
         const response = await apiRequest<ApiResponse<{ problems: IProblem[] }>>("get", "/admin/problems");
+
         if (response.success) {
-          setAvailableProblems(response.data.problems);
+          const freeProblems = response.data.problems.filter(
+            (problem) => problem.status.toLowerCase() !== "premium"
+          );
+          setAvailableProblems(freeProblems);
         }
       } catch (err) {
         console.error("Failed to fetch problems:", err);
+        setError("Failed to fetch problems. Please try again.");
       } finally {
         setFetchingProblems(false);
       }
@@ -70,7 +75,6 @@ const AddContestForm: React.FC<AddContestFormProps> = ({ onContestCreated, onClo
           throw new Error("Invalid contest data returned from API");
         }
 
-        // Transform the contest to match the Contest interface
         const newContest: Contest = {
           _id: apiContest._id,
           title: apiContest.title,
@@ -88,7 +92,7 @@ const AddContestForm: React.FC<AddContestFormProps> = ({ onContestCreated, onClo
           }),
           participants: apiContest.participants?.map((userId: string) => ({
             _id: userId,
-            userName: "Unknown", // Placeholder, as participants may be empty initially
+            userName: "Unknown",
           })) || [],
           isActive: apiContest.isActive ?? true,
           isBlocked: apiContest.isBlocked ?? false,
@@ -144,25 +148,6 @@ const AddContestForm: React.FC<AddContestFormProps> = ({ onContestCreated, onClo
   return (
     <div className="w-full max-w-4xl mx-auto">
       <div className="mb-6">
-        {/* <div className="flex items-center">
-          <div
-            className={`flex items-center justify-center w-8 h-8 rounded-full ${
-              activeStep === 1 ? "bg-blue-500 text-white" : "bg-blue-500 text-white"
-            }`}
-          >
-            <span>1</span>
-          </div>
-          <div
-            className={`flex-1 h-1 mx-2 ${activeStep > 1 ? "bg-blue-500" : "bg-gray-700"}`}
-          ></div>
-          <div
-            className={`flex items-center justify-center w-8 h-8 rounded-full ${
-              activeStep === 2 ? "bg-blue-500 text-white" : "bg-gray-700 text-gray-300"
-            }`}
-          >
-            <span>2</span>
-          </div>
-        </div> */}
         <div className="flex justify-between mt-2 text-xs text-gray-400">
           <span>Contest Details</span>
           <span>Select Problems</span>
@@ -284,7 +269,7 @@ const AddContestForm: React.FC<AddContestFormProps> = ({ onContestCreated, onClo
                 <div className="flex justify-center mb-2">
                   <AlertCircle className="w-8 h-8" />
                 </div>
-                <p>No problems match your search</p>
+                <p>No free problems match your search</p>
               </div>
             ) : (
               <div className="border border-gray-700 rounded-lg overflow-hidden">

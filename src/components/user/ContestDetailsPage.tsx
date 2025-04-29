@@ -109,7 +109,7 @@ const ContestDetailsPage: React.FC = () => {
       } else {
         setTimeLeft("Contest has ended");
         setContestEnded(true);
-        setContestStarted(true); // Contest was started in the past
+        setContestStarted(true);
         return;
       }
 

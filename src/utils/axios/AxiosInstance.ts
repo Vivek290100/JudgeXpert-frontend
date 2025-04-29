@@ -19,7 +19,6 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const { response, config, code, message } = error;
 
-    // Handle 401: Attempt token refresh
     if (response?.status === 401 && !config._retry) {
       config._retry = true;
       try {
@@ -43,7 +42,6 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    // Handle server down
     const isServerDown =
       code === "ECONNABORTED" ||
       message.includes("Network Error") ||
@@ -52,7 +50,7 @@ axiosInstance.interceptors.response.use(
     if (isServerDown) {
       localStorage.setItem("server_down_redirect", window.location.pathname);
       window.location.replace("/server-down");
-      return new Promise(() => {}); // Freeze request chain
+      return new Promise(() => {});
     }
 
     return Promise.reject(error);

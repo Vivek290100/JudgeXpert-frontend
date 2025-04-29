@@ -162,7 +162,6 @@ const ProblemsList: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 min-h-screen flex flex-col">
-      {/* Modal for Premium Access */}
       {showPremiumModal && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-gray-900 rounded-lg p-6 max-w-md w-full">
@@ -192,7 +191,6 @@ const ProblemsList: React.FC = () => {
       )}
 
 
-      {/* Navbar */}
       <nav className="flex flex-col sm:flex-row items-center justify-between py-4 gap-4">
         <h1 className="text-xl sm:text-2xl font-semibold text-primary">Problems</h1>
         <div className="relative w-full sm:w-72 flex items-center">
@@ -231,9 +229,7 @@ const ProblemsList: React.FC = () => {
         </div>
       </nav>
 
-      {/* Main Content */}
       <div className="flex flex-col lg:flex-row flex-1 gap-6">
-        {/* Sidebar (Filters + Statistics) */}
         <div className="w-full lg:w-72 flex-shrink-0 mb-6 lg:mb-0">
           <div className="flex flex-col gap-6">
             <div className="bg-card rounded-lg shadow-md p-4 border border-border">
@@ -264,7 +260,6 @@ const ProblemsList: React.FC = () => {
           </div>
         </div>
 
-        {/* Table and Pagination */}
         <div className="flex-1 flex flex-col">
           <div className="flex-1 overflow-y-auto">
             <Table

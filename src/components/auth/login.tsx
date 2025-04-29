@@ -91,7 +91,6 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit(handleLogin)}>
           <CardContent className="space-y-4">
-            {/* Email Field */}
             <div className="relative">
               <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
               <Input
@@ -105,7 +104,6 @@ export default function LoginPage() {
               )}
             </div>
 
-            {/* Password Field */}
             <div className="relative">
               <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
               <Input

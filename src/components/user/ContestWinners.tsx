@@ -358,14 +358,12 @@ const ContestsWinners: React.FC = () => {
     {
       key: "winner",
       header: "Winner",
-      // FIXED: Changed "Ended" to "Completed" to match getContestStatus
       render: (item: Contest) =>
         getContestStatus(item) === "Completed" ? renderWinnerBadge(item._id) : <span className="text-gray-500">N/A</span>,
     },
   ];
 
   const handleRowClick = (item: Contest) => {
-    // FIXED: Changed "Ended" to "Completed" to match getContestStatus
     if (getContestStatus(item) === "Completed") {
       navigate(`/user/contests/${item._id}`);
     }
@@ -397,7 +395,6 @@ const ContestsWinners: React.FC = () => {
     <div className="min-h-[calc(100vh-5rem)] p-4">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row gap-4">
-          {/* Sidebar */}
           <div className="w-full md:w-64 flex flex-col gap-4">
             <div className="bg-card rounded-lg shadow-md p-4 border border-border">
               <h2 className="text-lg font-bold mb-3 flex items-center gap-3">
@@ -441,7 +438,6 @@ const ContestsWinners: React.FC = () => {
             </div>
           </div>
 
-          {/* Main Content */}
           <div className="flex-1">
             <div className="bg-card rounded-lg shadow-md border border-border">
               <div className="p-4 border-b border-border flex items-center justify-between">
@@ -456,7 +452,6 @@ const ContestsWinners: React.FC = () => {
                   columns={columns}
                   onRowClick={handleRowClick}
                   emptyMessage="No contests available"
-                  // CHANGED: Added cursor-pointer for completed contests
                   rowClassName={
                     theme === "dark"
                       ? "text-white cursor-pointer hover:bg-gray-800"

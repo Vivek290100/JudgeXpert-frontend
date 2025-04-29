@@ -12,7 +12,6 @@ export function Footer() {
       className="border-t bg-background py-6 sm:py-8"
     >
       <div className="container mx-auto flex flex-col md:flex-row justify-between items-center px-2 sm:px-4 md:px-6">
-        {/* Left Section: Logo and Socials */}
         <motion.div
           variants={fadeInUp}
           className="flex flex-col items-center md:items-start space-y-3 sm:space-y-4 mb-6 md:mb-0"
@@ -44,7 +43,6 @@ export function Footer() {
           </div>
         </motion.div>
 
-        {/* Right Section: Links */}
         <motion.div
           variants={fadeInUp}
           className="grid grid-cols-2 gap-6 sm:gap-8 md:gap-12 text-xs sm:text-sm text-muted-foreground"

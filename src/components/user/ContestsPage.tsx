@@ -195,10 +195,8 @@ const ContestsPage: React.FC = () => {
       </nav>
 
       <div className="flex flex-col lg:flex-row gap-6 flex-1">
-        {/* Sidebar: Filters and Statistics */}
         <div className="w-full lg:w-64 flex-shrink-0">
           <div className="flex flex-col gap-4">
-            {/* Filters */}
             <div className="bg-card rounded-xl shadow-sm p-4 border border-border">
               <h2 className="text-lg font-semibold text-primary mb-3">Filters</h2>
               <div className="space-y-1">
@@ -230,7 +228,6 @@ const ContestsPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Statistics */}
             <div className="bg-card rounded-xl shadow-sm p-4 border border-border">
               <h2 className="text-lg font-semibold text-primary mb-3">Statistics</h2>
               <div className="grid grid-cols-2 gap-2">
@@ -253,7 +250,6 @@ const ContestsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Main Content: Contest Cards */}
         <div className="flex-1">
           {filteredContests.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -326,7 +322,6 @@ const ContestsPage: React.FC = () => {
                       className="bg-card rounded-xl shadow-sm border hover:shadow-md hover:border-blue-900/50 transition-all"
                     >
                       <div className="p-4">
-                        {/* Title and Status */}
                         <div className="flex justify-between items-center mb-3">
                           <h2 className="text-base font-semibold text-foreground hover:text-blue-400 transition-colors truncate">
                             {contest.title}
@@ -339,7 +334,6 @@ const ContestsPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Details */}
                         <div className="space-y-2">
                           <div className="grid grid-cols-2 gap-2 text-xs text-gray-300">
                             <div className="flex flex-col">
@@ -386,7 +380,6 @@ const ContestsPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Buttons */}
                         <div className="flex gap-2 mt-3">
                           <button
                             onClick={() => {
@@ -432,7 +425,6 @@ const ContestsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal for Rules and Registration */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-card rounded-xl shadow-lg p-6 max-w-md w-full mx-4">

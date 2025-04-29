@@ -51,7 +51,7 @@ const Table = <T,>({
                 {columns.map((column) => (
                   <td key={column.key} className="px-4 py-3 whitespace-nowrap text-sm text-foreground">
                   {column.render
-                      ? column.render(item, index) // Pass index to render
+                      ? column.render(item, index)
                       : (item[column.key as keyof T] as React.ReactNode)}
                   </td>
                 ))}

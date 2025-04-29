@@ -130,7 +130,7 @@ const ContestResultsPage: React.FC = () => {
           solvedProblems,
         };
       })
-      .filter((participant) => participant.problemsSolved > 0) // Only include participants with at least one problem solved
+      .filter((participant) => participant.problemsSolved > 0) 
       .sort((a, b) => {
         if (b.problemsSolved !== a.problemsSolved) return b.problemsSolved - a.problemsSolved;
         if (b.score !== a.score) return b.score - a.score;
@@ -169,7 +169,6 @@ const ContestResultsPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 bg-background min-h-screen">
-      {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white flex items-center">
           {contest.title} - Results
@@ -183,7 +182,6 @@ const ContestResultsPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Sidebar: Contest Details */}
         <div className="lg:col-span-1">
           <div className="bg-card rounded-xl shadow-lg p-6 sticky top-6 border">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Contest Details</h2>
@@ -210,9 +208,7 @@ const ContestResultsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="lg:col-span-3 space-y-6">
-          {/* Problems Section */}
           <div className="bg-card rounded-xl shadow-lg p-6 border">
             <button
               onClick={() => setShowProblems(!showProblems)}
@@ -251,7 +247,6 @@ const ContestResultsPage: React.FC = () => {
             <Tooltip id="difficulty-tooltip" />
           </div>
 
-          {/* Leaderboard Section */}
           <div className="bg-card rounded-xl shadow-lg p-6 border">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
@@ -325,7 +320,6 @@ const ContestResultsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal for Participant Problem Details */}
       {selectedParticipant && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">

@@ -1,4 +1,3 @@
-// src/components/layout/Pagination.tsx
 import React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useTheme } from "@/contexts/ThemeContext"

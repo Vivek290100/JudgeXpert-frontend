@@ -28,7 +28,7 @@ const ProcessProblemModal: React.FC<ProcessProblemModalProps> = ({
     try {
       await dispatch(processSpecificProblem({ problemDir })).unwrap();
       toast.success("Problem processed successfully!");
-      onSuccess(); // Refresh the problem list
+      onSuccess();
       setProblemDir("");
       onClose();
     } catch (err: any) {
@@ -42,7 +42,6 @@ const ProcessProblemModal: React.FC<ProcessProblemModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm">
       <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-md p-6 border border-gray-200 dark:border-gray-800">
-        {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             Process New Problem
@@ -55,7 +54,6 @@ const ProcessProblemModal: React.FC<ProcessProblemModalProps> = ({
           </button>
         </div>
 
-        {/* Content */}
         <div className="space-y-4">
           <div className="relative">
             <input
@@ -72,7 +70,6 @@ const ProcessProblemModal: React.FC<ProcessProblemModalProps> = ({
           </p>
         </div>
 
-        {/* Actions */}
         <div className="mt-6 flex justify-end gap-3">
           <button
             onClick={onClose}
