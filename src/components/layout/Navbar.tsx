@@ -217,10 +217,10 @@ const Navbar = () => {
                 <Link to="/user/contests" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-muted-foreground hover:text-foreground">
                   Contests
                 </Link>
-                <Link to="/user/leaderboard/global" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                <Link to="/user/leaderboard" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-muted-foreground hover:text-foreground">
                   Global Leaderboard
                 </Link>
-                <Link to="/user/leaderboard/contest" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                <Link to="/user/contests/winners" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-muted-foreground hover:text-foreground">
                   Contest Leaderboard
                 </Link>
                 <Link to="/user/dashboard" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-muted-foreground hover:text-foreground">
