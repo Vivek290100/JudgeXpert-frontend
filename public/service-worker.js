@@ -9,10 +9,10 @@ const urlsToCache = [
   "/assets/screenshots/mobile-screenshot.png",
   "/user/problems",
   "/user/contests",
-  "/user/leaderboard"
+  "/user/leaderboard",
 ];
 
-// Install event: Precache static assets
+// Install: Pre-cache static assets
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -22,72 +22,83 @@ self.addEventListener("install", (event) => {
   );
 });
 
-// Fetch event: Handle API and static requests
+// Fetch: Network-first for API, Cache-first for static
 self.addEventListener("fetch", (event) => {
   const requestUrl = new URL(event.request.url);
+  const isApiRequest = [
+    "/problems",
+    "/contests",
+    "/leaderboard",
+    "/subscriptions",
+    "/discussions",
+  ].some((path) => requestUrl.pathname.startsWith(path));
 
-  // Handle API requests
-  if (
-    requestUrl.pathname.startsWith("/problems") ||
-    requestUrl.pathname.startsWith("/contests") ||
-    requestUrl.pathname.startsWith("/leaderboard") ||
-    requestUrl.pathname.startsWith("/subscriptions") ||
-    requestUrl.pathname.startsWith("/discussions")
-  ) {
+  if (isApiRequest) {
+    // Network-first strategy for dynamic API
     event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-
-        return fetch(event.request).then((networkResponse) => {
+      fetch(event.request)
+        .then((networkResponse) => {
+          // Clone the response immediately
+          const responseToCache = networkResponse.clone();
           if (networkResponse && networkResponse.status === 200) {
-            const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache);
             });
           }
           return networkResponse;
-        }).catch(() => {
-          return new Response(JSON.stringify({ message: "Offline - Please reconnect to load data" }), {
-            status: 503,
-            headers: { "Content-Type": "application/json" }
-          });
-        });
-      })
+        })
+        .catch(() =>
+          caches.match(event.request).then((cached) => {
+            return (
+              cached ||
+              new Response(
+                JSON.stringify({ message: "Offline - Please reconnect to load data" }),
+                {
+                  status: 503,
+                  headers: { "Content-Type": "application/json" },
+                }
+              )
+            );
+          })
+        )
     );
   } else {
-    // Handle non-API requests
+    // Cache-first strategy for static files
     event.respondWith(
-      caches.match(event.request).then((response) => {
-        return response || fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, networkResponse.clone());
-            });
-          }
-          return networkResponse;
-        }).catch(() => {
-          return caches.match("/index.html");
-        });
+      caches.match(event.request).then((cachedResponse) => {
+        return (
+          cachedResponse ||
+          fetch(event.request)
+            .then((networkResponse) => {
+              // Clone the response immediately
+              const responseToCache = networkResponse.clone();
+              if (networkResponse && networkResponse.status === 200) {
+                caches.open(CACHE_NAME).then((cache) => {
+                  cache.put(event.request, responseToCache);
+                });
+              }
+              return networkResponse;
+            })
+            .catch(() => caches.match("/index.html"))
+        );
       })
     );
   }
 });
 
-// Activate event: Clean up old caches
+// Activate: Clean up old caches
 self.addEventListener("activate", (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
         cacheNames.map((cacheName) => {
           if (!cacheWhitelist.includes(cacheName)) {
             return caches.delete(cacheName);
           }
         })
-      );
-    })
+      )
+    )
   );
 });
 
@@ -95,7 +106,6 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("sync", (event) => {
   if (event.tag === "sync-user-actions") {
     event.waitUntil(
-      // Placeholder: Implement logic to retry queued actions
       console.log("Background sync triggered for user actions")
     );
   }
