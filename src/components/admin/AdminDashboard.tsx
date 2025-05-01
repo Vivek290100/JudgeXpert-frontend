@@ -1,96 +1,172 @@
-import { ProblemRowProps, StatCardProps } from "@/types/AdminTypes";
-import { Download, Search } from "lucide-react";
-import { useState } from "react";
-
+import { StatCardProps, DashboardStatsApiResponse, RevenueStatsApiResponse } from "@/types/AdminTypes";
+import { apiRequest } from "@/utils/axios/ApiRequest";
+// import { Download } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const StatCard = ({ title, value, label, color }: StatCardProps) => (
-  <div className="bg-card p-3 sm:p-4 md:p-6 rounded-lg border border-border">
-    <div className={`text-${color} text-sm sm:text-base mb-2`}>{title}</div>
+  <div className="bg-card p-3 sm:p-4 md:p-6 rounded-lg border border-border shadow-sm">
+    <div className={`text-${color} text-sm sm:text-base font-medium mb-2`}>{title}</div>
     <div className="text-lg sm:text-xl md:text-2xl font-bold text-foreground mb-1">{value}</div>
     <div className="text-xs sm:text-sm text-muted-foreground">{label}</div>
   </div>
 );
 
-
-const ProblemRow = ({ number, title, submissions, submissionColor }: ProblemRowProps) => (
-  <div className="flex items-center justify-between py-2 sm:py-3 border-b border-border">
-    <div className="flex items-center gap-2 sm:gap-4">
-      <span className="text-muted-foreground text-xs sm:text-sm md:text-base">#{number}</span>
-      <span className="text-foreground text-xs sm:text-sm md:text-base truncate max-w-[100px] sm:max-w-[150px] md:max-w-full">{title}</span>
-    </div>
-    <span className={`text-${submissionColor} bg-${submissionColor}/20 px-2 py-1 text-xs sm:text-sm rounded-full`}>
-      {submissions}
-    </span>
-  </div>
-);
-
-export default function AdminDashboard() {
-  const [searchTerm, setSearchTerm] = useState('');
+const RevenueBarChart = ({
+  height,
+  data,
+  period,
+}: {
+  height: number;
+  data: { period: string; revenue: number; date: string }[];
+  period: "monthly" | "yearly";
+}) => {
+  const formatPeriodLabel = (periodValue: string, date: string) => {
+    if (period === "yearly") return periodValue;
+    if (period === "monthly") {
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const month = monthNames[parseInt(periodValue) - 1] || periodValue;
+      const year = new Date(date).getFullYear();
+      return `${month} ${year}`;
+    }
+    return periodValue;
+  };
 
   return (
-    <div className="w-full bg-background text-foreground p-2 sm:p-3">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-14">
-        <div className="relative w-full sm:w-[300px]">
-          <input
-            type="text"
-            placeholder="Search here..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-card text-foreground pl-8 pr-3 py-2 text-sm rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-accent border border-border"
-          />
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+    <ResponsiveContainer width="100%" height={height}>
+      <BarChart data={data} margin={{ top: 20, right: 20, bottom: 30, left: 40 }}>
+        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+        <XAxis
+          dataKey="period"
+          tickFormatter={(value, index) => formatPeriodLabel(value, data[index].date)}
+          angle={0}
+          fontSize={12}
+        />
+        <YAxis fontSize={12} />
+        <Tooltip formatter={(value: number) => `₹${value.toLocaleString()}`} />
+        <Legend wrapperStyle={{ fontSize: 12, marginTop: 10 }} />
+        <Bar dataKey="revenue" fill="#1e40af" radius={[4, 4, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
+
+export default function AdminDashboard() {
+  const [stats, setStats] = useState<DashboardStatsApiResponse["data"]>({
+    totalUsers: 0,
+    subscribers: 0,
+    totalProblems: 0,
+    totalContests: 0,
+  });
+  const [revenueData, setRevenueData] = useState<{ period: string; revenue: number; date: string }[]>([]);
+  const [period, setPeriod] = useState<"monthly" | "yearly">("yearly");
+
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        const response = await apiRequest<DashboardStatsApiResponse>("get", "/admin/dashboard-stats");
+        if (response.success && response.data) setStats(response.data);
+      } catch (err) {
+        console.error("Failed to fetch dashboard stats:", err);
+      }
+    };
+    fetchDashboardStats();
+  }, []);
+
+  useEffect(() => {
+    const fetchRevenueStats = async () => {
+      try {
+        const response = await apiRequest<RevenueStatsApiResponse>("get", `/admin/revenue-stats?period=${period}`);
+        if (response.success && response.data) {
+          setRevenueData(
+            response.data.map((stat) => ({
+              period: stat.period,
+              revenue: stat.revenue,
+              date: stat.date,
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Failed to fetch revenue stats:", err);
+      }
+    };
+    fetchRevenueStats();
+  }, [period]);
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
+    if (num >= 1_000) return `${(num / 1_000).toFixed(1)}k`;
+    return num.toString();
+  };
+
+  const totalRevenue = useMemo(() => revenueData.reduce((sum, item) => sum + item.revenue, 0), [revenueData]);
+  const topRevenue = useMemo(() => {
+    const max = Math.max(...revenueData.map((d) => d.revenue));
+    return revenueData.find((d) => d.revenue === max);
+  }, [revenueData]);
+
+  return (
+    <div className="w-full bg-background text-foreground p-4 sm:p-6 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard title="Total Users" value={formatNumber(stats.totalUsers)} label="Total Users" color="sky-500" />
+        <StatCard title="Subscribers" value={formatNumber(stats.subscribers)} label="Subscribers" color="orange-500" />
+        <StatCard title="Total Problems" value={formatNumber(stats.totalProblems)} label="Total Problems" color="purple-500" />
+        <StatCard title="Total Contests" value={formatNumber(stats.totalContests)} label="Total Contests" color="pink-500" />
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div className="flex gap-2">
+          <button
+            className={`px-4 py-2 text-sm font-medium rounded-lg ${
+              period === "monthly" ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
+            } hover:bg-opacity-90 transition-colors`}
+            onClick={() => setPeriod("monthly")}
+          >
+            Monthly
+          </button>
+          <button
+            className={`px-4 py-2 text-sm font-medium rounded-lg ${
+              period === "yearly" ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
+            } hover:bg-opacity-90 transition-colors`}
+            onClick={() => setPeriod("yearly")}
+          >
+            Yearly
+          </button>
         </div>
-        
-        <button className="flex items-center justify-center gap-2 bg-accent text-accent-foreground px-3 py-2 text-sm rounded-lg hover:bg-opacity-90 transition-colors w-full sm:w-auto">
+        {/* <button className="flex items-center gap-2 bg-accent text-accent-foreground px-4 py-2 text-sm font-medium rounded-lg hover:bg-opacity-90 transition-colors w-full sm:w-auto">
           <Download className="w-4 h-4" />
           <span>Download Report</span>
-        </button>
+        </button> */}
       </div>
 
-      <h2 className="text-foreground text-lg sm:text-xl mb-4 sm:mb-6">Sales Summary</h2>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard title="Total Users" value="12k" label="Total Users" color="[#a5f3fc]" />
-        <StatCard title="Subscribers" value="5k" label="Subscribers" color="orange-400" />
-        <StatCard title="Total Problems" value="500" label="Total Problems" color="purple-400" />
-        <StatCard title="Total Contests" value="09" label="Total Contests" color="pink-400" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        <div className="bg-card p-3 sm:p-4 md:p-6 rounded-lg border border-border">
-          <h3 className="text-foreground text-base sm:text-lg mb-3 sm:mb-4">Top Submitted Problems</h3>
-          <div className="space-y-2">
-            <ProblemRow number="01" title="Find Lucky Integer in an Array" submissions="2334" submissionColor="orange-400" />
-            <ProblemRow number="02" title="String Matching in an Array" submissions="2323" submissionColor="green-400" />
-            <ProblemRow number="03" title="Count Odd Numbers in an Interval Range" submissions="1943" submissionColor="blue-400" />
-            <ProblemRow number="04" title="Kth Missing Positive Number" submissions="456" submissionColor="purple-400" />
+      <div className="w-full flex flex-col lg:flex-row gap-6 bg-card rounded-lg p-6 border border-border shadow-sm">
+        <div className="w-full lg:w-8/12">
+          <h3 className="text-foreground text-lg font-semibold mb-4">Revenue Chart</h3>
+          <div className="h-96">
+            <RevenueBarChart height={360} data={revenueData} period={period} />
           </div>
         </div>
 
-        <div className="bg-card p-3 sm:p-4 md:p-6 rounded-lg border border-border">
-          <h3 className="text-foreground text-base sm:text-lg mb-3 sm:mb-4">Customer Fulfillment</h3>
-          <div className="h-[150px] sm:h-[180px] md:h-[200px] flex items-end justify-between gap-1 px-1 sm:px-2">
-            {[
-              { height: '80%', value: '80%' },
-              { height: '60%', value: '60%' },
-              { height: '90%', value: '90%' },
-              { height: '70%', value: '70%' },
-              { height: '85%', value: '85%' },
-              { height: '75%', value: '75%' },
-            ].map((bar, index) => (
-              <div key={index} className="flex-1 bg-accent bg-opacity-20 rounded-t-lg relative group" style={{ height: bar.height }}>
-                <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-card text-accent text-xs px-1 sm:px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">{bar.value}</div>
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between text-xs text-muted-foreground mt-2 px-1 sm:px-2">
-            <span>Jan</span>
-            <span>Feb</span>
-            <span>Mar</span>
-            <span>Apr</span>
-            <span>May</span>
-            <span>Jun</span>
-          </div>
+        <div className="w-full lg:w-4/12 flex flex-col gap-6">
+          <h3 className="text-foreground text-lg font-semibold mb-2">Revenue Insights</h3>
+          
+          <StatCard
+            title="Total Revenue"
+            value={`₹${totalRevenue.toLocaleString()}`}
+            label="Across selected period"
+            color="green-500"
+          />
+          
+          {topRevenue && (
+            <StatCard
+              title="Top Earning Period"
+              value={`₹${topRevenue.revenue.toLocaleString()}`}
+              label={period === "monthly" 
+                ? `${new Date(topRevenue.date).toLocaleString('default', { month: 'long' })} ${new Date(topRevenue.date).getFullYear()}`
+                : `Year ${topRevenue.period}`}
+              color="blue-500"
+            />
+          )}
         </div>
       </div>
     </div>
