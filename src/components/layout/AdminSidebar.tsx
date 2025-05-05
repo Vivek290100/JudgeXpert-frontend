@@ -1,30 +1,48 @@
-// src/components/Admin/AdminSidebar.tsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Users, LayoutDashboard, Code2, Trophy, LogOut, ChevronLeft, Menu, Sun, Moon,} from "lucide-react";
+import { Users, LayoutDashboard, Code2, Trophy, LogOut, ChevronLeft, Menu, Sun, Moon, Plus } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useDispatch } from "react-redux";
 import { logout } from "@/redux/thunks/AuthThunks";
 import toast from "react-hot-toast";
 import { AppDispatch } from "@/redux/Store";
 import { SidebarItem } from "@/types/ComponentsTypes";
-
-
+import { getSocket } from "@/utils/socket";
+import AddNewProblemModal from "../admin/AddNewProblemModal";
 
 export default function AdminSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const { theme, toggleTheme } = useTheme();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isOpen, setIsOpen] = useState(!isMobile);
+  const [newProblems, setNewProblems] = useState<string[]>(() => {
+    const saved = localStorage.getItem("newProblems");
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [isAddProblemModalOpen, setIsAddProblemModalOpen] = useState(false);
 
   const sidebarItems: SidebarItem[] = [
     { title: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" />, path: "/admin/dashboard" },
     { title: "Users", icon: <Users className="w-5 h-5" />, path: "/admin/users" },
-    { title: "Problems", icon: <Code2 className="w-5 h-5" />, path: "/admin/problems" }, 
+    {
+      title: "Problems",
+      icon: <Code2 className="w-5 h-5" />,
+      path: "/admin/problems",
+    },
     { title: "Contests", icon: <Trophy className="w-5 h-5" />, path: "/admin/contests" },
-    // { title: "Subscription", icon: <CreditCard className="w-5 h-5" />, path: "" },
+    ...(newProblems.length > 0
+      ? [
+          {
+            title: "Add New Problem",
+            icon: <Plus className="w-5 h-5" />,
+            path: "#",
+            onClick: () => setIsAddProblemModalOpen(true),
+            notificationCount: newProblems.length,
+          },
+        ]
+      : []),
   ];
 
   const getCurrentPath = () => {
@@ -53,10 +71,47 @@ export default function AdminSidebar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) {
+      console.warn("Socket not initialized in AdminSidebar");
+      return;
+    }
+
+    socket.on("newProblem", (notification: { slug: string; message: string }) => {
+      console.log("AdminSidebar received newProblem:", notification);
+      setNewProblems((prev) => {
+        if (prev.includes(notification.slug)) return prev;
+        const updated = [...new Set([...prev, notification.slug])];
+        localStorage.setItem("newProblems", JSON.stringify(updated));
+        toast.success(notification.message, {
+          id: `new-problem-${notification.slug}`,
+          duration: 5000, // Show toast for 5 seconds
+        });
+        console.log("Toast displayed for slug:", notification.slug);
+        return updated;
+      });
+    });
+    socket.on("connect_error", (err) => {
+      console.error("AdminSidebar Socket.IO connect error:", err.message);
+      toast.error("Failed to connect to notification service");
+    });
+
+    return () => {
+      socket.off("newProblem");
+      socket.off("connect_error");
+    };
+  }, []);
+
   const handleNavigation = (item: SidebarItem) => {
     setActiveItem(item.title);
-    navigate(item.path);
+    if (item.onClick) {
+      item.onClick();
+    } else {
+      navigate(item.path);
+    }
     if (isMobile) toggleSidebar();
+    console.log("Navigated to:", item.title, "newProblems:", newProblems);
   };
 
   const handleSignOut = async () => {
@@ -66,7 +121,18 @@ export default function AdminSidebar() {
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
+      toast.error("Failed to log out");
     }
+  };
+
+  const handleProblemProcessed = (slug: string) => {
+    setNewProblems((prev) => {
+      const updated = prev.filter((s) => s !== slug);
+      localStorage.setItem("newProblems", JSON.stringify(updated));
+      toast.dismiss(`new-problem-${slug}`);
+      console.log("Problem processed, dismissed toast for slug:", slug);
+      return updated;
+    });
   };
 
   return (
@@ -74,7 +140,8 @@ export default function AdminSidebar() {
       {isMobile && !isOpen && (
         <button
           onClick={toggleSidebar}
-          className="fixed top-4 left-4 z-50 p-2 bg-accent text-accent-foreground rounded-lg md:hidden"
+          className="fixed top-4 left-4 z-50 p-2 bg-accent text-accent-foreground rounded-lg md:hidden focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Open sidebar"
         >
           <Menu className="w-6 h-6" />
         </button>
@@ -88,12 +155,13 @@ export default function AdminSidebar() {
           ${theme === "dark" ? "bg-background border-gray-800 text-gray-200" : "bg-white border-gray-200 text-gray-900"}
           border-r
         `}
+        aria-hidden={isMobile && !isOpen}
       >
         <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border">
           {isOpen ? (
             <>
               <div className="flex items-center gap-2">
-                <Code2 className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+                <Code2 className="w-5 sm:w-6 h-5 sm:h-6 text-primary" aria-hidden="true" />
                 <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-blue-800 bg-clip-text text-transparent">
                   Judge
                   <span
@@ -108,7 +176,8 @@ export default function AdminSidebar() {
               </div>
               <button
                 onClick={toggleSidebar}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Close sidebar"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -116,20 +185,21 @@ export default function AdminSidebar() {
           ) : (
             <button
               onClick={toggleSidebar}
-              className="w-full flex justify-center text-primary hover:text-foreground transition-colors"
+              className="w-full flex justify-center text-primary hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Open sidebar"
             >
               <Menu className="w-5 sm:w-6 h-5 sm:h-6" />
             </button>
           )}
         </div>
 
-        <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto" aria-label="Sidebar navigation">
           {sidebarItems.map((item) => (
             <button
               key={item.title}
               onClick={() => handleNavigation(item)}
               className={`
-                w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-4 rounded-lg transition-colors text-sm sm:text-base
+                w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-4 rounded-lg transition-colors text-sm sm:text-base relative
                 ${!isOpen ? "justify-center" : ""}
                 ${
                   activeItem === item.title
@@ -142,9 +212,19 @@ export default function AdminSidebar() {
                 }
               `}
               title={!isOpen ? item.title : undefined}
+              aria-current={activeItem === item.title ? "page" : undefined}
+              aria-label={`Navigate to ${item.title}`}
             >
               {item.icon}
               {isOpen && <span>{item.title}</span>}
+              {isOpen && item.notificationCount ? (
+                <span
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+                  aria-label={`${item.notificationCount} new problems`}
+                >
+                  {item.notificationCount}
+                </span>
+              ) : null}
             </button>
           ))}
         </nav>
@@ -157,6 +237,7 @@ export default function AdminSidebar() {
                 ? "text-gray-400 hover:text-white hover:bg-gray-700"
                 : "text-gray-600 hover:text-black hover:bg-gray-200"
             }`}
+            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
           >
             {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             {isOpen && (theme === "dark" ? "Light Mode" : "Dark Mode")}
@@ -174,12 +255,22 @@ export default function AdminSidebar() {
                 : "text-gray-900 hover:bg-gray-200"
             }`}
             title={!isOpen ? "Sign out" : undefined}
+            aria-label="Sign out"
           >
             <LogOut className="w-5 h-5" />
             {isOpen && <span>Sign out</span>}
           </button>
         </div>
       </div>
+
+      {isAddProblemModalOpen && (
+        <AddNewProblemModal
+          isOpen={isAddProblemModalOpen}
+          onClose={() => setIsAddProblemModalOpen(false)}
+          newProblems={newProblems}
+          onProblemProcessed={handleProblemProcessed}
+        />
+      )}
     </>
   );
 }

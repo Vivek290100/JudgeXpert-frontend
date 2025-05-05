@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
 import PublicRoutes from "./routes/PublicRoutes";
 import UserRoutes from "./routes/UserRoutes";
@@ -9,6 +9,8 @@ import SkeletonLoader, { AuthSkeleton, DashboardSkeleton } from "./utils/Skeleto
 import CommonLayout from "./layout/CommonLayout";
 import NotFound from "@/components/layout/NotFound";
 import { Toaster } from "react-hot-toast";
+import { useAppSelector } from "@/redux/Store";
+import { initializeSocket, disconnectSocket } from "@/utils/socket";
 
 const App = () => {
   // useEffect(() => {
@@ -24,6 +26,19 @@ const App = () => {
   //     window.removeEventListener("keydown", keydownHandler);
   //   };
   // }, []);
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (isAuthenticated && user?.id) {
+      initializeSocket(user.id);
+    } else {
+      disconnectSocket();
+    }
+
+    return () => {
+      disconnectSocket();
+    };
+  }, [isAuthenticated, user]);
   return (
     <>
       <Routes>
