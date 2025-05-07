@@ -79,7 +79,7 @@ interface UserContestStats {
 
 const ContestsWinners: React.FC = () => {
   const { theme } = useTheme();
-  const user = useSelector((state: RootState) => state.auth.user) as AuthUser | null;
+  const user = useSelector((state: RootState) => state.auth.user) as unknown as AuthUser | null;
   const navigate = useNavigate();
   const [contests, setContests] = useState<Contest[]>([]);
   const [winners, setWinners] = useState<{ [contestId: string]: LeaderboardEntry | null }>({});
