@@ -271,7 +271,7 @@ const ContestsPage: React.FC = () => {
                   let statusBg = "";
                   let buttonColor = "";
                   let buttonText = "";
-                  let statusIcon = null;
+                  let statusIcon: React.ReactNode = null;
                   let isButtonDisabled = false;
 
                   switch (status) {
