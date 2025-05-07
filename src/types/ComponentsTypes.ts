@@ -24,4 +24,6 @@ export interface SidebarItem {
   title: string;
   icon: React.ReactNode;
   path: string;
+  notificationCount?: number;
+  onClick?: () => void;
 }

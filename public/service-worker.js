@@ -1,4 +1,4 @@
-const CACHE_NAME = "judgexpert-pwa-cache-v1";
+const CACHE_NAME = "judgexpert-pwa-cache-v2"; // Increment for new deployments
 const urlsToCache = [
   "/",
   "/index.html",
@@ -12,17 +12,33 @@ const urlsToCache = [
   "/user/leaderboard",
 ];
 
-// Install: Pre-cache static assets
+// Install: Cache core assets
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("Opened cache");
+      console.log("Service Worker: Caching core assets...");
       return cache.addAll(urlsToCache);
     })
   );
 });
 
-// Fetch: Network-first for API, Cache-first for static
+// Activate: Delete old caches
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            console.log("Service Worker: Deleting old cache:", cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      )
+    )
+  );
+});
+
+// Fetch: API = network-first, Static = stale-while-revalidate
 self.addEventListener("fetch", (event) => {
   const requestUrl = new URL(event.request.url);
   const isApiRequest = [
@@ -34,15 +50,14 @@ self.addEventListener("fetch", (event) => {
   ].some((path) => requestUrl.pathname.startsWith(path));
 
   if (isApiRequest) {
-    // Network-first strategy for dynamic API
+    // Network-first for API
     event.respondWith(
       fetch(event.request)
         .then((networkResponse) => {
-          // Clone the response immediately
-          const responseToCache = networkResponse.clone();
           if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
+              cache.put(event.request, clone);
             });
           }
           return networkResponse;
@@ -63,50 +78,39 @@ self.addEventListener("fetch", (event) => {
         )
     );
   } else {
-    // Cache-first strategy for static files
+    // Stale-while-revalidate for static assets
     event.respondWith(
       caches.match(event.request).then((cachedResponse) => {
-        return (
-          cachedResponse ||
-          fetch(event.request)
-            .then((networkResponse) => {
-              // Clone the response immediately
-              const responseToCache = networkResponse.clone();
-              if (networkResponse && networkResponse.status === 200) {
-                caches.open(CACHE_NAME).then((cache) => {
-                  cache.put(event.request, responseToCache);
-                });
-              }
-              return networkResponse;
-            })
-            .catch(() => caches.match("/index.html"))
-        );
+        const fetchPromise = fetch(event.request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(event.request, networkResponse.clone());
+              });
+            }
+            return networkResponse;
+          })
+          .catch(() => null); // suppress fetch errors
+        return cachedResponse || fetchPromise;
       })
     );
   }
 });
 
-// Activate: Clean up old caches
-self.addEventListener("activate", (event) => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then((cacheNames) =>
-      Promise.all(
-        cacheNames.map((cacheName) => {
-          if (!cacheWhitelist.includes(cacheName)) {
-            return caches.delete(cacheName);
-          }
-        })
-      )
-    )
-  );
-});
-
-// Background Sync (for write operations like /execute)
+// Background Sync placeholder
 self.addEventListener("sync", (event) => {
   if (event.tag === "sync-user-actions") {
     event.waitUntil(
-      console.log("Background sync triggered for user actions")
+      console.log("Service Worker: Background sync triggered for user actions")
     );
+  }
+});
+
+// Manual cache clear via postMessage
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "CLEAR_CACHE") {
+    caches.delete(CACHE_NAME).then(() => {
+      console.log("Service Worker: Cache cleared on request");
+    });
   }
 });
