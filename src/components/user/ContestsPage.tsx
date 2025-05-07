@@ -273,7 +273,6 @@ const ContestsPage: React.FC = () => {
                   let buttonText = "";
                   let statusIcon = null;
                   let isButtonDisabled = false;
-                  let tooltipMessage = "";
 
                   switch (status) {
                     case "active":
@@ -291,7 +290,6 @@ const ContestsPage: React.FC = () => {
                         buttonText = "Join Now";
                         statusIcon = <Activity className="w-3 h-3 mr-1" />;
                         isButtonDisabled = true;
-                        tooltipMessage = "You must register before the contest starts to join.";
                       }
                       break;
                     case "upcoming":

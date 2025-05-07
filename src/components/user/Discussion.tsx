@@ -40,7 +40,7 @@ const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
   const [replyMessage, setReplyMessage] = useState<{ [key: string]: string }>({});
   const [discussions, setDiscussions] = useState<Message[]>([]);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [showReplies, setShowReplies] = useState<{ [key: string]: boolean }>({});

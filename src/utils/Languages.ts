@@ -6,6 +6,8 @@ export interface LanguageConfig {
 }
 
 const parseInput = (input: string, language: string, inputStructure: { name: string; type: string }[]) => {
+  console.log(language);
+  
   const lines = input.split('\n').filter(line => line.trim());
   if (lines.length !== inputStructure.length) {
     throw new Error(`Expected ${inputStructure.length} inputs, got ${lines.length}`);

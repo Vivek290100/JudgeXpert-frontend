@@ -17,7 +17,7 @@ const AddNewProblemModal: React.FC<AddNewProblemModalProps> = ({
   newProblems,
   onProblemProcessed,
 }) => {
-  const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
+  const [, setSelectedSlug] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const dispatch = useAppDispatch();
 

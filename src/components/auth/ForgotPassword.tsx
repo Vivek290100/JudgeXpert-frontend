@@ -35,7 +35,7 @@ export const ForgotPassword = () => {
           } 
         });
       } else {
-        toast.error(resultAction.payload);
+        toast.error("eee!! something went wrong..");
       }
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
