@@ -111,7 +111,7 @@ const UserDashboard = () => {
   };
 
   return (
-    <div className="bg-background text-white min-h-screen p-4">
+    <div className="bg-background text-primary min-h-screen p-4">
       <div className="mx-auto max-w-7xl flex flex-col gap-6 lg:flex-row">
         {/* Left Section */}
         <div className="flex flex-col gap-6 w-full lg:w-1/4">
@@ -147,11 +147,11 @@ const UserDashboard = () => {
         <div className="flex flex-col gap-6 w-full lg:w-2/4">
           <div className="bg-card p-6 rounded-xl shadow border">
             <h2 className="text-xl font-semibold mb-1">{user.fullName || "Vivek"}</h2>
-            <p className="text-gray-400 mb-4">{user.email}</p>
+            <p className="text-primary mb-4">{user.email}</p>
             <div className="flex gap-6">
               <a
                 href={user.github || "#"}
-                className="flex items-center gap-2 text-gray-300 hover:text-white"
+                className="flex items-center gap-2 text-primary hover:text-white"
                 target="_blank"
               >
                 <FaGithub />
@@ -159,7 +159,7 @@ const UserDashboard = () => {
               </a>
               <a
                 href={user.linkedin || "#"}
-                className="flex items-center gap-2 text-gray-300 hover:text-white"
+                className="flex items-center gap-2 text-gprimary hover:text-white"
                 target="_blank"
               >
                 <FaLinkedin />
@@ -173,7 +173,7 @@ const UserDashboard = () => {
               <FaStar className="text-yellow-500 mr-3" />
               <h3 className="text-xl font-semibold">Contests</h3>
             </div>
-            <p className="text-gray-300">Code. Compete. Win! 🏆</p>
+            <p className="text-primary">Code. Compete. Win! 🏆</p>
             <p className="text-gray-400 mt-2 mb-6">Participate in coding battles!</p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button
@@ -197,7 +197,7 @@ const UserDashboard = () => {
             <h3 className="text-xl font-semibold mb-4">My Rank</h3>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-gray-300">Level Up!</p>
+                <p className="text-primary">Level Up!</p>
                 <p className="text-gray-400 text-sm">Solve more to boost rank.</p>
               </div>
               <div className="bg-yellow-500 w-14 h-14 flex items-center justify-center rounded-full shadow">
@@ -227,7 +227,7 @@ const UserDashboard = () => {
                 </div>
                 <div className="w-full bg-gray-700 rounded-full h-6 mb-4 overflow-hidden">
                   <div
-                    className="h-full bg-yellow-500 text-sm font-semibold text-black flex items-center justify-center transition-all"
+                    className="h-full bg-yellow-500 text-sm font-semibold text-primary flex items-center justify-center transition-all"
                     style={{ width: `${progressPercentage}%` }}
                   >
                     {progressPercentage}%
