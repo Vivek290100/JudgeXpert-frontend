@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { apiRequest } from "../../utils/axios/ApiRequest";
+import { apiRequest } from "@/utils/axios/ApiRequest";
 import { ApiResponse } from "@/types/ProblemTypes";
 import { Clock, Code2, AlertCircle, ListChecks, Trophy } from "lucide-react";
 import toast from "react-hot-toast";

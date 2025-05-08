@@ -1,7 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./protectedRoutes";
-import NotFound from "@/components/layout/NotFound";
 import { DashboardSkeleton, ProblemEditorSkeleton, TableSkeleton } from "@/utils/SkeletonLoader";
 import ProblemEditor from "@/pages/user/ProblemEditor";
 import SubmissionsPage from "@/components/user/SubmissionsPage";
@@ -17,6 +16,8 @@ import SuccessPage from "@/components/user/SuccessPage";
 
 const Dashboard = lazy(() => import("@/pages/user/UserDashboard"));
 const ProblemsList = lazy(() => import("@/pages/user/UserProblemsList"));
+const NotFound = lazy(() => import('@/components/layout/NotFound'));
+
 
 const UserRoutes = () => {
   return (

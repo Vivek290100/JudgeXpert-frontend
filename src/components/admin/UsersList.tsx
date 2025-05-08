@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { apiRequest } from "../../utils/axios/ApiRequest";
+import { apiRequest } from "@/utils/axios/ApiRequest";
 import { CheckCircle, Unlock, Lock, Search, X } from "lucide-react";
 import Table from "../layout/Table";
 import Pagination from "../layout/Pagination";

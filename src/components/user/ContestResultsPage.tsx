@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import { apiRequest } from "../../utils/axios/ApiRequest";
+import { apiRequest } from "@/utils/axios/ApiRequest";
 import { Trophy, AlertCircle, Clock, X } from "lucide-react";
 import { ContestDetailsSkeleton } from "@/utils/SkeletonLoader";
 import { Tooltip } from "react-tooltip";

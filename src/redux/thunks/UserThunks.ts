@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { AuthUser, AuthResponse } from "../../types/AuthTypes";
-import { apiRequest } from "../../utils/axios/ApiRequest";
+import { apiRequest } from "@/utils/axios/ApiRequest";
 import { UpdateProfileData } from "../../types/UserTypes";
 
 export const updateUserProfile = createAsyncThunk<

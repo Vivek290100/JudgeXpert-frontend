@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { apiRequest } from "../../utils/axios/ApiRequest";
+import { apiRequest } from "@/utils/axios/ApiRequest";
 import Table from "@/components/layout/Table";
 import Pagination from "@/components/layout/Pagination";
 import { useTheme } from "@/contexts/ThemeContext";
