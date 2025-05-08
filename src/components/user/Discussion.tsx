@@ -31,7 +31,7 @@ interface Message {
   score: number;
 }
 
-const SOCKET_URL = "http://localhost:3000";
+const SOCKET_URL = import.meta.env.VITE_API_BASE_URL;
 const LIMIT = 10;
 
 const Discussion: React.FC<DiscussionProps> = ({ problemId, problemTitle }) => {
