@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { apiRequest } from "@/utils/axios/ApiRequest";
+import { apiRequest } from "../../utils/axios/ApiRequest";
 import { ArrowRight } from "lucide-react";
 import FAQSection from "../home/FaqSection";
 

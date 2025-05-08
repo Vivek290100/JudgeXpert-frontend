@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { apiRequest } from "@/utils/axios/ApiRequest";
+import { apiRequest } from "../../utils/axios/ApiRequest";
 import { IProblem, ProcessProblemPayload, ProcessProblemResponse } from "@/types/ProblemTypes";
 
 

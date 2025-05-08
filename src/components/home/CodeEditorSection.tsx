@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Code } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
-import { fadeInUp, staggerContainer } from "../../utils/Animations";
+import { fadeInUp, staggerContainer } from "@/utils/Animations";
 
 const data = [
   { name: "Runtime", value: 102 },

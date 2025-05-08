@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../redux/Store";
 import { FaGithub, FaLinkedin, FaStar, FaChevronRight } from "react-icons/fa";
-import { apiRequest } from "@/utils/axios/ApiRequest";
+import { apiRequest } from "../../utils/axios/ApiRequest";
 import EditProfile from "./EditProfile";
 import {
   ApiResponse,

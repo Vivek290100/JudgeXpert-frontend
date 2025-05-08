@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { apiRequest } from "@/utils/axios/ApiRequest";
+import { apiRequest } from "../../utils/axios/ApiRequest";
 import { CheckCircle, XCircle, Award } from "lucide-react";
 
 interface Submission {
