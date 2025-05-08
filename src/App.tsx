@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
 import PublicRoutes from "./routes/PublicRoutes";
 import UserRoutes from "./routes/UserRoutes";
@@ -7,10 +7,12 @@ import UserLayout from "./layout/UserLayout";
 import AdminLayout from "./layout/AdminLayout";
 import SkeletonLoader, { AuthSkeleton, DashboardSkeleton } from "./utils/SkeletonLoader";
 import CommonLayout from "./layout/CommonLayout";
-import NotFound from "@/components/layout/NotFound";
 import { Toaster } from "react-hot-toast";
 import { useAppSelector } from "@/redux/Store";
 import { initializeSocket, disconnectSocket } from "@/utils/socket";
+
+const NotFound = lazy(() => import('@/components/layout/NotFound'));
+
 
 const App = () => {
   // useEffect(() => {

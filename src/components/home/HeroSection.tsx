@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { showStoredToast } from "@/utils/Toast";
 import { motion } from "framer-motion";
+import { fadeInUp, scaleIn } from "../../utils/Animations";
 import { useEffect } from "react";
 import { RootState, useAppSelector } from "@/redux/Store";
 import { useNavigate } from "react-router-dom";
-import { fadeInUp, scaleIn } from "@/utils/Animations";
 
 export default function HeroSection() {
   const user = useAppSelector((state: RootState) => state.auth.user);

@@ -2,9 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Code, BarChart2, Trophy, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
+import { fadeInUp, staggerContainer, cardHover } from "../../utils/Animations";
 import { RootState, useAppSelector } from "@/redux/Store";
 import { useNavigate } from "react-router-dom";
-import { cardHover, fadeInUp, staggerContainer } from "@/utils/Animations";
 
 const SECTION_BG = "bg-background";
 
