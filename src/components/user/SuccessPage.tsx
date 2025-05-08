@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { apiRequest } from "@/utils/axios/ApiRequest";
+import { apiRequest } from "@/utils/axios/ApiRequest.ts";
 import { useAppDispatch, useAppSelector } from "@/redux/Store";
 import { updateUserProfile } from "@/redux/thunks/UserThunks";
 
