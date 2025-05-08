@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { ForgotPasswordFormData, LoginFormData, SignUpFormData } from "@/utils/validations/AuthValidation";
 import { VerifyOtpData } from "@/utils/validations/OTPVerifyValidation";
-import { apiRequest } from "@/utils/axios/ApiRequest.ts";
+import { apiRequest } from "@/utils/axios/ApiRequest";
 import { AuthResponse } from "@/types/AuthTypes";
 
 export const signUp = createAsyncThunk<AuthResponse, SignUpFormData, { rejectValue: string }>(

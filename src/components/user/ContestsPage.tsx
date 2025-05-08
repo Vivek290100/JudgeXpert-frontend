@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { apiRequest } from "@/utils/axios/ApiRequest.ts";
+import { apiRequest } from "@/utils/axios/ApiRequest";
 import { useNavigate } from "react-router-dom";
 import { Code2, Users, Calendar, AlertCircle, Activity, Info } from "lucide-react";
 import { ApiResponse } from "@/types/ProblemTypes";

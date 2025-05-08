@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiRequest } from "@/utils/axios/ApiRequest.ts";
+import { apiRequest } from "@/utils/axios/ApiRequest";
 import Table from "@/components/layout/Table";
 import Pagination from "@/components/layout/Pagination";
 import { useTheme } from "@/contexts/ThemeContext";

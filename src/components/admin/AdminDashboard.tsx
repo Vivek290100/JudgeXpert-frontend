@@ -1,5 +1,5 @@
 import { StatCardProps, DashboardStatsApiResponse, RevenueStatsApiResponse } from "@/types/AdminTypes";
-import { apiRequest } from "@/utils/axios/ApiRequest.ts";
+import { apiRequest } from "@/utils/axios/ApiRequest";
 // import { Download } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
