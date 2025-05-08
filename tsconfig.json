@@ -25,7 +25,8 @@
     /* Paths */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/utils/axios/ApiRequest": ["./src/utils/axios/ApiRequest"] 
     }
   },
   "include": ["src", "public/service-worker.js"],
