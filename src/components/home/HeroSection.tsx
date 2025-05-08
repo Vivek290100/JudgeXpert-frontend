@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { showStoredToast } from "@/utils/Toast";
 import { motion } from "framer-motion";
-import { fadeInUp, scaleIn } from "../../utils/Animations";
+import { fadeInUp, scaleIn } from "../../utils/Animations.ts";
 import { useEffect } from "react";
 import { RootState, useAppSelector } from "@/redux/Store";
 import { useNavigate } from "react-router-dom";
