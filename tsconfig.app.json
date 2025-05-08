@@ -19,11 +19,13 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": false,
 
     /* for ShadCN */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/utils/axios/ApiRequest": ["./src/utils/axios/ApiRequest"]
     }
   },
   "include": ["src"]
