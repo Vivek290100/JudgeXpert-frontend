@@ -10,7 +10,7 @@ export async function apiRequest<T>(method: "post" | "get" | "put" | "patch", ur
     
     console.log("Api response", response);
 
-    return response.data;
+    return response.data; 
   } catch (error) {
     if (isAxiosError(error)) {
       console.error("API Request Error:", error.response?.data || error.message);
