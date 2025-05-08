@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { fadeInUp } from "../../utils/Animations";
+import { fadeInUp } from "../../utils/Animations.ts";
 
 export default function ContactSection() {
   return (

@@ -1,6 +1,6 @@
 import { Code2, Github, Twitter, Linkedin } from "lucide-react";
 import { motion } from "framer-motion";
-import { fadeInUp, staggerContainer } from "../../utils/Animations";
+import { fadeInUp, staggerContainer } from "../../utils/Animations.ts";
 
 export function Footer() {
   return (
