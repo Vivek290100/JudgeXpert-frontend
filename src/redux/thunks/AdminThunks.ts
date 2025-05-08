@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { AdminUser, AdminUsersResponse, BlockUserResponse } from "../../types/AdminTypes";
-import { apiRequest } from "@/utils/axios/ApiRequest";
+import { apiRequest } from "@/utils/axios/ApiRequest.ts";
 
 export const fetchUsers = createAsyncThunk<AdminUser[], void, { rejectValue: string }>(
   "admin/fetchUsers",

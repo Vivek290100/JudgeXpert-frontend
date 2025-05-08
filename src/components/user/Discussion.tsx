@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { MessageSquare, X, Reply, ChevronDown, ChevronUp, Clock, ThumbsUp } from "lucide-react";
-import { apiRequest } from "@/utils/axios/ApiRequest";
+import { apiRequest } from "@/utils/axios/ApiRequest.ts";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/Store";
