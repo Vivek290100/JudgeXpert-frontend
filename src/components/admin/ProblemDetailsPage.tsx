@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { X, ChevronDown, ChevronUp } from "lucide-react";
-import { apiRequest } from "@/utils/axios/ApiRequest.ts";
+import { apiRequest } from "@/utils/axios/ApiRequest";
 import Pagination from "../layout/Pagination";
 import { ProblemDetailsSkeleton } from "@/utils/SkeletonLoader";
 import { IProblem, ProblemApiResponse } from "@/types/ProblemTypes";

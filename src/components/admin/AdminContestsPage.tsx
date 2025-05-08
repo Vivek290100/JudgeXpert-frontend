@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { apiRequest } from "@/utils/axios/ApiRequest.ts";
+import { apiRequest } from "@/utils/axios/ApiRequest";
 import { Search, Plus, X, AlertCircle } from "lucide-react";
 import { ApiResponse } from "@/types/ProblemTypes";
 import AddContestForm from "./AddContestForm";
