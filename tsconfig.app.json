@@ -25,7 +25,6 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@/utils/axios/ApiRequest": ["./src/utils/axios/ApiRequest"]
     }
   },
   "include": ["src"]
