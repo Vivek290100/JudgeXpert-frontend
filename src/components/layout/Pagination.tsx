@@ -14,7 +14,7 @@ const Pagination: React.FC<PaginationProps> = ({
   const { theme } = useTheme();
 
   const renderPaginationButtons = () => {
-    const buttons = [];
+    const buttons: React.ReactNode[] = [];
     const adjustedMaxButtons = window.innerWidth < 640 ? Math.min(3, maxVisibleButtons) : maxVisibleButtons;
     let startPage = Math.max(1, currentPage - Math.floor(adjustedMaxButtons / 2));
     let endPage = Math.min(totalPages, startPage + adjustedMaxButtons - 1);

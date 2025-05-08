@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { apiRequest } from "@/utils/axios/ApiRequest";
+import { apiRequest } from "../../utils/axios/ApiRequest";
 import { ApiResponse, IProblem } from "@/types/ProblemTypes";
 import { Calendar, Clock, ListChecks, AlertCircle, Loader2, CheckCircle } from "lucide-react";
 import { Contest } from "@/types/ContestType";
