@@ -22,6 +22,11 @@ const AddContestForm: React.FC<AddContestFormProps> = ({ onContestCreated, onClo
   const [activeStep, setActiveStep] = useState(1);
   const [formValid, setFormValid] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  // console.log("setStartTime",setStartTime);
+  console.log("startTime",startTime);
+  // console.log("setEndTime",setEndTime);
+  console.log("endTime",endTime);
+  
 
   useEffect(() => {
     const fetchProblems = async () => {
@@ -97,6 +102,9 @@ const AddContestForm: React.FC<AddContestFormProps> = ({ onContestCreated, onClo
           isActive: apiContest.isActive ?? true,
           isBlocked: apiContest.isBlocked ?? false,
         };
+
+        console.log("newContest",newContest);
+        
 
         onContestCreated(newContest);
         setTitle("");
@@ -193,38 +201,38 @@ const AddContestForm: React.FC<AddContestFormProps> = ({ onContestCreated, onClo
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300 flex items-center">
-                    <span className="bg-green-500/20 p-1 rounded mr-2">
-                      <Clock className="h-4 w-4 text-green-400" />
-                    </span>
-                    Start Time
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full p-3 rounded-lg border border-gray-700 bg-gray-800/50 text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                    required
-                  />
-                </div>
+  <div className="space-y-2">
+    <label className="text-sm font-medium text-gray-300 flex items-center">
+      <span className="bg-green-500/20 p-1 rounded mr-2">
+        <Clock className="h-4 w-4 text-green-400" />
+      </span>
+      Start Time (IST)
+    </label>
+    <input
+      type="datetime-local"
+      value={startTime}
+      onChange={(e) => setStartTime(e.target.value)}
+      className="w-full p-3 rounded-lg border border-gray-700 bg-gray-800/50 text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+      required
+    />
+  </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300 flex items-center">
-                    <span className="bg-red-500/20 p-1 rounded mr-2">
-                      <Clock className="h-4 w-4 text-red-400" />
-                    </span>
-                    End Time
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    className="w-full p-3 rounded-lg border border-gray-700 bg-gray-800/50 text-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-                    required
-                  />
-                </div>
-              </div>
+  <div className="space-y-2">
+    <label className="text-sm font-medium text-gray-300 flex items-center">
+      <span className="bg-red-500/20 p-1 rounded mr-2">
+        <Clock className="h-4 w-4 text-red-400" />
+      </span>
+      End Time (IST)
+    </label>
+    <input
+      type="datetime-local"
+      value={endTime}
+      onChange={(e) => setEndTime(e.target.value)}
+      className="w-full p-3 rounded-lg border border-gray-700 bg-gray-800/50 text-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+      required
+    />
+  </div>
+</div>
 
               {startTime && endTime && new Date(endTime) <= new Date(startTime) && (
                 <div className="text-sm text-red-400 flex items-center">
