@@ -21,11 +21,16 @@ const notificationSlice = createSlice({
   initialState,
   reducers: {
     addNotification(state, action: PayloadAction<Notification>) {
+      console.log("Adding notification:", action.payload);
       if (!state.notifications.some((n) => n.contestId === action.payload.contestId)) {
         state.notifications.push(action.payload);
+        console.log("Notification added. Current notifications:", state.notifications);
+      } else {
+        console.log("Notification skipped (duplicate contestId):", action.payload.contestId);
       }
     },
     clearNotifications(state) {
+      console.log("Clearing notifications. Previous notifications:", state.notifications);
       state.notifications = [];
     },
   },
