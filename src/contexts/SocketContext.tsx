@@ -18,93 +18,76 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-  if (!user) {
-    if (socket) {
-      socket.disconnect();
-      setSocket(null);
-      console.log(`WebSocket disconnected due to no user`);
+    if (!user) {
+      if (socket) {
+        socket.disconnect();
+        setSocket(null);
+        console.log("WebSocket disconnected due to no user");
+      }
+      return;
     }
-    return;
-  }
 
-  const newSocket = io(API_BASE_URL, {
-    query: { userId: user.id },
-    withCredentials: true,
-    reconnection: true,
-    reconnectionAttempts: 30,
-    reconnectionDelay: 500,
-    reconnectionDelayMax: 5000,
-    timeout: 30000,
-    transports: ["websocket"],
-  });
+    const newSocket = io(API_BASE_URL, {
+      query: { userId: user.id },
+      withCredentials: true,
+      reconnection: true,
+      reconnectionAttempts: 30,
+      reconnectionDelay: 500,
+      reconnectionDelayMax: 5000,
+      timeout: 30000,
+      transports: ["websocket"],
+    });
 
-  newSocket.on("connect", () => {
-    console.log(`WebSocket connected for user ${user.id} (socket ${newSocket.id})`);
-    // Request pending notifications
-    newSocket.emit("requestPendingNotifications", user.id);
-  });
+    newSocket.on("connect", () => {
+      console.log(`WebSocket connected for user ${user.id} (socket ${newSocket.id})`);
+      newSocket.emit("requestPendingNotifications", user.id);
+    });
 
-  newSocket.on("contestStarted", (notification) => {
-    console.log("Received contestStarted notification:", JSON.stringify(notification, null, 2));
-    dispatch(addNotification(notification));
-    toast.success(notification.message);
-  });
+    newSocket.on("contestStarted", (notification) => {
+      console.log("Received contestStarted notification:", JSON.stringify(notification, null, 2));
+      // Log all keys to inspect structure
+      console.log("Notification keys:", Object.keys(notification));
+      // Temporarily relaxed validation for debugging
+      if (notification) {
+        try {
+          // Normalize payload to match Notification interface
+          const normalizedNotification = {
+            type: notification.type || "contestStarted",
+            contestId: notification.contestId?.toString() || "",
+            title: notification.title || "Unknown Contest",
+            message: notification.message || "Contest has started",
+            timestamp: notification.timestamp || new Date().toISOString(),
+          };
+          dispatch(addNotification(normalizedNotification));
+          toast.success(normalizedNotification.message, { duration: 5000 });
+          console.log("Dispatched addNotification successfully:", normalizedNotification);
+        } catch (error) {
+          console.error("Error dispatching addNotification:", error);
+        }
+      } else {
+        console.error("Invalid or null notification payload:", notification);
+      }
+    });
 
     newSocket.on("connect_error", (error) => {
       console.error(`WebSocket connection error for user ${user.id}: ${error.message}`);
     });
 
-    newSocket.on("reconnect_attempt", (attempt) => {
-      console.log(`WebSocket reconnect attempt ${attempt} for user ${user.id}`);
-    });
-
     newSocket.on("reconnect", () => {
       console.log(`WebSocket reconnected for user ${user.id}`);
+      newSocket.emit("requestPendingNotifications", user.id);
     });
 
     newSocket.on("reconnect_failed", () => {
       console.error(`WebSocket reconnection failed for user ${user.id}`);
     });
 
-    newSocket.on("messageReceived", (data) => {
-      console.log(`Received discussion message for user ${user.id}:`, data);
-    });
-
-    newSocket.on("replyReceived", (data) => {
-      console.log(`Received discussion reply for user ${user.id}:`, data);
-    });
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible" && !newSocket.connected) {
-        // console.log(`Tab active, attempting WebSocket reconnect for user ${user.id}`);
-        newSocket.connect();
-      }
-    };
-    const handleFocus = () => {
-      if (!newSocket.connected) {
-        // console.log(`Window focused, attempting WebSocket reconnect for user ${user.id}`);
-        newSocket.connect();
-      }
-    };
-
-    const reconnectInterval = setInterval(() => {
-      if (!newSocket.connected) {
-        // console.log(`Periodic check: WebSocket disconnected for user ${user.id}, attempting reconnect`);
-        newSocket.connect();
-      }
-    }, 5000);
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("focus", handleFocus);
-
     setSocket(newSocket);
 
     return () => {
-      clearInterval(reconnectInterval);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("focus", handleFocus);
       newSocket.disconnect();
       setSocket(null);
+      console.log("WebSocket disconnected");
     };
   }, [user, dispatch]);
 

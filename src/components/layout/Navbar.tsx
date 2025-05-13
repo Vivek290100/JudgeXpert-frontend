@@ -15,11 +15,13 @@ import { logout } from "@/redux/thunks/AuthThunks";
 import { useNavigation } from "@/contexts/Nvigation-context";
 import defaultProfileImage from "@/assets/navbar/defaultProfile.png";
 import toast from "react-hot-toast";
-import { clearNotifications } from "@/redux/slices/notificationSlice";
+import { addNotification, clearNotifications } from "@/redux/slices/notificationSlice";
 
 const Navbar = () => {
   const user = useSelector((state: RootState) => state.auth.user);
   const notifications = useSelector((state: RootState) => state.notifications.notifications);
+  console.log("Navbar rendering with notifications:", JSON.stringify(notifications, null, 2));
+
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { isMenuOpen, setIsMenuOpen } = useNavigation();
@@ -31,7 +33,21 @@ const Navbar = () => {
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
+      toast.error("Logout failed. Please try again.");
     }
+  };
+
+  const handleTestNotification = () => {
+    dispatch(
+      addNotification({
+        type: "contestStarted",
+        contestId: `test-${Date.now()}`, // Ensure unique ID
+        title: "Test Contest",
+        message: "This is a test notification",
+        timestamp: new Date().toISOString(),
+      })
+    );
+    toast.success("Test notification added!", { duration: 5000 });
   };
 
   return (
@@ -59,11 +75,9 @@ const Navbar = () => {
                 <Link to="/user/problems" className="text-muted-foreground hover:text-foreground">
                   Problems
                 </Link>
-
                 <Link to="/user/contests" className="text-muted-foreground hover:text-foreground">
                   Contests
                 </Link>
-
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
@@ -80,7 +94,9 @@ const Navbar = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-
+                <Button variant="outline" onClick={handleTestNotification}>
+                  Test Notification
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative flex items-center gap-2">
@@ -92,22 +108,24 @@ const Navbar = () => {
                       )}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64">
+                  <DropdownMenuContent align="end" className="w-80">
                     {notifications.length === 0 ? (
                       <DropdownMenuItem className="text-muted-foreground">
                         No notifications
                       </DropdownMenuItem>
                     ) : (
-                      notifications.map((notification, index) => (
+                      notifications.map((notification) => (
                         <DropdownMenuItem
-                          key={index}
+                          key={`${notification.contestId}-${notification.timestamp}`}
                           asChild
-                          className="flex flex-col items-start"
+                          className="flex flex-col items-start py-2"
                         >
                           <Link to={`/user/contests/${notification.contestId}`}>
                             <span className="font-medium">{notification.title}</span>
                             <span className="text-sm text-muted-foreground">{notification.message}</span>
-                            <span className="text-xs text-muted-foreground">{new Date(notification.timestamp).toLocaleString()}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(notification.timestamp).toLocaleString()}
+                            </span>
                           </Link>
                         </DropdownMenuItem>
                       ))
@@ -115,14 +133,16 @@ const Navbar = () => {
                     {notifications.length > 0 && (
                       <>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => dispatch(clearNotifications())} className="text-sm text-red-500">
+                        <DropdownMenuItem
+                          onClick={() => dispatch(clearNotifications())}
+                          className="text-sm text-red-500 cursor-pointer"
+                        >
                           Clear all notifications
                         </DropdownMenuItem>
                       </>
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
-
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center gap-2">
@@ -137,7 +157,12 @@ const Navbar = () => {
                             <div className="relative">
                               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-yellow-400 to-amber-600 animate-pulse blur-sm"></div>
                               <div className="relative bg-yellow-500 text-black rounded-full p-1 flex items-center justify-center w-4 h-4 border-2 border-amber-400 shadow-md">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-3 w-3"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
                                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                 </svg>
                               </div>
@@ -155,7 +180,12 @@ const Navbar = () => {
                       {user.isPremium && (
                         <div className="flex items-center gap-1 mt-1">
                           <div className="bg-yellow-500 text-black rounded-full p-0.5 flex items-center justify-center w-4 h-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-3 w-3"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
                               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                             </svg>
                           </div>
@@ -171,12 +201,13 @@ const Navbar = () => {
                       <Link to="/user/subscription">Pricing</Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout}>Sign out</DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                      Sign out
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>
             )}
-
             {!user && (
               <div className="flex items-center gap-4">
                 <Button asChild>
@@ -192,6 +223,11 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-4">
+            {user && (
+              <Button variant="outline" onClick={handleTestNotification}>
+                Test
+              </Button>
+            )}
             <ThemeToggle />
             <Button
               variant="ghost"
@@ -211,32 +247,60 @@ const Navbar = () => {
           <div className="px-2 pt-2 pb-3 space-y-1">
             {user ? (
               <>
-                <Link to="/user/problems" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                <Link
+                  to="/user/problems"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block px-3 py-2 text-muted-foreground hover:text-foreground"
+                >
                   Problems
                 </Link>
-                <Link to="/user/contests" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                <Link
+                  to="/user/contests"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block px-3 py-2 text-muted-foreground hover:text-foreground"
+                >
                   Contests
                 </Link>
-                <Link to="/user/leaderboard" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                <Link
+                  to="/user/leaderboard"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block px-3 py-2 text-muted-foreground hover:text-foreground"
+                >
                   Global Leaderboard
                 </Link>
-                <Link to="/user/contests/winners" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                <Link
+                  to="/user/contests/winners"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block px-3 py-2 text-muted-foreground hover:text-foreground"
+                >
                   Contest Leaderboard
                 </Link>
-                <Link to="/user/dashboard" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                <Link
+                  to="/user/dashboard"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block px-3 py-2 text-muted-foreground hover:text-foreground"
+                >
                   Profile
                 </Link>
-                <Link to="/user/subscription" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 text-muted-foreground hover:text-foreground">
+                <Link
+                  to="/user/subscription"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block px-3 py-2 text-muted-foreground hover:text-foreground"
+                >
                   Pricing
                 </Link>
               </>
             ) : (
               <>
                 <Button variant="ghost" asChild className="w-full justify-start">
-                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>Sign in</Link>
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                    Sign in
+                  </Link>
                 </Button>
                 <Button variant="ghost" asChild className="w-full justify-start">
-                  <Link to="/signup" onClick={() => setIsMenuOpen(false)}>Sign up</Link>
+                  <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
+                    Sign up
+                  </Link>
                 </Button>
               </>
             )}
@@ -257,7 +321,12 @@ const Navbar = () => {
                       <div className="relative">
                         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-yellow-400 to-amber-600 animate-pulse blur-sm"></div>
                         <div className="relative bg-yellow-500 text-black rounded-full p-1 flex items-center justify-center w-5 h-5 border-2 border-amber-400 shadow-md">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-3 w-3"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                           </svg>
                         </div>
@@ -271,7 +340,12 @@ const Navbar = () => {
                   {user.isPremium && (
                     <div className="flex items-center gap-1 mt-1">
                       <div className="bg-yellow-500 text-black rounded-full p-0.5 flex items-center justify-center w-4 h-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-3 w-3"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
                       </div>

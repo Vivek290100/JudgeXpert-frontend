@@ -78,17 +78,19 @@ self.addEventListener("fetch", (event) => {
         )
     );
   } else {
-    // Stale-while-revalidate for static assets
+   // Stale-while-revalidate for static assets
     event.respondWith(
       caches.match(event.request).then((cachedResponse) => {
         const fetchPromise = fetch(event.request)
           .then((networkResponse) => {
             if (networkResponse && networkResponse.status === 200) {
+              // Clone the response *before* potentially returning it
+              const responseToCache = networkResponse.clone();
               caches.open(CACHE_NAME).then((cache) => {
-                cache.put(event.request, networkResponse.clone());
+                cache.put(event.request, responseToCache);
               });
             }
-            return networkResponse;
+            return networkResponse; // Return the original response
           })
           .catch(() => null); // suppress fetch errors
         return cachedResponse || fetchPromise;

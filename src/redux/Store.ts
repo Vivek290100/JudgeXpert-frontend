@@ -10,7 +10,7 @@ import notificationReducer from "./slices/notificationSlice"
 const persistConfig = {
   key: "auth",
   storage,
-  whitelist: ["token", "isAuthenticated", "user"],
+  whitelist: ["token", "isAuthenticated", "user", "notifications"],
 };
 
 const persistedAuthReducer = persistReducer(persistConfig, authReducer);
