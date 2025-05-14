@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { X, Upload } from "lucide-react";
 import { useAppDispatch } from "@/redux/Store";
 import { processSpecificProblem } from "@/redux/thunks/ProblemThunks";
+import { removeNotification } from "@/redux/slices/notificationSlice";
 import toast from "react-hot-toast";
 
 interface AddNewProblemModalProps {
@@ -26,6 +27,7 @@ const AddNewProblemModal: React.FC<AddNewProblemModalProps> = ({
     try {
       await dispatch(processSpecificProblem({ problemDir: slug })).unwrap();
       toast.success(`Problem ${slug} processed successfully!`);
+      dispatch(removeNotification({ slug, type: "newProblem" }));
       onProblemProcessed(slug);
       setSelectedSlug(null);
       if (newProblems.length === 1) onClose();

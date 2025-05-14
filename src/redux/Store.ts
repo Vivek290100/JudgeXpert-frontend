@@ -1,28 +1,35 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
+import { combineReducers } from "redux";
 import storage from "redux-persist/lib/storage";
 import authReducer from "./slices/AuthSlice";
 import adminReducer from "./slices/AdminSlice";
 import userReducer from "./slices/UserSlice";
 import problemReducer from "./slices/ProblemSlice";
-import notificationReducer from "./slices/notificationSlice"
+import notificationReducer from "./slices/notificationSlice";
 
-const persistConfig = {
+const authPersistConfig = {
   key: "auth",
   storage,
-  whitelist: ["token", "isAuthenticated", "user", "notifications"],
+  whitelist: ["token", "isAuthenticated", "user"],
 };
 
-const persistedAuthReducer = persistReducer(persistConfig, authReducer);
+const notificationPersistConfig = {
+  key: "notifications",
+  storage,
+  whitelist: ["notifications"],
+};
+
+const rootReducer = combineReducers({
+  auth: persistReducer(authPersistConfig, authReducer),
+  admin: adminReducer,
+  user: userReducer,
+  problems: problemReducer,
+  notifications: persistReducer(notificationPersistConfig, notificationReducer),
+});
 
 const store = configureStore({
-  reducer: {
-    auth: persistedAuthReducer,
-    admin: adminReducer,
-    user: userReducer,
-    problems: problemReducer,
-    notifications: notificationReducer,
-  },
+  reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {

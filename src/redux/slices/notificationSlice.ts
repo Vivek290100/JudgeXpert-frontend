@@ -6,6 +6,7 @@ interface Notification {
   title: string;
   message: string;
   timestamp: string;
+  slug?: string; // Optional for newProblem notifications
 }
 
 interface NotificationState {
@@ -23,20 +24,29 @@ const notificationSlice = createSlice({
     addNotification(state, action: PayloadAction<Notification>) {
       console.log("Before adding notification:", state.notifications);
       console.log("Adding notification:", action.payload);
-      // Check for existing notification with same contestId and type
       const existingIndex = state.notifications.findIndex(
-        (n) => n.contestId === action.payload.contestId && n.type === action.payload.type
+        (n) =>
+          (n.contestId && n.contestId === action.payload.contestId && n.type === action.payload.type) ||
+          (n.slug && n.slug === action.payload.slug && n.type === action.payload.type)
       );
       if (existingIndex >= 0) {
-        // Update existing notification
         state.notifications[existingIndex] = action.payload;
-        console.log("Updated existing notification:", action.payload.contestId);
+        console.log("Updated existing notification:", action.payload.slug || action.payload.contestId);
       } else {
-        // Add new notification
         state.notifications.push(action.payload);
-        console.log("Added new notification:", action.payload.contestId);
+        console.log("Added new notification:", action.payload.slug || action.payload.contestId);
       }
       console.log("Current notifications:", state.notifications);
+    },
+    removeNotification(state, action: PayloadAction<{ slug?: string; contestId?: string; type: string }>) {
+      state.notifications = state.notifications.filter(
+        (n) =>
+          !(
+            (n.slug && n.slug === action.payload.slug && n.type === action.payload.type) ||
+            (n.contestId && n.contestId === action.payload.contestId && n.type === action.payload.type)
+          )
+      );
+      console.log("Removed notification:", action.payload);
     },
     clearNotifications(state) {
       console.log("Clearing notifications. Previous:", state.notifications);
@@ -46,5 +56,5 @@ const notificationSlice = createSlice({
   },
 });
 
-export const { addNotification, clearNotifications } = notificationSlice.actions;
+export const { addNotification, removeNotification, clearNotifications } = notificationSlice.actions;
 export default notificationSlice.reducer;

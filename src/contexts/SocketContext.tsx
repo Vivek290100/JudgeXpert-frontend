@@ -69,6 +69,31 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
 
+    newSocket.on("newProblem", (notification) => {
+  console.log("Received newProblem notification:", JSON.stringify(notification, null, 2));
+  if (notification) {
+    try {
+      const normalizedNotification = {
+        type: "newProblem",
+        contestId: "", // No contestId for newProblem, set as empty
+        title: notification.title || "New Problem Added",
+        message: notification.message || `New problem ${notification.slug} is available`,
+        timestamp: notification.timestamp || new Date().toISOString(),
+      };
+      dispatch(addNotification(normalizedNotification));
+      toast.success(normalizedNotification.message, {
+        id: `new-problem-${notification.slug}`,
+        duration: 5000,
+      });
+      console.log("Dispatched newProblem notification:", normalizedNotification);
+    } catch (error) {
+      console.error("Error dispatching newProblem notification:", error);
+    }
+  } else {
+    console.error("Invalid or null newProblem notification payload:", notification);
+  }
+});
+
     newSocket.on("connect_error", (error) => {
       console.error(`WebSocket connection error for user ${user.id}: ${error.message}`);
     });
