@@ -94,9 +94,9 @@ const Navbar = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button variant="outline" onClick={handleTestNotification}>
+                {/* <Button variant="outline" onClick={handleTestNotification}>
                   Test Notification
-                </Button>
+                </Button> */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative flex items-center gap-2">
