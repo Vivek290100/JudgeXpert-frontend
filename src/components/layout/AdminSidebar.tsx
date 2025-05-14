@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Users, LayoutDashboard, Code2, Trophy, LogOut, ChevronLeft, Menu, Sun, Moon, Plus } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { logout } from "@/redux/thunks/AuthThunks";
 import toast from "react-hot-toast";
-import { AppDispatch, RootState } from "@/redux/Store";
+import { AppDispatch } from "@/redux/Store";
 import { SidebarItem } from "@/types/ComponentsTypes";
+import { getSocket } from "@/utils/socket";
 import AddNewProblemModal from "../admin/AddNewProblemModal";
 
 export default function AdminSidebar() {
@@ -14,15 +15,13 @@ export default function AdminSidebar() {
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
   const { theme, toggleTheme } = useTheme();
-  const notifications = useSelector((state: RootState) => state.notifications.notifications);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isOpen, setIsOpen] = useState(!isMobile);
+  const [newProblems, setNewProblems] = useState<string[]>(() => {
+    const saved = localStorage.getItem("newProblems");
+    return saved ? JSON.parse(saved) : [];
+  });
   const [isAddProblemModalOpen, setIsAddProblemModalOpen] = useState(false);
-
-  // Filter newProblem notifications
-  const newProblems = notifications
-    .filter((n) => n.type === "newProblem" && n.slug)
-    .map((n) => n.slug!);
 
   const sidebarItems: SidebarItem[] = [
     { title: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" />, path: "/admin/dashboard" },
@@ -72,6 +71,38 @@ export default function AdminSidebar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) {
+      console.warn("Socket not initialized in AdminSidebar");
+      return;
+    }
+
+    socket.on("newProblem", (notification: { slug: string; message: string }) => {
+      console.log("AdminSidebar received newProblem:", notification);
+      setNewProblems((prev) => {
+        if (prev.includes(notification.slug)) return prev;
+        const updated = [...new Set([...prev, notification.slug])];
+        localStorage.setItem("newProblems", JSON.stringify(updated));
+        toast.success(notification.message, {
+          id: `new-problem-${notification.slug}`,
+          duration: 5000, // Show toast for 5 seconds
+        });
+        console.log("Toast displayed for slug:", notification.slug);
+        return updated;
+      });
+    });
+    socket.on("connect_error", (err) => {
+      console.error("AdminSidebar Socket.IO connect error:", err.message);
+      toast.error("Failed to connect to notification service");
+    });
+
+    return () => {
+      socket.off("newProblem");
+      socket.off("connect_error");
+    };
+  }, []);
+
   const handleNavigation = (item: SidebarItem) => {
     setActiveItem(item.title);
     if (item.onClick) {
@@ -80,6 +111,7 @@ export default function AdminSidebar() {
       navigate(item.path);
     }
     if (isMobile) toggleSidebar();
+    console.log("Navigated to:", item.title, "newProblems:", newProblems);
   };
 
   const handleSignOut = async () => {
@@ -94,9 +126,13 @@ export default function AdminSidebar() {
   };
 
   const handleProblemProcessed = (slug: string) => {
-    // Optionally dispatch an action to remove the notification from Redux
-    // For now, just update the UI
-    toast.dismiss(`new-problem-${slug}`);
+    setNewProblems((prev) => {
+      const updated = prev.filter((s) => s !== slug);
+      localStorage.setItem("newProblems", JSON.stringify(updated));
+      toast.dismiss(`new-problem-${slug}`);
+      console.log("Problem processed, dismissed toast for slug:", slug);
+      return updated;
+    });
   };
 
   return (
@@ -126,9 +162,7 @@ export default function AdminSidebar() {
             <>
               <div className="flex items-center gap-2">
                 <Code2 className="w-5 sm:w-6 h-5 sm:h-6 text-primary" aria-hidden="true" />
-                <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue
-
--500 to-blue-800 bg-clip-text text-transparent">
+                <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-blue-800 bg-clip-text text-transparent">
                   Judge
                   <span
                     className={`text-transparent bg-clip-text bg-gradient-to-r ${
