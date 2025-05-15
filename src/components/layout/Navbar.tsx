@@ -15,7 +15,7 @@ import { logout } from "@/redux/thunks/AuthThunks";
 import { useNavigation } from "@/contexts/Nvigation-context";
 import defaultProfileImage from "@/assets/navbar/defaultProfile.png";
 import toast from "react-hot-toast";
-import { addNotification, clearNotifications } from "@/redux/slices/notificationSlice";
+import { clearNotifications } from "@/redux/slices/notificationSlice";
 
 const Navbar = () => {
   const user = useSelector((state: RootState) => state.auth.user);
@@ -37,18 +37,18 @@ const Navbar = () => {
     }
   };
 
-  const handleTestNotification = () => {
-    dispatch(
-      addNotification({
-        type: "contestStarted",
-        contestId: `test-${Date.now()}`, // Ensure unique ID
-        title: "Test Contest",
-        message: "This is a test notification",
-        timestamp: new Date().toISOString(),
-      })
-    );
-    toast.success("Test notification added!", { duration: 5000 });
-  };
+  // const handleTestNotification = () => {
+  //   dispatch(
+  //     addNotification({
+  //       type: "contestStarted",
+  //       contestId: `test-${Date.now()}`, // Ensure unique ID
+  //       title: "Test Contest",
+  //       message: "This is a test notification",
+  //       timestamp: new Date().toISOString(),
+  //     })
+  //   );
+  //   toast.success("Test notification added!", { duration: 5000 });
+  // };
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-md z-50">
@@ -223,11 +223,11 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-4">
-            {user && (
+            {/* {user && (
               <Button variant="outline" onClick={handleTestNotification}>
                 Test
               </Button>
-            )}
+            )} */}
             <ThemeToggle />
             <Button
               variant="ghost"
