@@ -140,11 +140,15 @@ const EditProfile: React.FC<EditProfileProps> = ({ isOpen, onClose }) => {
         <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
         
         {loading && <div className="text-center mb-4">Updating profile...</div>}
+        {errors.profileImage && (
+                <p className= "text-center text-red-500 text-sm mt-1">{errors.profileImage}</p>
+              )}
         {errors.general && <div className="text-red-500 mb-4">{errors.general}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="flex justify-center mb-6">
             <div className="relative">
+              
               <div className="w-24 h-24 bg-muted rounded-lg overflow-hidden">
                 {previewImage ? (
                   <img
@@ -160,12 +164,14 @@ const EditProfile: React.FC<EditProfileProps> = ({ isOpen, onClose }) => {
                   </div>
                 )}
               </div>
+              
               <label
                 htmlFor="profileImage"
                 className="absolute bottom-0 right-0 bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"
               >
                 <FaCamera size={14} />
               </label>
+              
               <input
                 type="file"
                 id="profileImage"
@@ -174,9 +180,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ isOpen, onClose }) => {
                 accept="image/*"
                 onChange={handleImageChange}
               />
-              {errors.profileImage && (
-                <p className="text-red-500 text-sm mt-1">{errors.profileImage}</p>
-              )}
+              
             </div>
           </div>
 
