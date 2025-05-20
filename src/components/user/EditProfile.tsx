@@ -66,6 +66,15 @@ const EditProfile: React.FC<EditProfileProps> = ({ isOpen, onClose }) => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      const maxSizeInBytes = 5 * 1024 * 1024;
+
+      if (file.size > maxSizeInBytes) {
+        setErrors((prev) => ({
+          ...prev,
+          profileImage: 'Image size must be less than 5MB',
+        }));
+        return;
+      }
 
       setFormData({ ...formData, profileImage: file });
       setIsDirty(true);
