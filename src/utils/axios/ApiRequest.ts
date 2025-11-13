@@ -12,9 +12,10 @@ export async function apiRequest<T>(method: "post" | "get" | "put" | "patch", ur
 
     return response.data; 
   } catch (error) {
-    if (isAxiosError(error)) {
-      console.error("API Request Error:", error.response?.data || error.message);
-      return rejectWithValue ? rejectWithValue(error.response?.data?.message || "An error occurred"): Promise.reject(error);
+    const err = error as any;
+    if (isAxiosError(err)) {
+      console.error("API Request Error:", err.response?.data || err.message);
+      return rejectWithValue ? rejectWithValue(err.response?.data?.message || "An error occurred"): Promise.reject(error);
     }
     return Promise.reject(error);
   }
